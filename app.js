@@ -637,19 +637,197 @@ async function endSession() {
   if (!activeSession) return;
   if (!confirm('End this session? A summary will be saved.')) return;
 
+  // Mark session completed
   await db.from('sessions').update({ status: 'completed' }).eq('id', activeSession.id);
+
+  // Fetch all responses for this session
+  const { data: responses } = await db
+    .from('session_responses')
+    .select('*')
+    .eq('session_id', activeSession.id)
+    .order('created_at', { ascending: true });
+
+  // Build summary data
+  const summary = buildSessionSummary(responses || []);
+
+  // Generate narrative summary
+  const narrative = generateNarrative(summary, activeSession.activity_type);
+
+  // Save to session_summaries
+  const { data: savedSummary } = await db.from('session_summaries').insert({
+    session_id:                 activeSession.id,
+    client_id:                  activeSession.client_id,
+    therapist_id:               currentUser.id,
+    activity_type:              activeSession.activity_type,
+    duration_seconds:           sessionSeconds,
+    total_steps:                summary.totalSteps,
+    correct_answers:            summary.correctAnswers,
+    emotions_explored:          summary.emotionsExplored,
+    journal_prompts_completed:  summary.journalPrompts,
+    breathing_completed:        summary.breathingCompleted,
+    responses:                  responses || [],
+    generated_summary:          narrative,
+  }).select().single();
 
   if (sessionListener) sessionListener.unsubscribe();
   if (sessionTimerInterval) clearInterval(sessionTimerInterval);
 
+  // Show summary panel instead of just closing
+  showSessionSummary(savedSummary, narrative);
+
+  activeSession = null;
+  renderActivities();
+}
+
+function buildSessionSummary(responses) {
+  const summary = {
+    totalSteps:        responses.length,
+    correctAnswers:    0,
+    emotionsExplored:  [],
+    journalPrompts:    0,
+    breathingCompleted: false,
+  };
+
+  responses.forEach(r => {
+    const d = r.response_data;
+    if (d.correct === true)  summary.correctAnswers++;
+    if (d.emotion)           summary.emotionsExplored.push(d.emotion);
+    if (d.response)          summary.journalPrompts++;
+    if (d.completed === true) summary.breathingCompleted = true;
+  });
+
+  return summary;
+}
+
+function generateNarrative(summary, activityType) {
+  const mins = Math.floor(sessionSeconds / 60);
+  const secs = sessionSeconds % 60;
+  const duration = mins > 0 ? `${mins} minute${mins > 1 ? 's' : ''}` : `${secs} seconds`;
+
+  let narrative = `Session lasted ${duration}. `;
+
+  if (activityType === 'quiz') {
+    const total = summary.totalSteps;
+    const correct = summary.correctAnswers;
+    const pct = total > 0 ? Math.round((correct / total) * 100) : 0;
+    narrative += `Client completed ${total} quiz question${total !== 1 ? 's' : ''}, `;
+    narrative += `answering ${correct} correctly (${pct}%). `;
+    if (pct >= 80) narrative += `Strong performance — client demonstrated solid coping knowledge.`;
+    else if (pct >= 50) narrative += `Good effort — some concepts may benefit from further exploration.`;
+    else narrative += `Several concepts to revisit — consider reviewing coping strategies together.`;
+  }
+
+  else if (activityType === 'breathing') {
+    if (summary.breathingCompleted) {
+      narrative += `Client completed the full breathing exercise. `;
+      narrative += `This suggests good ability to follow guided regulation techniques.`;
+    } else {
+      narrative += `Client engaged with the breathing exercise. `;
+      narrative += `Consider checking in about comfort level with the technique.`;
+    }
+  }
+
+  else if (activityType === 'journal') {
+    const prompts = summary.journalPrompts;
+    narrative += `Client responded to ${prompts} journal prompt${prompts !== 1 ? 's' : ''}. `;
+    narrative += `Written reflections have been saved for review.`;
+  }
+
+  else if (activityType === 'emotions') {
+    const emotions = summary.emotionsExplored;
+    if (emotions.length > 0) {
+      narrative += `Client explored the following emotion${emotions.length > 1 ? 's' : ''}: ${emotions.join(', ')}. `;
+      if (emotions.includes('Angry') || emotions.includes('Anxious')) {
+        narrative += `Consider exploring triggers and coping strategies in follow-up.`;
+      } else if (emotions.includes('Happy') || emotions.includes('Calm')) {
+        narrative += `Client identified positive emotional states — good opportunity to anchor what contributed to this.`;
+      } else {
+        narrative += `Explore what these emotions mean for the client in their current context.`;
+      }
+    }
+  }
+
+  return narrative;
+}
+
+function showSessionSummary(savedSummary, narrative) {
+  const panel = document.getElementById('session-panel');
+  if (!panel) return;
+
+  const mins = Math.floor(sessionSeconds / 60);
+  const secs = sessionSeconds % 60;
+  const duration = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+
+  panel.querySelector('.session-panel-inner').innerHTML = `
+    <div class="session-panel-header">
+      <div class="session-panel-title">
+        <span>📋</span>
+        <span>Session Summary</span>
+      </div>
+      <button class="session-close-btn" onclick="closeSessionPanel()">Close</button>
+    </div>
+
+    <div class="summary-duration">
+      <span class="summary-duration-icon">⏱️</span>
+      <span>${duration}</span>
+    </div>
+
+    <div class="summary-narrative">
+      <p class="summary-narrative-label">Session Overview</p>
+      <p class="summary-narrative-text">${narrative}</p>
+    </div>
+
+    <div class="summary-stats">
+      <div class="summary-stat">
+        <div class="summary-stat-val">${savedSummary?.total_steps || 0}</div>
+        <div class="summary-stat-lbl">Steps</div>
+      </div>
+      <div class="summary-stat">
+        <div class="summary-stat-val">${savedSummary?.correct_answers || 0}</div>
+        <div class="summary-stat-lbl">Correct</div>
+      </div>
+      <div class="summary-stat">
+        <div class="summary-stat-val">${(savedSummary?.emotions_explored || []).length}</div>
+        <div class="summary-stat-lbl">Emotions</div>
+      </div>
+    </div>
+
+    <div class="summary-notes-section">
+      <p class="summary-narrative-label">Therapist Notes</p>
+      <textarea
+        id="therapist-notes-input"
+        class="summary-notes-input"
+        placeholder="Add your observations from this session..."
+        rows="4"
+      ></textarea>
+      <button class="primary-save-btn" onclick="saveTherapistNotes('${savedSummary?.id}')">
+        Save Notes
+      </button>
+    </div>
+  `;
+}
+
+async function saveTherapistNotes(summaryId) {
+  const notes = document.getElementById('therapist-notes-input').value.trim();
+  if (!summaryId) return;
+
+  await db.from('session_summaries')
+    .update({ therapist_notes: notes })
+    .eq('id', summaryId);
+
+  // Visual confirmation
+  const btn = document.querySelector('.primary-save-btn');
+  btn.textContent = '✓ Saved';
+  btn.style.background = '#5DCB6E';
+  setTimeout(() => {
+    closeSessionPanel();
+  }, 1200);
+}
+
+function closeSessionPanel() {
   const panel = document.getElementById('session-panel');
   if (panel) {
     panel.classList.remove('open');
     setTimeout(() => panel.remove(), 300);
   }
-
-  activeSession = null;
-
-  // Refresh the client view to show updated activity
-  renderActivities();
 }
