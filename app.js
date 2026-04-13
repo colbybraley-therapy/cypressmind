@@ -105,6 +105,16 @@ async function doSignOut() {
   showPage('pg-landing');
 }
 
+async function doSignInWithGoogle() {
+  const err = document.getElementById('si-err');
+  if (err) err.textContent = '';
+  const { error } = await db.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin + window.location.pathname }
+  });
+  if (error && err) { err.textContent = 'Google sign-in failed. Please try again.'; }
+}
+
 function loadApp() {
   const name = currentUser?.user_metadata?.full_name || currentUser?.email || '';
   document.getElementById('tb-name').textContent = name;
@@ -403,6 +413,10 @@ db.auth.getSession().then(({ data: { session } }) => {
 });
 
 db.auth.onAuthStateChange((event, session) => {
+  if (event === 'SIGNED_IN' && session?.user && !currentUser) {
+    currentUser = session.user;
+    loadApp();
+  }
   if (event === 'SIGNED_OUT') {
     currentUser = null;
     showPage('pg-landing');

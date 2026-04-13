@@ -140,6 +140,43 @@ h1 {
 }
 .btn-primary:hover { opacity: .8; }
 
+.or-divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 12px 0;
+  color: var(--color-text-tertiary);
+  font-size: 12px;
+}
+.or-divider::before,
+.or-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--color-border);
+}
+
+.btn-google {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 9px 14px;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--color-text);
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+}
+.btn-google:hover {
+  border-color: var(--color-border-hover);
+  background: var(--color-surface);
+}
+
 .btn-outline {
   background: transparent;
   border: 1px solid var(--color-border);
