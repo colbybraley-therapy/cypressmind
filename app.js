@@ -284,6 +284,7 @@ async function renderActivities() {
           </div>
         </div>
         <div class="lesson-actions">
+          <button class="start-session-btn" onclick="startLiveSession('${viewingClient.id}', '${viewingClient.name.replace(/'/g,"\\'")}', '${a.activity_type}', '${a.activity_icon || '🎯'}')">▶ Start</button>
           <span class="lesson-score" onclick="openScore('${a.id}', '${safeName}')">Score</span>
           <button class="del-lesson" onclick="deleteActivity('${a.id}')" title="Remove activity">✕</button>
         </div>
@@ -422,3 +423,233 @@ db.auth.onAuthStateChange((event, session) => {
     showPage('pg-landing');
   }
 });
+/* ============================================================
+   SESSION SYSTEM
+   ============================================================ */
+
+let activeSession = null;
+let sessionListener = null;
+
+/* Generate a random 6-character code */
+function generateCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+  return code;
+}
+
+/* Therapist starts a live session with a client */
+async function startLiveSession(clientId, clientName, activityType, activityIcon) {
+  const code = generateCode();
+
+  const { data: session, error } = await db.from('sessions').insert({
+    code,
+    therapist_id: currentUser.id,
+    client_id: clientId,
+    activity_type: activityType,
+    status: 'waiting'
+  }).select().single();
+
+  if (error) { alert('Could not create session. Please try again.'); return; }
+
+  activeSession = session;
+  showSessionPanel(code, clientName, activityType, activityIcon, session.id);
+}
+
+/* Show the therapist's session panel */
+function showSessionPanel(code, clientName, activityType, activityIcon, sessionId) {
+  // Remove existing panel if any
+  const existing = document.getElementById('session-panel');
+  if (existing) existing.remove();
+
+  const panel = document.createElement('div');
+  panel.id = 'session-panel';
+  panel.innerHTML = `
+    <div class="session-panel-inner">
+      <div class="session-panel-header">
+        <div class="session-panel-title">
+          <span>${activityIcon}</span>
+          <span>Live Session — ${clientName}</span>
+        </div>
+        <button class="session-close-btn" onclick="endSession()">End Session</button>
+      </div>
+
+      <div class="session-code-block" id="session-code-block">
+        <p class="session-code-label">Share this code with your client</p>
+        <div class="session-code">${code}</div>
+        <p class="session-code-sub">Client opens MindPlay on their device and enters this code</p>
+        <div class="session-status waiting" id="session-status">
+          ⏳ Waiting for client to join...
+        </div>
+      </div>
+
+      <div class="session-live" id="session-live" style="display:none">
+        <div class="session-status connected" id="session-status-live">
+          ✅ Client connected — session in progress
+        </div>
+        <div class="session-timer" id="session-timer">0:00</div>
+
+        <div class="prompt-panel" id="prompt-panel">
+          <p class="prompt-panel-label">💬 Therapist Prompts</p>
+          <div class="current-prompt" id="current-prompt">
+            Waiting for client to begin activity...
+          </div>
+          <div class="prompt-queue" id="prompt-queue"></div>
+        </div>
+
+        <div class="session-responses" id="session-responses">
+          <p class="responses-label">📋 Client Responses</p>
+          <div id="responses-list"></div>
+        </div>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(panel);
+  requestAnimationFrame(() => panel.classList.add('open'));
+
+  // Start listening for client joining
+  listenForSession(sessionId);
+  startSessionTimer();
+}
+
+/* Real-time listener — watches for client joining and responses */
+function listenForSession(sessionId) {
+  if (sessionListener) sessionListener.unsubscribe();
+
+  sessionListener = db
+    .channel('session-' + sessionId)
+    .on('postgres_changes', {
+      event: 'UPDATE',
+      schema: 'public',
+      table: 'sessions',
+      filter: `id=eq.${sessionId}`
+    }, payload => {
+      const session = payload.new;
+      if (session.status === 'active') {
+        showClientConnected();
+        updatePrompts(session.activity_type, session.client_step);
+      }
+      if (session.client_step !== undefined) {
+        updatePrompts(session.activity_type, session.client_step);
+      }
+    })
+    .on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'session_responses',
+      filter: `session_id=eq.${sessionId}`
+    }, payload => {
+      addResponseToPanel(payload.new);
+    })
+    .subscribe();
+}
+
+function showClientConnected() {
+  document.getElementById('session-code-block').style.display = 'none';
+  document.getElementById('session-live').style.display = 'block';
+}
+
+/* Session timer */
+let sessionTimerInterval = null;
+let sessionSeconds = 0;
+
+function startSessionTimer() {
+  sessionSeconds = 0;
+  if (sessionTimerInterval) clearInterval(sessionTimerInterval);
+  sessionTimerInterval = setInterval(() => {
+    sessionSeconds++;
+    const m = Math.floor(sessionSeconds / 60);
+    const s = sessionSeconds % 60;
+    const el = document.getElementById('session-timer');
+    if (el) el.textContent = m + ':' + String(s).padStart(2, '0');
+  }, 1000);
+}
+
+/* Therapist prompts — contextual per activity and step */
+const THERAPIST_PROMPTS = {
+  quiz: [
+    "Before we start — ask: \"How are you feeling about testing your knowledge today?\"",
+    "They just answered a question. Ask: \"What made you choose that answer?\"",
+    "Check in: \"Is any of this bringing up things you've experienced yourself?\"",
+    "Encourage: \"You're doing great. What's feeling most familiar to you so far?\"",
+    "Reflect: \"Which question felt hardest? Why do you think that is?\"",
+    "Wrap up: \"What's one thing from this quiz you want to remember this week?\""
+  ],
+  breathing: [
+    "Before starting: \"Where do you feel stress most in your body right now?\"",
+    "They're beginning to breathe. Gently say: \"Just follow the circle — no pressure.\"",
+    "Mid-exercise: \"Notice anything shifting? Even a tiny bit of calm counts.\"",
+    "Check in: \"Is this pace comfortable, or would you like to try a different technique?\"",
+    "Finishing up: \"What did you notice in your body during that exercise?\"",
+    "Close: \"When could you use this technique on your own this week?\""
+  ],
+  journal: [
+    "Before writing: \"There are no wrong answers here — just honest ones.\"",
+    "They're writing. Give them space. When ready: \"Want to share anything you wrote?\"",
+    "Follow up: \"What felt surprising or hard to write?\"",
+    "Go deeper: \"If you could say one more thing about that, what would it be?\"",
+    "Connect: \"How does what you wrote connect to something in your life right now?\"",
+    "Close: \"What do you want to carry with you from what you wrote today?\""
+  ],
+  emotions: [
+    "Before selecting: \"Don't overthink it — just go with your gut feeling right now.\"",
+    "They picked an emotion. Ask: \"When did you first notice feeling this way today?\"",
+    "Go deeper: \"Where do you feel that emotion in your body?\"",
+    "Explore: \"Has this feeling been visiting you often lately?\"",
+    "Coping: \"Of the strategies shown, which one feels most doable for you?\"",
+    "Close: \"What would it feel like to give yourself permission to feel this without judgment?\""
+  ]
+};
+
+function updatePrompts(activityType, step) {
+  const prompts = THERAPIST_PROMPTS[activityType] || THERAPIST_PROMPTS.quiz;
+  const currentEl = document.getElementById('current-prompt');
+  const queueEl = document.getElementById('prompt-queue');
+  if (!currentEl || !queueEl) return;
+
+  const currentIdx = Math.min(step, prompts.length - 1);
+  currentEl.textContent = prompts[currentIdx];
+
+  // Show next 2 upcoming prompts
+  const upcoming = prompts.slice(currentIdx + 1, currentIdx + 3);
+  queueEl.innerHTML = upcoming.length
+    ? '<p class="upcoming-label">Coming up:</p>' +
+      upcoming.map(p => `<div class="upcoming-prompt">${p}</div>`).join('')
+    : '';
+}
+
+/* Add a client response to the therapist panel */
+function addResponseToPanel(response) {
+  const list = document.getElementById('responses-list');
+  if (!list) return;
+  const data = response.response_data;
+  const div = document.createElement('div');
+  div.className = 'response-item';
+  div.innerHTML = `
+    <div class="response-step">Step ${response.step_index + 1}</div>
+  <div class="response-content">${JSON.stringify(data).replace(/[{}"]/g, '').replace(/,/g, ' · ')}</div>
+  `;
+  list.appendChild(div);
+}
+
+/* End the session */
+async function endSession() {
+  if (!activeSession) return;
+  if (!confirm('End this session? A summary will be saved.')) return;
+
+  await db.from('sessions').update({ status: 'completed' }).eq('id', activeSession.id);
+
+  if (sessionListener) sessionListener.unsubscribe();
+  if (sessionTimerInterval) clearInterval(sessionTimerInterval);
+
+  const panel = document.getElementById('session-panel');
+  if (panel) {
+    panel.classList.remove('open');
+    setTimeout(() => panel.remove(), 300);
+  }
+
+  activeSession = null;
+
+  // Refresh the client view to show updated activity
+  renderActivities();
+}

@@ -791,3 +791,235 @@ h1 {
   .story-grid { grid-template-columns: 1fr; }
   .hero-title { font-size: 26px; }
 }
+/* ============================================================
+   SESSION PANEL
+   ============================================================ */
+
+#session-panel {
+  position: fixed;
+  top: 0; right: 0;
+  width: 100%;
+  max-width: 420px;
+  height: 100vh;
+  background: #fff;
+  box-shadow: -4px 0 40px rgba(0,0,0,0.15);
+  z-index: 1000;
+  transform: translateX(100%);
+  transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+  overflow-y: auto;
+  border-left: 1px solid var(--color-border, #eee);
+}
+
+#session-panel.open {
+  transform: translateX(0);
+}
+
+.session-panel-inner {
+  padding: 24px 20px 48px;
+}
+
+.session-panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.session-panel-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 16px;
+  font-weight: 700;
+  color: #1E1B3A;
+}
+
+.session-close-btn {
+  background: #fff0eb;
+  color: #9E3A1E;
+  border: none;
+  border-radius: 999px;
+  padding: 7px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.session-close-btn:hover {
+  background: #ffd9cc;
+}
+
+/* Code block */
+.session-code-block {
+  text-align: center;
+  background: #f7f6ff;
+  border-radius: 16px;
+  padding: 28px 20px;
+  border: 1px solid rgba(124,111,224,0.15);
+}
+
+.session-code-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #7B7899;
+  margin-bottom: 12px;
+}
+
+.session-code {
+  font-size: 48px;
+  font-weight: 800;
+  letter-spacing: 8px;
+  color: #7C6FE0;
+  font-family: monospace;
+  margin-bottom: 12px;
+}
+
+.session-code-sub {
+  font-size: 12px;
+  color: #7B7899;
+  font-weight: 500;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+.session-status {
+  display: inline-block;
+  padding: 8px 18px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.session-status.waiting {
+  background: #fff8e6;
+  color: #8C6200;
+}
+
+.session-status.connected {
+  background: #edfbf0;
+  color: #1E6B2E;
+}
+
+/* Live session */
+.session-timer {
+  text-align: center;
+  font-size: 32px;
+  font-weight: 800;
+  color: #7C6FE0;
+  margin: 16px 0;
+  font-family: monospace;
+}
+
+/* Prompt panel */
+.prompt-panel {
+  background: #f7f6ff;
+  border-radius: 16px;
+  padding: 18px;
+  margin-bottom: 20px;
+  border: 1px solid rgba(124,111,224,0.15);
+}
+
+.prompt-panel-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #7B7899;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.current-prompt {
+  background: #fff;
+  border-left: 4px solid #7C6FE0;
+  border-radius: 0 12px 12px 0;
+  padding: 14px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #1E1B3A;
+  line-height: 1.6;
+  margin-bottom: 12px;
+}
+
+.upcoming-label {
+  font-size: 11px;
+  font-weight: 700;
+  color: #7B7899;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 8px;
+}
+
+.upcoming-prompt {
+  background: #eef0ff;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #4A3FB5;
+  margin-bottom: 6px;
+  line-height: 1.5;
+  opacity: 0.7;
+}
+
+/* Responses */
+.session-responses {
+  background: #fff;
+  border-radius: 16px;
+  padding: 18px;
+  border: 1px solid #f0f0f0;
+}
+
+.responses-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #7B7899;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 12px;
+}
+
+.response-item {
+  border-bottom: 1px solid #f5f5f5;
+  padding: 10px 0;
+}
+
+.response-item:last-child {
+  border-bottom: none;
+}
+
+.response-step {
+  font-size: 11px;
+  font-weight: 700;
+  color: #7C6FE0;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 4px;
+}
+
+.response-content {
+  font-size: 13px;
+  font-weight: 500;
+  color: #1E1B3A;
+  line-height: 1.5;
+}
+
+/* Start session button on activity rows */
+.start-session-btn {
+  background: #7C6FE0;
+  color: #fff;
+  border: none;
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.start-session-btn:hover {
+  background: #4A3FB5;
+}

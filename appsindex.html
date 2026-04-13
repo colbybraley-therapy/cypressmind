@@ -511,12 +511,50 @@
     .emotion-grid { grid-template-columns: repeat(3,1fr); }
   }
 </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 <div class="app">
 
+  <!-- JOIN SCREEN -->
+  <div id="join-screen" class="screen active">
+    <div class="screen-header" style="margin-top: 40px;">
+      <span class="big-icon">🎮</span>
+      <h2>Join Your Session</h2>
+      <p>Enter the code your therapist gave you</p>
+    </div>
+    <div class="card" style="text-align:center;">
+      <input
+        id="session-code-input"
+        type="text"
+        maxlength="6"
+        placeholder="e.g. ABC123"
+        style="
+          width:100%;
+          text-align:center;
+          font-size:32px;
+          font-weight:800;
+          letter-spacing:8px;
+          padding:16px;
+          border:2px solid #e0e0f0;
+          border-radius:14px;
+          font-family:monospace;
+          color:#7C6FE0;
+          background:#f7f6ff;
+          margin-bottom:12px;
+          text-transform:uppercase;
+        "
+        oninput="this.value=this.value.toUpperCase()"
+        onkeydown="if(event.key==='Enter') joinSession()"
+      />
+      <div class="err" id="join-err" style="color:#9E3A1E;font-size:13px;font-weight:600;margin-bottom:12px;min-height:18px;"></div>
+      <button class="primary-btn" onclick="joinSession()">Join Session →</button>
+      <button class="secondary-btn" onclick="skipJoin()">Continue without a code</button>
+    </div>
+  </div>
+
   <!-- HOME -->
-  <div id="home" class="screen active">
+  <div id="home" class="screen">
     <div class="topbar">
       <div class="logo">Mind<span>Play</span></div>
       <div class="xp-pill">⭐ <span id="xp-top">0 XP</span></div>
@@ -633,6 +671,74 @@ let qIdx = 0, qScore = 0;
 let jIdx = 0;
 let bPattern = null, bRunning = false, bTimer = null, bPhase = 0, bCycle = 0;
 
+/* ── SUPABASE ── */
+const SUPABASE_URL = 'https://vfpxovpwwabisfjjqkpm.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_-cIPFr0xt1CfC8fC8fwh0e_ew_Q6LIbcX5';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ── SESSION STATE ── */
+let currentSession = null;
+let currentClientId = null;
+let sessionChannel = null;
+
+/* ── JOIN SESSION ── */
+async function joinSession() {
+  const code = document.getElementById('session-code-input').value.trim().toUpperCase();
+  const err = document.getElementById('join-err');
+  err.textContent = '';
+
+  if (code.length !== 6) {
+    err.textContent = 'Please enter the 6-character code from your therapist.';
+    return;
+  }
+
+  const { data: session, error } = await db
+    .from('sessions')
+    .select('*')
+    .eq('code', code)
+    .eq('status', 'waiting')
+    .single();
+
+  if (error || !session) {
+    err.textContent = 'Code not found or session already started. Check with your therapist.';
+    return;
+  }
+
+  currentSession = session;
+  currentClientId = session.client_id;
+
+  // Mark session as active
+  await db.from('sessions').update({ status: 'active' }).eq('id', session.id);
+
+  // Subscribe to session updates from therapist
+  sessionChannel = db
+    .channel('client-session-' + session.id)
+    .subscribe();
+
+  // Launch the correct activity
+  document.getElementById('join-screen').classList.remove('active');
+  go(session.activity_type);
+}
+
+function skipJoin() {
+  document.getElementById('join-screen').classList.remove('active');
+  document.getElementById('home').classList.add('active');
+}
+
+/* ── SAVE RESPONSE ── */
+async function saveResponse(stepIndex, data) {
+  if (!currentSession) return;
+  await db.from('session_responses').insert({
+    session_id: currentSession.id,
+    client_id: currentClientId,
+    activity_type: currentSession.activity_type,
+    step_index: stepIndex,
+    response_data: data
+  });
+  // Update step on session so therapist prompts advance
+  await db.from('sessions').update({ client_step: stepIndex }).eq('id', currentSession.id);
+}
+
 /* ── XP ── */
 const levelNames = ['Explorer','Adventurer','Trailblazer','Champion','Luminary','Sage'];
 function addXP(n, label) {
@@ -717,11 +823,13 @@ function answerQ(i) {
     fb.className = 'feedback-box show good';
     fb.textContent = '✓ Correct! ' + q.explain;
     qScore++; addXP(10, 'Quiz correct!');
+    saveResponse(qIdx, { question: q.q, answer: q.opts[i], correct: true });
   } else {
     document.getElementById('o'+i).classList.add('wrong');
     document.getElementById('o'+q.ans).classList.add('correct');
     fb.className = 'feedback-box show bad';
     fb.textContent = '✗ The answer is: "' + q.opts[q.ans] + '". ' + q.explain;
+    saveResponse(qIdx, { question: q.q, answer: q.opts[i], correct: false });
   }
   setTimeout(() => { qIdx++; renderQuiz(); }, 2400);
 }
@@ -786,6 +894,7 @@ function runPhase() {
           document.getElementById('b-stage').textContent = 'Exercise complete!';
           document.getElementById('b-done').style.display = 'block';
           addXP(15, 'Breathing complete!');
+          saveResponse(bCycle, { technique: bPattern, cycles: 4, completed: true });
           return;
         }
       }
@@ -839,6 +948,7 @@ function saveJournal() {
   fb.className = 'feedback-box show good';
   fb.textContent = '✓ Reflection saved. Well done for showing up for yourself!';
   addXP(20, 'Journal complete!');
+  saveResponse(jIdx, { prompt: prompts[jIdx % prompts.length].text, response: txt });
   setTimeout(() => { jIdx++; renderJournal(); }, 2000);
 }
 
@@ -881,6 +991,7 @@ function renderEmotions() {
 
 function pickEmotion(i) {
   const e = emotions[i];
+  saveResponse(i, { emotion: e.name, icon: e.icon });
   document.getElementById('emotions-body').innerHTML = `
     <div class="emo-result-header" style="background:${e.bg};border:1.5px solid ${e.border}40;">
       <span class="emo-result-icon">${e.icon}</span>
