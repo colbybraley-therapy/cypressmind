@@ -714,6 +714,38 @@ async function endSession() {
     .eq('session_id', activeSession.id)
     .order('created_at', { ascending: true });
 
+  // Calculate score from responses
+  const total    = (responses || []).length;
+  const correct  = (responses || []).filter(r => r.response_data?.correct === true).length;
+  const score    = total > 0 ? Math.round((correct / total) * 100) : null;
+
+  // Find the matching activity and update it with score + completion
+  const { data: activities } = await db
+    .from('activities')
+    .select('id')
+    .eq('client_id', activeSession.client_id)
+    .eq('activity_type', activeSession.activity_type)
+    .eq('done', false)
+    .order('created_at', { ascending: false })
+    .limit(1);
+
+  if (activities?.length) {
+    const activityId = activities[0].id;
+    await db.from('activities')
+      .update({
+        done:         true,
+        completed_at: new Date().toISOString(),
+      })
+      .eq('id', activityId);
+
+    if (score !== null) {
+      await db.from('scores').insert({
+        activity_id: activityId,
+        score,
+      });
+    }
+  }
+
   // Build summary data
   const summary = buildSessionSummary(responses || []);
 
