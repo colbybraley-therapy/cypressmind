@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MindPlay – Therapy Activity Hub</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --purple: #7C6FE0;
+    --purple-light: #EEF0FF;
+    --purple-dark: #4A3FB5;
+    --teal: #2BC4A2;
+    --teal-light: #E0F8F3;
+    --coral: #F0714A;
+    --coral-light: #FFF0EB;
+    --amber: #F5B83D;
+    --amber-light: #FFF8E6;
+    --blue: #4A9EF0;
+    --blue-light: #EBF4FF;
+    --green: #5DCB6E;
+    --green-light: #EDFBF0;
+    --bg: #F7F6FF;
+    --card: #FFFFFF;
+    --text: #1E1B3A;
+    --text-muted: #7B7899;
+    --border: rgba(124, 111, 224, 0.15);
+    --shadow: 0 4px 24px rgba(124,111,224,0.10);
+    --shadow-lg: 0 8px 40px rgba(124,111,224,0.16);
+    --radius: 18px;
+    --radius-sm: 12px;
+    --radius-pill: 999px;
+  }
+
+  body {
+    font-family: 'Quicksand', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Background decoration */
+  body::before {
+    content: '';
+    position: fixed;
+    top: -120px; right: -120px;
+    width: 400px; height: 400px;
+    background: radial-gradient(circle, rgba(124,111,224,0.12) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+  }
+  body::after {
+    content: '';
+    position: fixed;
+    bottom: -80px; left: -80px;
+    width: 320px; height: 320px;
+    background: radial-gradient(circle, rgba(43,196,162,0.10) 0%, transparent 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .app {
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 24px 16px 48px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* SCREENS */
+  .screen { display: none; animation: fadeIn 0.3s ease; }
+  .screen.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* TOP NAV */
+  .topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 28px;
+  }
+  .logo {
+    font-family: 'Nunito', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--purple);
+    letter-spacing: -0.5px;
+  }
+  .logo span { color: var(--teal); }
+  .xp-pill {
+    background: var(--purple-light);
+    color: var(--purple-dark);
+    font-size: 13px;
+    font-weight: 700;
+    padding: 6px 14px;
+    border-radius: var(--radius-pill);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  /* LEVEL CARD */
+  .level-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    box-shadow: var(--shadow);
+    margin-bottom: 24px;
+    border: 1px solid var(--border);
+  }
+  .level-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .level-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .level-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--purple);
+  }
+  .xp-track {
+    background: var(--purple-light);
+    border-radius: var(--radius-pill);
+    height: 10px;
+    overflow: hidden;
+  }
+  .xp-fill {
+    height: 100%;
+    background: linear-gradient(90deg, var(--purple), var(--teal));
+    border-radius: var(--radius-pill);
+    transition: width 0.6s cubic-bezier(.4,0,.2,1);
+  }
+  .xp-sub {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 6px;
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 600;
+  }
+
+  /* HOME GRID */
+  .section-title {
+    font-family: 'Nunito', sans-serif;
+    font-size: 18px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 14px;
+  }
+  .activity-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 28px;
+  }
+  .act-card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 20px 16px 16px;
+    cursor: pointer;
+    border: 1.5px solid transparent;
+    box-shadow: var(--shadow);
+    transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .act-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    border-radius: var(--radius) var(--radius) 0 0;
+  }
+  .act-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+  .act-card.purple::before { background: var(--purple); }
+  .act-card.teal::before { background: var(--teal); }
+  .act-card.amber::before { background: var(--amber); }
+  .act-card.coral::before { background: var(--coral); }
+  .act-card:hover.purple { border-color: rgba(124,111,224,0.3); }
+  .act-card:hover.teal { border-color: rgba(43,196,162,0.3); }
+  .act-card:hover.amber { border-color: rgba(245,184,61,0.3); }
+  .act-card:hover.coral { border-color: rgba(240,113,74,0.3); }
+  .act-icon { font-size: 32px; margin-bottom: 10px; display: block; }
+  .act-title {
+    font-family: 'Nunito', sans-serif;
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .act-desc { font-size: 12px; color: var(--text-muted); line-height: 1.5; margin-bottom: 10px; font-weight: 500; }
+  .xp-badge {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+    display: inline-block;
+  }
+  .xp-badge.purple { background: var(--purple-light); color: var(--purple-dark); }
+  .xp-badge.teal { background: var(--teal-light); color: #0D7A63; }
+  .xp-badge.amber { background: var(--amber-light); color: #8C6200; }
+  .xp-badge.coral { background: var(--coral-light); color: #9E3A1E; }
+
+  /* BACK BUTTON */
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-pill);
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-muted);
+    cursor: pointer;
+    margin-bottom: 20px;
+    transition: background 0.15s, color 0.15s;
+    font-family: 'Quicksand', sans-serif;
+  }
+  .back-btn:hover { background: var(--purple-light); color: var(--purple-dark); }
+
+  /* SCREEN HEADER */
+  .screen-header {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+  .screen-header .big-icon { font-size: 44px; margin-bottom: 8px; display: block; }
+  .screen-header h2 {
+    font-family: 'Nunito', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+  .screen-header p { font-size: 14px; color: var(--text-muted); font-weight: 500; }
+
+  /* CARDS */
+  .card {
+    background: var(--card);
+    border-radius: var(--radius);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    margin-bottom: 14px;
+    border: 1px solid var(--border);
+  }
+
+  /* QUIZ */
+  .q-num { font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 10px; }
+  .q-text { font-size: 16px; font-weight: 700; color: var(--text); line-height: 1.5; margin-bottom: 18px; }
+  .opt-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    background: var(--bg);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+    cursor: pointer;
+    margin-bottom: 8px;
+    transition: all 0.15s;
+    font-family: 'Quicksand', sans-serif;
+  }
+  .opt-btn:hover:not(:disabled) { background: var(--purple-light); border-color: var(--purple); color: var(--purple-dark); }
+  .opt-btn.correct { background: var(--green-light); border-color: var(--green); color: #1E6B2E; }
+  .opt-btn.wrong { background: var(--coral-light); border-color: var(--coral); color: #9E3A1E; }
+  .opt-btn:disabled { cursor: default; }
+  .feedback-box {
+    border-radius: var(--radius-sm);
+    padding: 12px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 12px;
+    display: none;
+    line-height: 1.5;
+  }
+  .feedback-box.show { display: block; }
+  .feedback-box.good { background: var(--green-light); color: #1E6B2E; }
+  .feedback-box.bad { background: var(--coral-light); color: #9E3A1E; }
+
+  /* QUIZ SCORE */
+  .score-wrap {
+    text-align: center;
+    padding: 28px;
+    background: var(--card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+  }
+  .score-big { font-size: 56px; font-family: 'Nunito', sans-serif; font-weight: 800; color: var(--purple); }
+  .score-label { font-size: 15px; color: var(--text-muted); font-weight: 600; margin-top: 4px; margin-bottom: 20px; }
+  .score-msg { font-size: 18px; font-weight: 700; margin-bottom: 6px; color: var(--text); }
+
+  /* PRIMARY BUTTON */
+  .primary-btn {
+    background: var(--purple);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-pill);
+    padding: 13px 28px;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 10px;
+    transition: background 0.15s, transform 0.1s;
+    font-family: 'Quicksand', sans-serif;
+    letter-spacing: 0.2px;
+  }
+  .primary-btn:hover { background: var(--purple-dark); }
+  .primary-btn:active { transform: scale(0.98); }
+  .secondary-btn {
+    background: var(--card);
+    color: var(--text-muted);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-pill);
+    padding: 11px 24px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    margin-top: 8px;
+    transition: background 0.15s;
+    font-family: 'Quicksand', sans-serif;
+  }
+  .secondary-btn:hover { background: var(--purple-light); color: var(--purple-dark); }
+
+  /* BREATHING */
+  .breath-picker { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
+  .breath-pick-btn {
+    flex: 1;
+    min-width: 120px;
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 12px 10px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-muted);
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.15s;
+    font-family: 'Quicksand', sans-serif;
+  }
+  .breath-pick-btn:hover, .breath-pick-btn.selected { background: var(--purple-light); border-color: var(--purple); color: var(--purple-dark); }
+  .breath-stage { text-align: center; font-size: 14px; color: var(--text-muted); font-weight: 600; margin-bottom: 16px; min-height: 20px; }
+  .breath-arena {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 8px 0 20px;
+  }
+  .breath-ring {
+    width: 170px; height: 170px;
+    border-radius: 50%;
+    background: var(--purple-light);
+    border: 3px solid var(--purple);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: transform 4s cubic-bezier(.4,0,.2,1), background 4s ease;
+    position: relative;
+  }
+  .breath-num { font-size: 42px; font-family: 'Nunito', sans-serif; font-weight: 800; color: var(--purple); line-height: 1; }
+  .breath-word { font-size: 13px; font-weight: 700; color: var(--purple-dark); margin-top: 4px; letter-spacing: 0.5px; }
+  .breath-cycles { display: flex; justify-content: center; gap: 10px; margin-bottom: 16px; }
+  .cycle-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--purple-light);
+    border: 2px solid var(--purple);
+    transition: background 0.3s;
+  }
+  .cycle-dot.done { background: var(--purple); }
+  .breath-done-msg { text-align: center; padding: 16px; background: var(--teal-light); border-radius: var(--radius-sm); display: none; }
+  .breath-done-msg .done-icon { font-size: 28px; }
+  .breath-done-msg p { font-size: 15px; font-weight: 700; color: #0D7A63; margin-top: 6px; }
+  .breath-done-msg small { font-size: 13px; color: var(--text-muted); font-weight: 600; }
+
+  /* JOURNAL */
+  .prompt-tag {
+    font-size: 11px;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: var(--radius-pill);
+    background: var(--purple-light);
+    color: var(--purple-dark);
+    display: inline-block;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .prompt-box {
+    background: var(--purple-light);
+    border-left: 4px solid var(--purple);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    padding: 16px;
+    margin-bottom: 16px;
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--purple-dark);
+    line-height: 1.6;
+  }
+  .journal-area {
+    width: 100%;
+    min-height: 150px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px;
+    font-size: 14px;
+    font-family: 'Quicksand', sans-serif;
+    color: var(--text);
+    background: var(--bg);
+    resize: vertical;
+    line-height: 1.7;
+    font-weight: 500;
+  }
+  .journal-area:focus { outline: none; border-color: var(--purple); box-shadow: 0 0 0 3px rgba(124,111,224,0.12); }
+  .char-count { font-size: 12px; color: var(--text-muted); text-align: right; margin-top: 4px; font-weight: 600; }
+  .prompt-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+  .prompt-nav span { font-size: 12px; color: var(--text-muted); font-weight: 700; }
+
+  /* EMOTIONS */
+  .emotion-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .emo-btn {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 8px 14px;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.18s;
+    font-family: 'Quicksand', sans-serif;
+  }
+  .emo-btn:hover { transform: scale(1.05); box-shadow: var(--shadow); }
+  .emo-icon { font-size: 30px; display: block; margin-bottom: 6px; }
+  .emo-name { font-size: 12px; font-weight: 700; color: var(--text-muted); }
+  .emo-result-header {
+    border-radius: var(--radius);
+    padding: 18px;
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+  .emo-result-icon { font-size: 40px; }
+  .emo-result-title { font-family: 'Nunito', sans-serif; font-size: 18px; font-weight: 800; }
+  .emo-result-sub { font-size: 13px; font-weight: 600; opacity: 0.75; margin-top: 2px; }
+  .coping-item {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 16px;
+    margin-bottom: 10px;
+  }
+  .coping-item h4 { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .coping-item p { font-size: 13px; color: var(--text-muted); line-height: 1.6; font-weight: 500; }
+
+  /* TOAST */
+  .toast {
+    position: fixed;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--text);
+    color: #fff;
+    padding: 12px 22px;
+    border-radius: var(--radius-pill);
+    font-size: 14px;
+    font-weight: 700;
+    z-index: 999;
+    transition: transform 0.35s cubic-bezier(.4,0,.2,1);
+    white-space: nowrap;
+    font-family: 'Quicksand', sans-serif;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* FOOTER */
+  .home-footer {
+    text-align: center;
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 600;
+    padding-top: 8px;
+  }
+
+  @media (max-width: 380px) {
+    .activity-grid { grid-template-columns: 1fr; }
+    .emotion-grid { grid-template-columns: repeat(3,1fr); }
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- HOME -->
+  <div id="home" class="screen active">
+    <div class="topbar">
+      <div class="logo">Mind<span>Play</span></div>
+      <div class="xp-pill">⭐ <span id="xp-top">0 XP</span></div>
+    </div>
+    <div class="level-card">
+      <div class="level-row">
+        <span class="level-label">Your progress</span>
+        <span class="level-name" id="level-name">Level 1 – Explorer</span>
+      </div>
+      <div class="xp-track"><div class="xp-fill" id="xp-fill" style="width:0%"></div></div>
+      <div class="xp-sub"><span id="xp-cur">0 XP</span><span>100 XP to next level</span></div>
+    </div>
+    <div class="section-title">Choose an activity</div>
+    <div class="activity-grid">
+      <div class="act-card purple" onclick="go('quiz')">
+        <span class="act-icon">🧠</span>
+        <div class="act-title">Coping Skills Quiz</div>
+        <div class="act-desc">Test your coping knowledge</div>
+        <span class="xp-badge purple">+10 XP each</span>
+      </div>
+      <div class="act-card teal" onclick="go('breathing')">
+        <span class="act-icon">🌬️</span>
+        <div class="act-title">Breathing Garden</div>
+        <div class="act-desc">Calm your mind with guided breath</div>
+        <span class="xp-badge teal">+15 XP</span>
+      </div>
+      <div class="act-card amber" onclick="go('journal')">
+        <span class="act-icon">📓</span>
+        <div class="act-title">Reflection Journal</div>
+        <div class="act-desc">Guided prompts for self-discovery</div>
+        <span class="xp-badge amber">+20 XP</span>
+      </div>
+      <div class="act-card coral" onclick="go('emotions')">
+        <span class="act-icon">🎭</span>
+        <div class="act-title">Emotion Explorer</div>
+        <div class="act-desc">Name feelings & find coping tools</div>
+        <span class="xp-badge coral">+15 XP</span>
+      </div>
+    </div>
+    <div class="home-footer">Complete activities to level up ✨</div>
+  </div>
+
+  <!-- QUIZ -->
+  <div id="quiz" class="screen">
+    <button class="back-btn" onclick="go('home')">← Back</button>
+    <div class="screen-header">
+      <span class="big-icon">🧠</span>
+      <h2>Coping Skills Quiz</h2>
+      <p>Every right answer earns 10 XP!</p>
+    </div>
+    <div id="quiz-body"></div>
+  </div>
+
+  <!-- BREATHING -->
+  <div id="breathing" class="screen">
+    <button class="back-btn" onclick="stopBreath();go('home')">← Back</button>
+    <div class="screen-header">
+      <span class="big-icon">🌬️</span>
+      <h2>Breathing Garden</h2>
+      <p>Follow the circle — breathe with it</p>
+    </div>
+    <div class="breath-picker">
+      <button class="breath-pick-btn" onclick="pickBreath('box',this)">📦 Box<br><small style="font-weight:600;font-size:11px;opacity:0.7;">4-4-4-4</small></button>
+      <button class="breath-pick-btn" onclick="pickBreath('478',this)">🌙 4-7-8<br><small style="font-weight:600;font-size:11px;opacity:0.7;">Calm</small></button>
+      <button class="breath-pick-btn" onclick="pickBreath('coher',this)">💛 Coherent<br><small style="font-weight:600;font-size:11px;opacity:0.7;">5-5</small></button>
+    </div>
+    <div class="breath-stage" id="b-stage">Choose a technique above to begin</div>
+    <div class="breath-arena">
+      <div class="breath-ring" id="b-ring">
+        <div class="breath-num" id="b-num">–</div>
+        <div class="breath-word" id="b-word">READY</div>
+      </div>
+    </div>
+    <div class="breath-cycles" id="b-dots"></div>
+    <div class="breath-done-msg" id="b-done">
+      <div class="done-icon">✨</div>
+      <p>Amazing work!</p>
+      <small>+15 XP earned</small>
+    </div>
+    <button class="primary-btn" id="b-start" onclick="startBreath()" style="display:none">Start breathing exercise</button>
+  </div>
+
+  <!-- JOURNAL -->
+  <div id="journal" class="screen">
+    <button class="back-btn" onclick="go('home')">← Back</button>
+    <div class="screen-header">
+      <span class="big-icon">📓</span>
+      <h2>Reflection Journal</h2>
+      <p>No wrong answers — just honest ones</p>
+    </div>
+    <div id="journal-body"></div>
+  </div>
+
+  <!-- EMOTIONS -->
+  <div id="emotions" class="screen">
+    <button class="back-btn" onclick="go('home')">← Back</button>
+    <div class="screen-header">
+      <span class="big-icon">🎭</span>
+      <h2>Emotion Explorer</h2>
+      <p>Tap how you're feeling right now</p>
+    </div>
+    <div id="emotions-body"></div>
+  </div>
+
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+/* ── STATE ── */
+let xp = 0, level = 1;
+let qIdx = 0, qScore = 0;
+let jIdx = 0;
+let bPattern = null, bRunning = false, bTimer = null, bPhase = 0, bCycle = 0;
+
+/* ── XP ── */
+const levelNames = ['Explorer','Adventurer','Trailblazer','Champion','Luminary','Sage'];
+function addXP(n, label) {
+  xp += n;
+  let leveled = false;
+  while (xp >= 100) { xp -= 100; level = Math.min(level + 1, 6); leveled = true; }
+  const name = `Level ${level} – ${levelNames[level-1]}`;
+  document.getElementById('xp-top').textContent = xp + ' XP';
+  document.getElementById('xp-cur').textContent = xp + ' XP';
+  document.getElementById('level-name').textContent = name;
+  document.getElementById('xp-fill').style.width = xp + '%';
+  showToast(leveled ? '🎉 Level Up! You are now a ' + levelNames[level-1] + '!' : '⭐ +' + n + ' XP — ' + label);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+/* ── NAV ── */
+function go(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if (id === 'quiz') renderQuiz();
+  if (id === 'journal') renderJournal();
+  if (id === 'emotions') renderEmotions();
+}
+
+/* ══ QUIZ ══ */
+const quizData = [
+  { q: 'When you feel overwhelmed, what is a healthy first step?',
+    opts: ['Take deep breaths and pause','Ignore the feeling','Lash out at someone','Eat junk food'], ans: 0,
+    explain: 'Pausing and breathing activates your body\'s calm-down (parasympathetic) response.' },
+  { q: 'Which activity is a healthy coping strategy for stress?',
+    opts: ['Excessive gaming to avoid feelings','Journaling your thoughts','Staying in bed all day','Skipping meals'], ans: 1,
+    explain: 'Writing thoughts down helps you process emotions and gain perspective on them.' },
+  { q: 'What does "grounding" mean in coping skills?',
+    opts: ['Burying your problems','Connecting to the present moment using your senses','Calling a friend to complain','Going outside and sitting in dirt'], ans: 1,
+    explain: 'Grounding uses the 5 senses to anchor you in the present moment, reducing anxiety.' },
+  { q: 'Which is a sign that you might need extra support?',
+    opts: ['Feeling happy after exercise','Persistent sadness lasting more than 2 weeks','Occasional worry about a test','Feeling tired after a long day'], ans: 1,
+    explain: 'Persistent low mood that doesn\'t lift may be a sign to reach out for help.' },
+  { q: 'What is positive self-talk?',
+    opts: ['Bragging to others','Replacing harsh inner thoughts with kind, realistic ones','Pretending everything is fine','Talking to yourself out loud'], ans: 1,
+    explain: 'Kind inner dialogue builds resilience and reduces self-criticism over time.' },
+  { q: 'Which technique helps manage anger in the moment?',
+    opts: ['Sending an angry message right away','The STOP skill: Stop, Take a breath, Observe, Proceed','Yelling into a pillow all day','Avoiding the person forever'], ans: 1,
+    explain: 'The STOP skill creates a mindful pause between the trigger and your response.' },
+];
+
+function renderQuiz() {
+  const area = document.getElementById('quiz-body');
+  if (qIdx >= quizData.length) {
+    const pct = Math.round((qScore / quizData.length) * 100);
+    const msg = pct >= 83 ? '🏆 Outstanding!' : pct >= 50 ? '⭐ Great effort!' : '💪 Keep learning!';
+    area.innerHTML = `<div class="score-wrap">
+      <div class="score-big">${qScore}/${quizData.length}</div>
+      <div class="score-label">correct answers</div>
+      <div class="score-msg">${msg}</div>
+    </div>
+    <button class="primary-btn" onclick="qIdx=0;qScore=0;renderQuiz()" style="margin-top:14px;">Try again</button>
+    <button class="secondary-btn" onclick="go('home')">Back to hub</button>`;
+    return;
+  }
+  const q = quizData[qIdx];
+  area.innerHTML = `<div class="card">
+    <div class="q-num">Question ${qIdx+1} of ${quizData.length}</div>
+    <div class="q-text">${q.q}</div>
+    ${q.opts.map((o,i)=>`<button class="opt-btn" id="o${i}" onclick="answerQ(${i})">${o}</button>`).join('')}
+    <div class="feedback-box" id="qfb"></div>
+  </div>`;
+}
+
+function answerQ(i) {
+  const q = quizData[qIdx];
+  document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
+  const fb = document.getElementById('qfb');
+  if (i === q.ans) {
+    document.getElementById('o'+i).classList.add('correct');
+    fb.className = 'feedback-box show good';
+    fb.textContent = '✓ Correct! ' + q.explain;
+    qScore++; addXP(10, 'Quiz correct!');
+  } else {
+    document.getElementById('o'+i).classList.add('wrong');
+    document.getElementById('o'+q.ans).classList.add('correct');
+    fb.className = 'feedback-box show bad';
+    fb.textContent = '✗ The answer is: "' + q.opts[q.ans] + '". ' + q.explain;
+  }
+  setTimeout(() => { qIdx++; renderQuiz(); }, 2400);
+}
+
+/* ══ BREATHING ══ */
+const bPatterns = {
+  box:   { phases:['Inhale','Hold','Exhale','Hold'], times:[4,4,4,4] },
+  '478': { phases:['Inhale','Hold','Exhale'],        times:[4,7,8]   },
+  coher: { phases:['Inhale','Exhale'],               times:[5,5]     },
+};
+
+function pickBreath(key, btn) {
+  document.querySelectorAll('.breath-pick-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  bPattern = bPatterns[key];
+  document.getElementById('b-stage').textContent = 'Ready — press Start when you\'re comfortable';
+  document.getElementById('b-word').textContent = 'READY';
+  document.getElementById('b-num').textContent = '–';
+  document.getElementById('b-ring').style.transform = 'scale(1)';
+  document.getElementById('b-start').style.display = 'block';
+  document.getElementById('b-done').style.display = 'none';
+  renderDots(0);
+}
+
+function renderDots(done) {
+  document.getElementById('b-dots').innerHTML =
+    Array.from({length:4},(_,i)=>`<div class="cycle-dot ${i<done?'done':''}"></div>`).join('');
+}
+
+function startBreath() {
+  if (!bPattern) return;
+  document.getElementById('b-start').style.display = 'none';
+  bRunning = true; bPhase = 0; bCycle = 0;
+  runPhase();
+}
+
+function runPhase() {
+  if (!bRunning) return;
+  const { phases, times } = bPattern;
+  const ph = phases[bPhase], dur = times[bPhase];
+  const ring = document.getElementById('b-ring');
+  document.getElementById('b-word').textContent = ph.toUpperCase();
+  document.getElementById('b-stage').textContent = ph + '...';
+  if (ph === 'Inhale') ring.style.transform = 'scale(1.28)';
+  else if (ph === 'Exhale') ring.style.transform = 'scale(1)';
+  let s = dur;
+  document.getElementById('b-num').textContent = s;
+  bTimer = setInterval(() => {
+    s--;
+    document.getElementById('b-num').textContent = Math.max(s,0);
+    if (s <= 0) {
+      clearInterval(bTimer);
+      bPhase++;
+      if (bPhase >= phases.length) {
+        bPhase = 0; bCycle++;
+        renderDots(bCycle);
+        if (bCycle >= 4) {
+          bRunning = false;
+          ring.style.transform = 'scale(1)';
+          document.getElementById('b-word').textContent = 'DONE';
+          document.getElementById('b-num').textContent = '✓';
+          document.getElementById('b-stage').textContent = 'Exercise complete!';
+          document.getElementById('b-done').style.display = 'block';
+          addXP(15, 'Breathing complete!');
+          return;
+        }
+      }
+      setTimeout(runPhase, 350);
+    }
+  }, 1000);
+}
+
+function stopBreath() { bRunning = false; if (bTimer) clearInterval(bTimer); }
+
+/* ══ JOURNAL ══ */
+const prompts = [
+  { tag:'Strength',   text:'Describe a moment this week when you felt proud of yourself, no matter how small.' },
+  { tag:'Release',    text:'What is one thing you are carrying right now that you wish you could put down?' },
+  { tag:'Inner voice',text:'If your anxiety had a voice, what would it say? What would you like to say back to it?' },
+  { tag:'Gratitude',  text:'Name three things in your life right now that bring you even a little bit of calm.' },
+  { tag:'Hope',       text:'What does a "good day" look like for you? What one small step could you take toward that today?' },
+];
+
+function renderJournal() {
+  const area = document.getElementById('journal-body');
+  const p = prompts[jIdx % prompts.length];
+  area.innerHTML = `
+    <div class="card">
+      <div class="prompt-nav">
+        <span class="prompt-tag">${p.tag}</span>
+        <span>Prompt ${(jIdx%prompts.length)+1} / ${prompts.length}</span>
+      </div>
+      <div class="prompt-box">${p.text}</div>
+      <textarea class="journal-area" id="jtxt" placeholder="Write freely — there are no wrong answers..." oninput="updateChar()"></textarea>
+      <div class="char-count" id="jchar">0 characters</div>
+      <div class="feedback-box" id="jfb"></div>
+      <button class="primary-btn" onclick="saveJournal()">Save reflection — earn 20 XP</button>
+      <button class="secondary-btn" onclick="jIdx++;renderJournal()">Next prompt →</button>
+    </div>`;
+}
+
+function updateChar() {
+  const n = document.getElementById('jtxt').value.length;
+  document.getElementById('jchar').textContent = n + ' characters';
+}
+
+function saveJournal() {
+  const txt = document.getElementById('jtxt').value.trim();
+  const fb = document.getElementById('jfb');
+  if (txt.length < 15) {
+    fb.className = 'feedback-box show bad';
+    fb.textContent = 'Write a little more — you can do it!';
+    return;
+  }
+  fb.className = 'feedback-box show good';
+  fb.textContent = '✓ Reflection saved. Well done for showing up for yourself!';
+  addXP(20, 'Journal complete!');
+  setTimeout(() => { jIdx++; renderJournal(); }, 2000);
+}
+
+/* ══ EMOTIONS ══ */
+const emotions = [
+  { icon:'😢', name:'Sad', bg:'#EBF4FF', border:'#4A9EF0', tc:'#0C447C',
+    tips:[{h:'Gentle movement',t:'A short walk or gentle stretching releases endorphins and can lift your mood naturally.'},
+          {h:'Reach out',t:'Text or call someone you trust — connection is powerful medicine for sadness.'},
+          {h:'Self-compassion pause',t:'Place a hand on your heart and say: "It\'s okay to feel this. I am here for myself."'}]},
+  { icon:'😰', name:'Anxious', bg:'#EEF0FF', border:'#7C6FE0', tc:'#4A3FB5',
+    tips:[{h:'Box breathing',t:'Breathe in 4 counts, hold 4, out 4, hold 4. Repeat 4 times to activate your calm-down response.'},
+          {h:'5-4-3-2-1 grounding',t:'Name 5 things you see, 4 you hear, 3 you can touch, 2 you smell, 1 you taste.'},
+          {h:'Worry window',t:'Set a 10-minute timer. Allow yourself to worry only then. Outside that window, gently redirect.'}]},
+  { icon:'😠', name:'Angry', bg:'#FFF0EB', border:'#F0714A', tc:'#9E3A1E',
+    tips:[{h:'STOP skill',t:'Stop. Take a breath. Observe what you\'re feeling in your body. Proceed with intention.'},
+          {h:'Physical release',t:'Tear paper, squeeze ice, or do jumping jacks to discharge anger\'s physical energy safely.'},
+          {h:'Time and space',t:'Step away for 10 minutes before responding — you can always reply, but you can\'t unsay words.'}]},
+  { icon:'😔', name:'Hopeless', bg:'#EDFBF0', border:'#5DCB6E', tc:'#1E6B2E',
+    tips:[{h:'One small action',t:'Hope grows through action. Pick one tiny thing: make your bed, drink a glass of water, step outside.'},
+          {h:'Challenge the thought',t:'"Is this a fact or a feeling? What\'s the evidence for and against it?" Our thoughts aren\'t always truth.'},
+          {h:'Talk to someone',t:'You don\'t have to carry this alone. Share what you\'re feeling with a trusted person or counselor.'}]},
+  { icon:'😌', name:'Calm', bg:'#E0F8F3', border:'#2BC4A2', tc:'#0D7A63',
+    tips:[{h:'Anchor this feeling',t:'Notice what contributed to this calm — sleep, activity, connection? Use it as data to repeat.'},
+          {h:'Mindful savoring',t:'Spend 2 minutes fully appreciating this moment. What does calm feel like in your body right now?'},
+          {h:'Set an intention',t:'From this calm place, choose one meaningful thing to focus on. Calm is a great time to plan.'}]},
+  { icon:'😊', name:'Happy', bg:'#FFF8E6', border:'#F5B83D', tc:'#8C6200',
+    tips:[{h:'Spread it',t:'Share your good mood — compliment someone, do a kind act, or reach out to a friend.'},
+          {h:'Journal it',t:'Write down what contributed to this joy so you can return to it intentionally next time.'},
+          {h:'Build on it',t:'What positive step could you take while you have this energy? Happy moments are powerful launchpads.'}]},
+];
+
+function renderEmotions() {
+  document.getElementById('emotions-body').innerHTML =
+    `<div class="emotion-grid">${emotions.map((e,i)=>`
+      <div class="emo-btn" onclick="pickEmotion(${i})">
+        <span class="emo-icon">${e.icon}</span>
+        <span class="emo-name">${e.name}</span>
+      </div>`).join('')}</div>`;
+}
+
+function pickEmotion(i) {
+  const e = emotions[i];
+  document.getElementById('emotions-body').innerHTML = `
+    <div class="emo-result-header" style="background:${e.bg};border:1.5px solid ${e.border}40;">
+      <span class="emo-result-icon">${e.icon}</span>
+      <div>
+        <div class="emo-result-title" style="color:${e.tc};">Feeling ${e.name}</div>
+        <div class="emo-result-sub" style="color:${e.tc};">Here are some strategies to help</div>
+      </div>
+    </div>
+    ${e.tips.map(t=>`<div class="coping-item"><h4>${t.h}</h4><p>${t.t}</p></div>`).join('')}
+    <div style="text-align:right;font-size:13px;font-weight:700;color:#0D7A63;margin:4px 0 8px;">+15 XP earned ✓</div>
+    <button class="primary-btn" onclick="renderEmotions()">Explore another emotion</button>
+    <button class="secondary-btn" onclick="go('home')">Back to hub</button>`;
+  addXP(15, 'Emotion explored!');
+}
+</script>
+</body>
+</html>

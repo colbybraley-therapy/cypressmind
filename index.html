@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mind Play Therapy — Client Progress Tracker</title>
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <!-- ── Landing Page ── -->
+  <div id="pg-landing" class="page active">
+
+    <nav class="landing-nav">
+      <div class="landing-logo">Mind<span>Play</span></div>
+      <div class="nav-right">
+        <button class="nav-ghost-btn" onclick="showPage('pg-signup')">Get started</button>
+        <div class="signin-wrap" id="signin-wrap">
+          <button class="nav-signin-btn" id="signin-nav-btn" onclick="toggleSignIn()">
+            Sign in
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><polyline points="2,3 5,7 8,3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <div class="signin-panel" id="signin-panel">
+            <p class="signin-panel-title">Welcome back</p>
+            <div class="field"><label>Email</label><input type="email" id="si-email" placeholder="you@example.com" autocomplete="email" /></div>
+            <div class="field"><label>Password</label><input type="password" id="si-pass" placeholder="••••••••" autocomplete="current-password" /></div>
+            <div class="err" id="si-err"></div>
+            <button class="btn-primary" onclick="doSignIn()">Sign in</button>
+            <div class="link-row">No account? <a href="javascript:void(0)" onclick="closeSignIn();showPage('pg-signup')">Create one</a></div>
+          </div>
+        </div>
+      </div>
+    </nav>
+
+    <div class="hero">
+      <p class="hero-eyebrow">Virtual Therapy Activities</p>
+      <h1 class="hero-title">Help clients build skills<br>that last between sessions</h1>
+      <p class="hero-sub">Mind Play brings engaging, interactive activities into your therapy practice — so clients stay motivated and you always know what's working.</p>
+      <div class="hero-actions">
+        <button class="hero-cta" onclick="showPage('pg-signup')">Create free account</button>
+        <button class="hero-cta-ghost" onclick="toggleSignIn()">Sign in →</button>
+      </div>
+    </div>
+
+    <div class="story-section">
+      <p class="section-label">Why it works</p>
+      <div class="story-grid">
+        <div class="story-card">
+          <div class="story-icon">🎯</div>
+          <h3>Clients learn by doing</h3>
+          <p>Interactive exercises — breathing techniques, emotion exploration, coping skill quizzes — turn abstract therapy concepts into practiced, repeatable skills.</p>
+        </div>
+        <div class="story-card">
+          <div class="story-icon">📊</div>
+          <h3>Therapists see progress</h3>
+          <p>Assign activities, track scores and completion, and walk into every session with a clear picture of where each client is on their journey.</p>
+        </div>
+        <div class="story-card">
+          <div class="story-icon">🔄</div>
+          <h3>Growth beyond the session</h3>
+          <p>Assignable activities extend the reach of therapy between appointments, helping clients build habits and momentum on their own schedule.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="showcase-section">
+      <p class="section-label">Activities</p>
+      <h2 class="showcase-title">Four activities, ready to assign</h2>
+      <div class="showcase-grid">
+        <div class="showcase-card">
+          <span class="showcase-icon">🧠</span>
+          <div class="showcase-name">Coping Skills Quiz</div>
+          <div class="showcase-desc">Reinforce coping knowledge with guided questions and immediate, encouraging feedback.</div>
+        </div>
+        <div class="showcase-card">
+          <span class="showcase-icon">🌬️</span>
+          <div class="showcase-name">Breathing Garden</div>
+          <div class="showcase-desc">Guided box, 4-7-8, and coherent breathing techniques to calm the nervous system.</div>
+        </div>
+        <div class="showcase-card">
+          <span class="showcase-icon">📓</span>
+          <div class="showcase-name">Reflection Journal</div>
+          <div class="showcase-desc">Therapeutic writing prompts for self-discovery, gratitude, and emotional processing.</div>
+        </div>
+        <div class="showcase-card">
+          <span class="showcase-icon">🎭</span>
+          <div class="showcase-name">Emotion Explorer</div>
+          <div class="showcase-desc">Name the feeling, then receive tailored coping strategies matched to that exact emotion.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="landing-cta-block">
+      <h2>Ready to bring your practice into the digital age?</h2>
+      <p>Join therapists using Mind Play to keep clients engaged and progress visible.</p>
+      <button class="hero-cta" onclick="showPage('pg-signup')">Get started — it's free</button>
+    </div>
+
+    <div class="landing-footer">Mind Play Therapy &nbsp;·&nbsp; Built for therapists, loved by clients</div>
+  </div>
+
+  <!-- ── Sign Up ── -->
+  <div id="pg-signup" class="page">
+    <div class="center">
+      <p class="eyebrow">Mind Play Therapy</p>
+      <h1>Create account</h1>
+      <p class="sub">Your client list will be private to you.</p>
+    </div>
+    <div class="card">
+      <div class="field"><label>Full name</label><input type="text" id="su-name" placeholder="your name" autocomplete="name" /></div>
+      <div class="field"><label>Email</label><input type="email" id="su-email" placeholder="you@example.com" autocomplete="email" /></div>
+      <div class="field"><label>Password</label><input type="password" id="su-pass" placeholder="at least 6 characters" autocomplete="new-password" /></div>
+      <div class="field"><label>Confirm password</label><input type="password" id="su-pass2" placeholder="repeat password" autocomplete="new-password" /></div>
+      <div class="err" id="su-err"></div>
+      <button class="btn-primary" onclick="doSignUp()">Create account</button>
+      <div class="link-row">Already have one? <a href="javascript:void(0)" onclick="goToSignIn()">Sign in</a></div>
+    </div>
+  </div>
+
+  <!-- ── Client Roster ── -->
+  <div id="pg-app" class="page">
+    <div class="topbar">
+      <div>
+        <div class="user-chip" id="tb-name"></div>
+        <div class="user-sub">Mind Play Therapy</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="add-btn" onclick="openAddClient()">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><line x1="6" y1="1" x2="6" y2="11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="1" y1="6" x2="11" y2="6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          Add client
+        </button>
+        <button class="btn-outline" onclick="doSignOut()">Sign out</button>
+      </div>
+    </div>
+    <p class="section-label" id="roster-label">Clients</p>
+    <div class="grid" id="client-grid"></div>
+
+    <!-- Add Client Modal -->
+    <div class="overlay" id="add-client-overlay" onclick="closeBg(event,'add-client-overlay')">
+      <div class="modal">
+        <p class="modal-title">New client</p>
+        <div class="field"><label>Name</label><input type="text" id="cl-name" placeholder="e.g. Jamie Torres" maxlength="40" /></div>
+        <p class="field-sublabel">Choose an avatar</p>
+        <div class="av-picker" id="av-picker"></div>
+        <div class="modal-row">
+          <button class="btn-cancel" onclick="closeOverlay('add-client-overlay')">Cancel</button>
+          <button class="btn-save" onclick="saveClient()">Add client</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Client Profile ── -->
+  <div id="pg-client" class="page">
+    <button class="back-btn" onclick="showApp()">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><polyline points="9,2 4,7 9,12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      All clients
+    </button>
+    <div class="profile-head">
+      <div class="profile-av" id="cp-av"></div>
+      <div>
+        <div class="profile-name" id="cp-name"></div>
+        <div class="profile-since" id="cp-since"></div>
+      </div>
+    </div>
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-val" id="st-total">0</div><div class="stat-lbl">Activities</div></div>
+      <div class="stat-card"><div class="stat-val" id="st-done">0</div><div class="stat-lbl">Completed</div></div>
+      <div class="stat-card"><div class="stat-val" id="st-avg">—</div><div class="stat-lbl">Avg score</div></div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+      <p class="section-label" style="margin-bottom:0;">Assigned Activities</p>
+      <button class="add-btn" onclick="openAddLesson()">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><line x1="6" y1="1" x2="6" y2="11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="1" y1="6" x2="11" y2="6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Assign activity
+      </button>
+    </div>
+    <div class="lesson-list" id="lesson-list"></div>
+
+    <!-- Assign Activity Modal -->
+    <div class="overlay" id="add-lesson-overlay" onclick="closeBg(event,'add-lesson-overlay')">
+      <div class="modal">
+        <p class="modal-title">Assign activity</p>
+        <div class="activity-type-picker" id="activity-picker"></div>
+        <div class="field" id="custom-name-field" style="display:none">
+          <label>Activity name</label>
+          <input type="text" id="ls-name" placeholder="e.g. Module 1 — Introduction" maxlength="60" />
+        </div>
+        <div class="modal-row">
+          <button class="btn-cancel" onclick="closeOverlay('add-lesson-overlay')">Cancel</button>
+          <button class="btn-save" onclick="saveLesson()">Assign</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Score Modal -->
+    <div class="overlay" id="score-overlay" onclick="closeBg(event,'score-overlay')">
+      <div class="modal" style="width:280px;">
+        <p class="modal-title" id="score-modal-title">Log score</p>
+        <div class="field"><label>Score (0–100)</label><input type="number" id="score-input" min="0" max="100" placeholder="e.g. 85" /></div>
+        <div class="modal-row">
+          <button class="btn-cancel" onclick="closeOverlay('score-overlay')">Cancel</button>
+          <button class="btn-save" onclick="saveScore()">Save</button>
+        </div>
+        <div id="score-history"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
