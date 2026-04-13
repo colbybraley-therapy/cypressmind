@@ -229,7 +229,74 @@ function openClient(client) {
   document.getElementById('cp-since').textContent     = 'Since ' + new Date(client.created_at)
     .toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
   renderActivities();
+  renderSessionHistory();
   showPage('pg-client');
+}
+
+async function renderSessionHistory() {
+  // Create the section if it doesn't exist
+  let section = document.getElementById('session-history-section');
+  if (!section) {
+    section = document.createElement('div');
+    section.id = 'session-history-section';
+    document.getElementById('pg-client').appendChild(section);
+  }
+
+  section.innerHTML = '<p class="section-label" style="margin-top:2rem;">Session History</p><div class="empty">Loading...</div>';
+
+  const { data: summaries, error } = await db
+    .from('session_summaries')
+    .select('*')
+    .eq('client_id', viewingClient.id)
+    .order('created_at', { ascending: false });
+
+  if (error || !summaries?.length) {
+    section.innerHTML = `
+      <p class="section-label" style="margin-top:2rem;">Session History</p>
+      <div class="empty">No sessions recorded yet.</div>`;
+    return;
+  }
+
+  const activityIcons = {
+    quiz:      '🧠',
+    breathing: '🌬️',
+    journal:   '📓',
+    emotions:  '🎭',
+  };
+
+  section.innerHTML = `
+    <p class="section-label" style="margin-top:2rem;">Session History</p>
+    ${summaries.map(s => {
+      const icon     = activityIcons[s.activity_type] || '🎯';
+      const date     = new Date(s.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      const mins     = Math.floor(s.duration_seconds / 60);
+      const secs     = s.duration_seconds % 60;
+      const duration = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+
+      return `
+        <div class="session-history-card">
+          <div class="session-history-top">
+            <div class="session-history-title">
+              <span>${icon}</span>
+              <span>${s.activity_type.charAt(0).toUpperCase() + s.activity_type.slice(1)}</span>
+            </div>
+            <div class="session-history-date">${date} · ${duration}</div>
+          </div>
+          <div class="session-history-narrative">${s.generated_summary}</div>
+          ${s.therapist_notes ? `
+            <div class="session-history-notes">
+              <span class="session-notes-label">📝 Notes</span>
+              <span>${s.therapist_notes}</span>
+            </div>` : ''}
+          <div class="session-history-stats">
+            <span>Steps: ${s.total_steps}</span>
+            ${s.correct_answers > 0 ? `<span>Correct: ${s.correct_answers}</span>` : ''}
+            ${s.emotions_explored?.length > 0 ? `<span>Emotions: ${s.emotions_explored.join(', ')}</span>` : ''}
+            ${s.breathing_completed ? `<span>✅ Breathing complete</span>` : ''}
+          </div>
+        </div>`;
+    }).join('')}
+  `;
 }
 
 /* ── Activities ── */
