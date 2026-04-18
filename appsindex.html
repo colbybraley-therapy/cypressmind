@@ -516,6 +516,147 @@
 <body>
 <div class="app">
 
+  <!-- CHARACTER BUILDER -->
+  <div id="character-builder" class="screen">
+    <div class="app">
+
+      <!-- Screen 1: Pick a character -->
+      <div id="cb-screen-1" class="cb-screen active">
+        <div class="cb-header">
+          <div class="cb-step-pills">
+            <div class="cb-step-pill active"></div>
+            <div class="cb-step-pill"></div>
+            <div class="cb-step-pill"></div>
+            <div class="cb-step-pill"></div>
+          </div>
+          <h2 class="cb-title">Every great adventure<br>starts with a hero.</h2>
+          <p class="cb-sub">Who will you be?</p>
+        </div>
+
+        <div class="cb-character-grid">
+
+          <!-- Character 1: The Brave Knight -->
+          <div class="cb-char-card" onclick="selectCharacter('knight', this)">
+            <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" class="cb-char-svg">
+              <circle cx="50" cy="28" r="20" fill="#F5C4B3"/>
+              <rect x="30" y="50" width="40" height="45" rx="8" fill="#7C6FE0"/>
+              <rect x="22" y="52" width="14" height="35" rx="6" fill="#7C6FE0"/>
+              <rect x="64" y="52" width="14" height="35" rx="6" fill="#7C6FE0"/>
+              <rect x="33" y="95" width="14" height="22" rx="6" fill="#4A3FB5"/>
+              <rect x="53" y="95" width="14" height="22" rx="6" fill="#4A3FB5"/>
+              <ellipse cx="50" cy="22" rx="21" ry="14" fill="#4A3FB5"/>
+              <rect x="44" y="8" width="12" height="8" rx="2" fill="#F5B83D"/>
+              <circle cx="50" cy="30" r="4" fill="#F0714A" opacity="0.5"/>
+            </svg>
+            <div class="cb-char-name">The Knight</div>
+            <div class="cb-char-tag">Brave &amp; Bold</div>
+          </div>
+
+          <!-- Character 2: The Wise Explorer -->
+          <div class="cb-char-card" onclick="selectCharacter('explorer', this)">
+            <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" class="cb-char-svg">
+              <circle cx="50" cy="28" r="20" fill="#F5C4B3"/>
+              <rect x="30" y="50" width="40" height="45" rx="8" fill="#2BC4A2"/>
+              <rect x="22" y="52" width="14" height="35" rx="6" fill="#2BC4A2"/>
+              <rect x="64" y="52" width="14" height="35" rx="6" fill="#2BC4A2"/>
+              <rect x="33" y="95" width="14" height="22" rx="6" fill="#0D7A63"/>
+              <rect x="53" y="95" width="14" height="22" rx="6" fill="#0D7A63"/>
+              <ellipse cx="50" cy="16" rx="24" ry="10" fill="#F5B83D"/>
+              <rect x="26" y="10" width="48" height="6" rx="3" fill="#8C6200"/>
+              <line x1="75" y1="13" x2="85" y2="5" stroke="#8C6200" stroke-width="3" stroke-linecap="round"/>
+              <circle cx="50" cy="30" r="4" fill="#F0714A" opacity="0.5"/>
+            </svg>
+            <div class="cb-char-name">The Explorer</div>
+            <div class="cb-char-tag">Curious &amp; Free</div>
+          </div>
+
+          <!-- Character 3: The Gentle Healer -->
+          <div class="cb-char-card" onclick="selectCharacter('healer', this)">
+            <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" class="cb-char-svg">
+              <circle cx="50" cy="28" r="20" fill="#F5C4B3"/>
+              <rect x="30" y="50" width="40" height="45" rx="8" fill="#5DCB6E"/>
+              <rect x="22" y="52" width="14" height="35" rx="6" fill="#5DCB6E"/>
+              <rect x="64" y="52" width="14" height="35" rx="6" fill="#5DCB6E"/>
+              <rect x="33" y="95" width="14" height="22" rx="6" fill="#1E6B2E"/>
+              <rect x="53" y="95" width="14" height="22" rx="6" fill="#1E6B2E"/>
+              <ellipse cx="50" cy="12" rx="16" ry="8" fill="#F5C4B3"/>
+              <path d="M34 12 Q50 0 66 12" fill="#8C6200" opacity="0.4"/>
+              <rect x="44" y="58" width="12" height="4" rx="2" fill="white" opacity="0.6"/>
+              <rect x="46" y="54" width="8" height="12" rx="2" fill="white" opacity="0.6"/>
+            </svg>
+            <div class="cb-char-name">The Healer</div>
+            <div class="cb-char-tag">Kind &amp; Caring</div>
+          </div>
+
+          <!-- Character 4: The Wise Wizard -->
+          <div class="cb-char-card" onclick="selectCharacter('wizard', this)">
+            <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" class="cb-char-svg">
+              <circle cx="50" cy="32" r="20" fill="#F5C4B3"/>
+              <rect x="30" y="54" width="40" height="45" rx="8" fill="#9B6FE0"/>
+              <rect x="22" y="56" width="14" height="35" rx="6" fill="#9B6FE0"/>
+              <rect x="64" y="56" width="14" height="35" rx="6" fill="#9B6FE0"/>
+              <rect x="33" y="99" width="14" height="18" rx="6" fill="#6B3FB5"/>
+              <rect x="53" y="99" width="14" height="18" rx="6" fill="#6B3FB5"/>
+              <polygon points="50,0 28,20 72,20" fill="#4A3FB5"/>
+              <circle cx="50" cy="2" r="4" fill="#F5B83D"/>
+              <circle cx="38" cy="34" r="3" fill="#4A3FB5" opacity="0.4"/>
+              <circle cx="62" cy="34" r="3" fill="#4A3FB5" opacity="0.4"/>
+            </svg>
+            <div class="cb-char-name">The Wizard</div>
+            <div class="cb-char-tag">Wise &amp; Magical</div>
+          </div>
+
+          <!-- Character 5: The Swift Fox -->
+          <div class="cb-char-card" onclick="selectCharacter('fox', this)">
+            <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" class="cb-char-svg">
+              <circle cx="50" cy="38" r="22" fill="#F0714A"/>
+              <polygon points="32,20 22,2 42,18" fill="#F0714A"/>
+              <polygon points="68,20 78,2 58,18" fill="#F0714A"/>
+              <polygon points="32,20 22,2 42,18" fill="white" transform="scale(0.6) translate(22,8)"/>
+              <polygon points="68,20 78,2 58,18" fill="white" transform="scale(0.6) translate(22,8)"/>
+              <circle cx="50" cy="44" r="10" fill="white" opacity="0.6"/>
+              <rect x="30" y="62" width="40" height="40" rx="8" fill="#F0714A"/>
+              <rect x="22" y="64" width="14" height="32" rx="6" fill="#F0714A"/>
+              <rect x="64" y="64" width="14" height="32" rx="6" fill="#F0714A"/>
+              <rect x="33" y="102" width="14" height="16" rx="6" fill="#9E3A1E"/>
+              <rect x="53" y="102" width="14" height="16" rx="6" fill="#9E3A1E"/>
+              <circle cx="43" cy="36" r="3" fill="#1E1B3A"/>
+              <circle cx="57" cy="36" r="3" fill="#1E1B3A"/>
+              <ellipse cx="50" cy="44" rx="5" ry="3" fill="#F5B83D"/>
+            </svg>
+            <div class="cb-char-name">The Fox</div>
+            <div class="cb-char-tag">Quick &amp; Clever</div>
+          </div>
+
+          <!-- Character 6: The Dreamer -->
+          <div class="cb-char-card" onclick="selectCharacter('dreamer', this)">
+            <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" class="cb-char-svg">
+              <circle cx="50" cy="28" r="20" fill="#F5C4B3"/>
+              <rect x="30" y="50" width="40" height="45" rx="8" fill="#4A9EF0"/>
+              <rect x="22" y="52" width="14" height="35" rx="6" fill="#4A9EF0"/>
+              <rect x="64" y="52" width="14" height="35" rx="6" fill="#4A9EF0"/>
+              <rect x="33" y="95" width="14" height="22" rx="6" fill="#0C447C"/>
+              <rect x="53" y="95" width="14" height="22" rx="6" fill="#0C447C"/>
+              <circle cx="35" cy="10" r="5" fill="#F5B83D" opacity="0.8"/>
+              <circle cx="55" cy="5" r="7" fill="#F5B83D" opacity="0.9"/>
+              <circle cx="72" cy="12" r="4" fill="#F5B83D" opacity="0.7"/>
+              <circle cx="50" cy="30" r="4" fill="#F0714A" opacity="0.4"/>
+              <path d="M38 26 Q50 20 62 26" stroke="#7C6FE0" stroke-width="2" fill="none" stroke-linecap="round"/>
+            </svg>
+            <div class="cb-char-name">The Dreamer</div>
+            <div class="cb-char-tag">Hopeful &amp; Creative</div>
+          </div>
+
+        </div>
+
+        <button class="cb-next-btn" id="cb-next-1" onclick="goToTrait()" disabled>
+          Choose this hero →
+        </button>
+      </div>
+
+    </div>
+  </div>
+
   <!-- JOIN SCREEN -->
   <div id="join-screen" class="screen active">
     <div class="screen-header" style="margin-top: 40px;">
@@ -671,6 +812,25 @@ let qIdx = 0, qScore = 0;
 let jIdx = 0;
 let bPattern = null, bRunning = false, bTimer = null, bPhase = 0, bCycle = 0;
 
+/* ── CHARACTER STATE ── */
+let heroCharacter  = null;
+let heroTrait      = null;
+let heroCompanion  = null;
+let heroName       = '';
+
+function selectCharacter(id, el) {
+  heroCharacter = id;
+  document.querySelectorAll('.cb-char-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('cb-next-1').disabled = false;
+}
+
+function goToTrait() {
+  if (!heroCharacter) return;
+  document.getElementById('cb-screen-1').classList.remove('active');
+  document.getElementById('cb-screen-2').classList.add('active');
+}
+
 /* ── SUPABASE ── */
 const SUPABASE_URL = 'https://vfpxovpwwabisfjjqkpm.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_-cIPFr0xt1CfC8fwh0e_ew_Q6LIbcX5';
@@ -768,6 +928,17 @@ function go(id) {
   if (id === 'quiz') renderQuiz();
   if (id === 'journal') renderJournal();
   if (id === 'emotions') renderEmotions();
+}
+
+function launchAdventure(activityType) {
+  if (!heroName) {
+    // Show character builder first
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    document.getElementById('character-builder').classList.add('active');
+    document.getElementById('cb-screen-1').classList.add('active');
+  } else {
+    go(activityType);
+  }
 }
 
 /* ══ QUIZ ══ */
