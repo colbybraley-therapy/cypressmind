@@ -878,12 +878,22 @@ async function joinSession() {
 
   // Launch the correct activity
   document.getElementById('join-screen').classList.remove('active');
-  go(session.activity_type);
+  if (!heroName) {
+    document.getElementById('character-builder').classList.add('active');
+    document.getElementById('cb-screen-1').classList.add('active');
+  } else {
+    go(session.activity_type);
+  }
 }
 
 function skipJoin() {
   document.getElementById('join-screen').classList.remove('active');
-  document.getElementById('home').classList.add('active');
+  if (!heroName) {
+    document.getElementById('character-builder').classList.add('active');
+    document.getElementById('cb-screen-1').classList.add('active');
+  } else {
+    document.getElementById('home').classList.add('active');
+  }
 }
 
 /* ── SAVE RESPONSE ── */
