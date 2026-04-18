@@ -95,8 +95,22 @@ async function doSignUp() {
 
   if (error) { err.textContent = error.message; return; }
 
-  currentUser = data.user;
-  loadApp();
+  if (data?.session) {
+    // Session returned immediately — log them straight in
+    currentUser = data.user;
+    loadApp();
+  } else if (data?.user) {
+    // User created but no session yet — sign them in manually
+    const { data: signInData, error: signInError } = await db.auth.signInWithPassword({
+      email,
+      password: pass
+    });
+    if (signInError) { err.textContent = 'Account created! Please sign in.'; return; }
+    currentUser = signInData.user;
+    loadApp();
+  } else {
+    err.textContent = 'Something went wrong. Please try signing in.';
+  }
 }
 
 async function doSignOut() {
