@@ -6,6 +6,7 @@
   <title>Mind Play Therapy — Client Progress Tracker</title>
   <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link rel="stylesheet" href="style.css" />
+  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -39,15 +40,37 @@
       </div>
     </nav>
 
-    <div class="hero">
-      <p class="hero-eyebrow">Virtual Therapy Activities</p>
-      <h1 class="hero-title">Help clients build skills<br>that last between sessions</h1>
-      <p class="hero-sub">Mind Play brings engaging, interactive activities into your therapy practice — so clients stay motivated and you always know what's working.</p>
-      <div class="hero-actions">
-        <button class="hero-cta" onclick="showPage('pg-signup')">Create free account</button>
-        <button class="hero-cta-ghost" onclick="toggleSignIn()">Sign in →</button>
+    <section class="bg-[#F8FAF9] py-20 px-6 md:px-12">
+      <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between">
+
+        <div class="md:w-1/2 space-y-6">
+          <h1 class="text-5xl md:text-6xl font-serif text-[#1A2E1A] leading-tight">
+            Bridging the Gap Between Clinical Insight and Client Engagement.
+          </h1>
+          <p class="text-lg text-slate-600 max-w-lg">
+            A sophisticated, avatar-assisted clinical interface designed to help
+            children and adolescents externalize, navigate, and process complex
+            emotional landscapes.
+          </p>
+
+          <div class="flex space-x-4 pt-4">
+            <button class="bg-[#355E3B] text-white px-8 py-3 rounded-md hover:bg-[#2A4A2F] transition-colors shadow-sm" onclick="showPage('pg-signup')">
+              Request Clinical Demo
+            </button>
+            <button class="border border-[#355E3B] text-[#355E3B] px-8 py-3 rounded-md hover:bg-[#F0F5F0] transition-colors" onclick="toggleSignIn()">
+              Explore Framework
+            </button>
+          </div>
+        </div>
+
+        <div class="md:w-5/12 mt-12 md:mt-0">
+          <div class="aspect-video bg-gradient-to-br from-[#355E3B] to-[#4B0082] rounded-lg shadow-xl flex items-center justify-center opacity-90">
+            <span class="text-white font-serif italic text-xl">Clinical Dashboard Preview</span>
+          </div>
+        </div>
+
       </div>
-    </div>
+    </section>
 
     <div class="story-section">
       <p class="section-label">Why it works</p>
