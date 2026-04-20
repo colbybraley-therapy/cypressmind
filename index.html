@@ -13,10 +13,12 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
-      --green: #355E3B;
+      --hunter-green: #355E3B;
+      --royal-blue: #4169E1;
+      --purple: #6B3FA0;
       --green-dark: #2A4A2F;
       --green-light: #F0F5F0;
-      --off-white: #F8FAF9;
+      --off-white: #F8FAF9; /* Brand guide: Off-White */
       --ink: #1A2E1A;
       --slate: #4B5563;
       --border: #E2E8E2;
@@ -52,9 +54,9 @@
       font-family: var(--sans);
       font-size: 13px;
       font-weight: 500;
-      color: var(--green);
+      color: var(--hunter-green);
       background: var(--green-light);
-      border: 0.5px solid var(--green);
+      border: 0.5px solid var(--hunter-green);
       padding: 8px 20px;
       border-radius: 4px;
       cursor: pointer;
@@ -119,7 +121,7 @@
       font-size: 10px;
       letter-spacing: 0.15em;
       text-transform: uppercase;
-      color: var(--green);
+      color: var(--hunter-green);
       font-weight: 500;
       margin-bottom: 40px;
     }
@@ -233,7 +235,7 @@
       margin: 0 0 32px;
     }
     .hero-cta {
-      background: var(--green);
+      background: var(--hunter-green);
       color: #fff;
       font-family: var(--sans);
       font-size: 14px;
@@ -267,7 +269,7 @@
       font-size: 10px;
       letter-spacing: 0.15em;
       text-transform: uppercase;
-      color: var(--green);
+      color: var(--hunter-green);
       font-weight: 500;
       margin-bottom: 12px;
     }
@@ -311,13 +313,13 @@
       outline: none;
       transition: border-color 0.15s;
     }
-    .field input:focus { border-color: var(--green); background: #fff; }
+    .field input:focus { border-color: var(--hunter-green); background: #fff; }
 
     .err { font-size: 12px; color: #c0392b; margin-bottom: 12px; min-height: 18px; }
 
     .btn-primary {
       width: 100%;
-      background: var(--green);
+      background: var(--hunter-green);
       color: #fff;
       font-family: var(--sans);
       font-size: 14px;
@@ -365,7 +367,7 @@
     .btn-google:hover { border-color: #aaa; background: var(--off-white); }
 
     .link-row { font-size: 13px; color: var(--slate); margin-top: 16px; text-align: center; }
-    .link-row a { color: var(--green); text-decoration: none; font-weight: 500; }
+    .link-row a { color: var(--hunter-green); text-decoration: none; font-weight: 500; }
 
     /* ── APP TOPBAR ── */
     .topbar {
@@ -397,7 +399,7 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      background: var(--green);
+      background: var(--hunter-green);
       color: #fff;
       font-family: var(--sans);
       font-size: 12px;
@@ -570,7 +572,7 @@
       font-size: 13px;
       font-weight: 500;
       color: #fff;
-      background: var(--green);
+      background: var(--hunter-green);
       border: none;
       padding: 9px 20px;
       border-radius: 4px;
@@ -616,29 +618,20 @@
       <div class="landing-logo" style="display:flex;align-items:center;gap:10px;">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="32" height="32">
           <defs>
-            <linearGradient id="ncg" x1="0.5" y1="0" x2="0.5" y2="1">
-              <stop offset="0%"   stop-color="#7B35A8"/>
-              <stop offset="30%"  stop-color="#4468C0"/>
-              <stop offset="58%"  stop-color="#2898B8"/>
-              <stop offset="82%"  stop-color="#28A890"/>
-              <stop offset="100%" stop-color="#266830"/>
+            <linearGradient id="logoGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#6B3FA0" />
+              <stop offset="50%" stop-color="#4169E1" />
+              <stop offset="100%" stop-color="#355E3B" />
             </linearGradient>
           </defs>
-          <ellipse cx="46" cy="16" rx="5"  ry="11" fill="url(#ncg)" transform="rotate(-16 46 16)"/>
-          <ellipse cx="54" cy="16" rx="5"  ry="11" fill="url(#ncg)" transform="rotate(16 54 16)"/>
-          <ellipse cx="43" cy="30" rx="7"  ry="14" fill="url(#ncg)" transform="rotate(-18 43 30)"/>
-          <ellipse cx="57" cy="30" rx="7"  ry="14" fill="url(#ncg)" transform="rotate(18 57 30)"/>
-          <ellipse cx="40" cy="45" rx="9"  ry="15" fill="url(#ncg)" transform="rotate(-20 40 45)"/>
-          <ellipse cx="60" cy="45" rx="9"  ry="15" fill="url(#ncg)" transform="rotate(20 60 45)"/>
-          <ellipse cx="37" cy="60" rx="11" ry="15" fill="url(#ncg)" transform="rotate(-20 37 60)"/>
-          <ellipse cx="63" cy="60" rx="11" ry="15" fill="url(#ncg)" transform="rotate(20 63 60)"/>
-          <ellipse cx="38" cy="73" rx="10" ry="13" fill="url(#ncg)" transform="rotate(-16 38 73)"/>
-          <ellipse cx="62" cy="73" rx="10" ry="13" fill="url(#ncg)" transform="rotate(16 62 73)"/>
-          <rect x="46" y="78" width="8" height="16" rx="4" fill="#1E6020"/>
+          <path d="M50 10 L62 35 L38 35 Z" fill="url(#logoGrad)" opacity="0.85"/>
+          <path d="M50 30 L68 60 L32 60 Z" fill="url(#logoGrad)" opacity="0.92"/>
+          <path d="M50 55 L75 85 L25 85 Z" fill="url(#logoGrad)"/>
+          <rect x="47" y="85" width="6" height="10" rx="2" fill="#355E3B" />
         </svg>
         <div style="line-height:1.15;">
           <div style="font-family:var(--serif);font-size:14px;font-weight:500;letter-spacing:0.12em;text-transform:uppercase;color:var(--ink);">Cypress</div>
-          <div style="font-family:var(--serif);font-size:11px;font-weight:400;letter-spacing:0.18em;text-transform:uppercase;color:var(--green);">Mind</div>
+          <div style="font-family:var(--serif);font-size:11px;font-weight:400;letter-spacing:0.18em;text-transform:uppercase;color:var(--hunter-green);">Mind</div>
         </div>
       </div>
       <div class="nav-right">

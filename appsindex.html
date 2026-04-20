@@ -4,38 +4,32 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>MindPlay – Therapy Activity Hub</title>
-<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --purple: #7C6FE0;
-    --purple-light: #EEF0FF;
-    --purple-dark: #4A3FB5;
-    --teal: #2BC4A2;
-    --teal-light: #E0F8F3;
-    --coral: #F0714A;
+    --purple: #6B3FA0;
+    --purple-light: #F3E8FF;
+    --purple-dark: #4C2B70;
+    --royal-blue: #4169E1;
+    --hunter-green: #355E3B;
+    --green-light: #F0F5F0;
+    --coral: #E67E22;
     --coral-light: #FFF0EB;
-    --amber: #F5B83D;
-    --amber-light: #FFF8E6;
-    --blue: #4A9EF0;
-    --blue-light: #EBF4FF;
-    --green: #5DCB6E;
-    --green-light: #EDFBF0;
-    --bg: #F7F6FF;
+    --bg: #F8FAF9;
     --card: #FFFFFF;
-    --text: #1E1B3A;
-    --text-muted: #7B7899;
-    --border: rgba(124, 111, 224, 0.15);
-    --shadow: 0 4px 24px rgba(124,111,224,0.10);
-    --shadow-lg: 0 8px 40px rgba(124,111,224,0.16);
-    --radius: 18px;
-    --radius-sm: 12px;
+    --text: #1A2E1A;
+    --text-muted: #4B5563;
+    --border: #E2E8E2;
+    --shadow: 0 4px 12px rgba(53,94,59,0.05);
+    --radius: 8px;
+    --radius-sm: 4px;
     --radius-pill: 999px;
   }
 
   body {
-    font-family: 'Quicksand', sans-serif;
+    font-family: 'DM Sans', sans-serif;
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
@@ -48,7 +42,7 @@
     position: fixed;
     top: -120px; right: -120px;
     width: 400px; height: 400px;
-    background: radial-gradient(circle, rgba(124,111,224,0.12) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(65,105,225,0.08) 0%, transparent 70%);
     border-radius: 50%;
     pointer-events: none;
     z-index: 0;
@@ -58,7 +52,7 @@
     position: fixed;
     bottom: -80px; left: -80px;
     width: 320px; height: 320px;
-    background: radial-gradient(circle, rgba(43,196,162,0.10) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(53,94,59,0.08) 0%, transparent 70%);
     border-radius: 50%;
     pointer-events: none;
     z-index: 0;
@@ -84,20 +78,18 @@
     justify-content: space-between;
     margin-bottom: 28px;
   }
-  .logo {
-    font-family: 'Nunito', sans-serif;
-    font-size: 22px;
-    font-weight: 800;
-    color: var(--purple);
-    letter-spacing: -0.5px;
-  }
-  .logo span { color: var(--teal); }
+  .logo-wrap { display: flex; align-items: center; gap: 8px; }
+  .logo-text { line-height: 1.1; }
+  .logo-top { font-family: 'Playfair Display', serif; font-size: 15px; font-weight: 700; color: var(--text); letter-spacing: 0.05em; text-transform: uppercase; }
+  .logo-bot { font-family: 'Playfair Display', serif; font-size: 11px; font-weight: 500; color: var(--hunter-green); letter-spacing: 0.1em; text-transform: uppercase; }
+  
   .xp-pill {
-    background: var(--purple-light);
-    color: var(--purple-dark);
+    background: var(--green-light);
+    color: var(--hunter-green);
+    border: 0.5px solid var(--hunter-green);
     font-size: 13px;
-    font-weight: 700;
-    padding: 6px 14px;
+    font-weight: 500;
+    padding: 5px 12px;
     border-radius: var(--radius-pill);
     display: flex;
     align-items: center;
@@ -127,19 +119,19 @@
     letter-spacing: 0.5px;
   }
   .level-name {
-    font-size: 15px;
-    font-weight: 700;
-    color: var(--purple);
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--hunter-green);
   }
   .xp-track {
-    background: var(--purple-light);
+    background: var(--green-light);
     border-radius: var(--radius-pill);
     height: 10px;
     overflow: hidden;
   }
   .xp-fill {
     height: 100%;
-    background: linear-gradient(90deg, var(--purple), var(--teal));
+    background: linear-gradient(90deg, var(--purple), var(--royal-blue), var(--hunter-green));
     border-radius: var(--radius-pill);
     transition: width 0.6s cubic-bezier(.4,0,.2,1);
   }
@@ -154,11 +146,11 @@
 
   /* HOME GRID */
   .section-title {
-    font-family: 'Nunito', sans-serif;
-    font-size: 18px;
-    font-weight: 800;
+    font-family: 'Playfair Display', serif;
+    font-size: 20px;
+    font-weight: 700;
     color: var(--text);
-    margin-bottom: 14px;
+    margin-bottom: 16px;
   }
   .activity-grid {
     display: grid;
@@ -180,14 +172,14 @@
   .act-card::before {
     content: '';
     position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 4px;
-    border-radius: var(--radius) var(--radius) 0 0;
+    left: 0; top: 0; bottom: 0;
+    width: 4px;
+    border-radius: var(--radius) 0 0 var(--radius);
   }
   .act-card:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
   .act-card.purple::before { background: var(--purple); }
-  .act-card.teal::before { background: var(--teal); }
-  .act-card.amber::before { background: var(--amber); }
+  .act-card.teal::before { background: var(--royal-blue); }
+  .act-card.amber::before { background: var(--hunter-green); }
   .act-card.coral::before { background: var(--coral); }
   .act-card:hover.purple { border-color: rgba(124,111,224,0.3); }
   .act-card:hover.teal { border-color: rgba(43,196,162,0.3); }
@@ -195,9 +187,9 @@
   .act-card:hover.coral { border-color: rgba(240,113,74,0.3); }
   .act-icon { font-size: 32px; margin-bottom: 10px; display: block; }
   .act-title {
-    font-family: 'Nunito', sans-serif;
-    font-size: 15px;
-    font-weight: 800;
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-weight: 700;
     color: var(--text);
     margin-bottom: 4px;
   }
@@ -210,8 +202,8 @@
     display: inline-block;
   }
   .xp-badge.purple { background: var(--purple-light); color: var(--purple-dark); }
-  .xp-badge.teal { background: var(--teal-light); color: #0D7A63; }
-  .xp-badge.amber { background: var(--amber-light); color: #8C6200; }
+  .xp-badge.teal { background: var(--green-light); color: var(--hunter-green); }
+  .xp-badge.amber { background: var(--green-light); color: var(--hunter-green); }
   .xp-badge.coral { background: var(--coral-light); color: #9E3A1E; }
 
   /* BACK BUTTON */
@@ -229,9 +221,9 @@
     cursor: pointer;
     margin-bottom: 20px;
     transition: background 0.15s, color 0.15s;
-    font-family: 'Quicksand', sans-serif;
+    font-family: 'DM Sans', sans-serif;
   }
-  .back-btn:hover { background: var(--purple-light); color: var(--purple-dark); }
+  .back-btn:hover { background: var(--green-light); color: var(--hunter-green); }
 
   /* SCREEN HEADER */
   .screen-header {
@@ -240,9 +232,9 @@
   }
   .screen-header .big-icon { font-size: 44px; margin-bottom: 8px; display: block; }
   .screen-header h2 {
-    font-family: 'Nunito', sans-serif;
-    font-size: 22px;
-    font-weight: 800;
+    font-family: 'Playfair Display', serif;
+    font-size: 24px;
+    font-weight: 700;
     color: var(--text);
     margin-bottom: 4px;
   }
@@ -275,10 +267,10 @@
     cursor: pointer;
     margin-bottom: 8px;
     transition: all 0.15s;
-    font-family: 'Quicksand', sans-serif;
+    font-family: 'DM Sans', sans-serif;
   }
-  .opt-btn:hover:not(:disabled) { background: var(--purple-light); border-color: var(--purple); color: var(--purple-dark); }
-  .opt-btn.correct { background: var(--green-light); border-color: var(--green); color: #1E6B2E; }
+  .opt-btn:hover:not(:disabled) { background: var(--green-light); border-color: var(--hunter-green); color: var(--hunter-green); }
+  .opt-btn.correct { background: var(--green-light); border-color: var(--hunter-green); color: var(--hunter-green); }
   .opt-btn.wrong { background: var(--coral-light); border-color: var(--coral); color: #9E3A1E; }
   .opt-btn:disabled { cursor: default; }
   .feedback-box {
@@ -303,24 +295,24 @@
     box-shadow: var(--shadow);
     border: 1px solid var(--border);
   }
-  .score-big { font-size: 56px; font-family: 'Nunito', sans-serif; font-weight: 800; color: var(--purple); }
+  .score-big { font-size: 56px; font-family: 'Playfair Display', serif; font-weight: 700; color: var(--purple); }
   .score-label { font-size: 15px; color: var(--text-muted); font-weight: 600; margin-top: 4px; margin-bottom: 20px; }
   .score-msg { font-size: 18px; font-weight: 700; margin-bottom: 6px; color: var(--text); }
 
   /* PRIMARY BUTTON */
   .primary-btn {
-    background: var(--purple);
+    background: var(--hunter-green);
     color: #fff;
     border: none;
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius-sm);
     padding: 13px 28px;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 700;
     cursor: pointer;
     width: 100%;
     margin-top: 10px;
     transition: background 0.15s, transform 0.1s;
-    font-family: 'Quicksand', sans-serif;
+    font-family: 'DM Sans', sans-serif;
     letter-spacing: 0.2px;
   }
   .primary-btn:hover { background: var(--purple-dark); }
@@ -329,17 +321,17 @@
     background: var(--card);
     color: var(--text-muted);
     border: 1.5px solid var(--border);
-    border-radius: var(--radius-pill);
+    border-radius: var(--radius-sm);
     padding: 11px 24px;
-    font-size: 14px;
-    font-weight: 700;
+    font-size: 13px;
+    font-weight: 600;
     cursor: pointer;
     width: 100%;
     margin-top: 8px;
     transition: background 0.15s;
-    font-family: 'Quicksand', sans-serif;
+    font-family: 'DM Sans', sans-serif;
   }
-  .secondary-btn:hover { background: var(--purple-light); color: var(--purple-dark); }
+  .secondary-btn:hover { background: var(--green-light); color: var(--hunter-green); }
 
   /* BREATHING */
   .breath-picker { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
@@ -369,8 +361,8 @@
   .breath-ring {
     width: 170px; height: 170px;
     border-radius: 50%;
-    background: var(--purple-light);
-    border: 3px solid var(--purple);
+    background: var(--green-light);
+    border: 1px solid var(--hunter-green);
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -378,18 +370,18 @@
     transition: transform 4s cubic-bezier(.4,0,.2,1), background 4s ease;
     position: relative;
   }
-  .breath-num { font-size: 42px; font-family: 'Nunito', sans-serif; font-weight: 800; color: var(--purple); line-height: 1; }
-  .breath-word { font-size: 13px; font-weight: 700; color: var(--purple-dark); margin-top: 4px; letter-spacing: 0.5px; }
+  .breath-num { font-size: 42px; font-family: 'Playfair Display', serif; font-weight: 700; color: var(--hunter-green); line-height: 1; }
+  .breath-word { font-size: 13px; font-weight: 600; color: var(--text-muted); margin-top: 4px; letter-spacing: 0.05em; }
   .breath-cycles { display: flex; justify-content: center; gap: 10px; margin-bottom: 16px; }
   .cycle-dot {
     width: 12px; height: 12px;
     border-radius: 50%;
-    background: var(--purple-light);
-    border: 2px solid var(--purple);
+    background: var(--green-light);
+    border: 1px solid var(--hunter-green);
     transition: background 0.3s;
   }
-  .cycle-dot.done { background: var(--purple); }
-  .breath-done-msg { text-align: center; padding: 16px; background: var(--teal-light); border-radius: var(--radius-sm); display: none; }
+  .cycle-dot.done { background: var(--hunter-green); }
+  .breath-done-msg { text-align: center; padding: 16px; background: var(--green-light); border-radius: var(--radius-sm); display: none; }
   .breath-done-msg .done-icon { font-size: 28px; }
   .breath-done-msg p { font-size: 15px; font-weight: 700; color: #0D7A63; margin-top: 6px; }
   .breath-done-msg small { font-size: 13px; color: var(--text-muted); font-weight: 600; }
@@ -445,16 +437,16 @@
     margin-bottom: 16px;
   }
   .emo-btn {
-    background: var(--card);
-    border: 1.5px solid var(--border);
-    border-radius: var(--radius);
+    background: #fff;
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-sm);
     padding: 18px 8px 14px;
     cursor: pointer;
     text-align: center;
-    transition: all 0.18s;
-    font-family: 'Quicksand', sans-serif;
+    transition: transform 0.1s;
+    font-family: 'DM Sans', sans-serif;
   }
-  .emo-btn:hover { transform: scale(1.05); box-shadow: var(--shadow); }
+  .emo-btn:hover { transform: translateY(-2px); }
   .emo-icon { font-size: 30px; display: block; margin-bottom: 6px; }
   .emo-name { font-size: 12px; font-weight: 700; color: var(--text-muted); }
   .emo-result-header {
@@ -466,7 +458,7 @@
     margin-bottom: 16px;
   }
   .emo-result-icon { font-size: 40px; }
-  .emo-result-title { font-family: 'Nunito', sans-serif; font-size: 18px; font-weight: 800; }
+  .emo-result-title { font-family: 'Playfair Display', serif; font-size: 18px; font-weight: 700; }
   .emo-result-sub { font-size: 13px; font-weight: 600; opacity: 0.75; margin-top: 2px; }
   .coping-item {
     background: var(--card);
@@ -697,8 +689,23 @@
   <!-- HOME -->
   <div id="home" class="screen">
     <div class="topbar">
-      <div class="logo">Mind<span>Play</span></div>
-      <div class="xp-pill">⭐ <span id="xp-top">0 XP</span></div>
+      <div class="logo-wrap">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="28" height="28">
+          <defs>
+            <linearGradient id="logoGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+              <stop offset="0%" stop-color="#6B3FA0" />
+              <stop offset="50%" stop-color="#4169E1" />
+              <stop offset="100%" stop-color="#355E3B" />
+            </linearGradient>
+          </defs>
+          <path d="M50 10 L62 35 L38 35 Z" fill="url(#logoGrad)" opacity="0.85"/>
+          <path d="M50 30 L68 60 L32 60 Z" fill="url(#logoGrad)" opacity="0.92"/>
+          <path d="M50 55 L75 85 L25 85 Z" fill="url(#logoGrad)"/>
+          <rect x="47" y="85" width="6" height="10" rx="2" fill="#355E3B" />
+        </svg>
+        <div class="logo-text"><div class="logo-top">Cypress</div><div class="logo-bot">Mind</div></div>
+      </div>
+      <div class="xp-pill"><span id="xp-top">0 XP</span></div>
     </div>
     <div class="level-card">
       <div class="level-row">
