@@ -1,0 +1,13 @@
+/* Tailwind directives — processed by `npm run dev` or `npm run build` */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Brand design tokens */
+@import './tokens.css';
+
+/* Typography rules */
+@import './typography.css';
+
+/* App-wide component styles */
+@import './globals.css';
