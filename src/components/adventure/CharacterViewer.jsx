@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 
 // Import character assets (or map them to a URL/Path)
-import Scout from '../../assets/characters/the-scout.png';
+import Scout from '../../assets/characters/The Scout.png';
 import Voyager from '../../assets/characters/The Voyager.png';
 
 const characterMap = {
