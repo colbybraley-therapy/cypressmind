@@ -1,0 +1,26 @@
+[
+  {
+    "id": "botanist",
+    "name": "The Botanist",
+    "tag": "Nurturer",
+    "description": "Grows calm through careful observation and patience.",
+    "assetDir": "assets/characters/botanist",
+    "abilities": ["grounding", "breathing", "mindfulness"]
+  },
+  {
+    "id": "explorer",
+    "name": "The Explorer",
+    "tag": "Adventurer",
+    "description": "Faces the unknown with curiosity instead of fear.",
+    "assetDir": "assets/characters/explorer",
+    "abilities": ["emotion-mapping", "coping-quiz", "journaling"]
+  },
+  {
+    "id": "healer",
+    "name": "The Healer",
+    "tag": "Empathist",
+    "description": "Finds strength through understanding others and self.",
+    "assetDir": "assets/characters/healer",
+    "abilities": ["emotion-explorer", "reflection", "coping-skills"]
+  }
+]

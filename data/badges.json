@@ -1,0 +1,30 @@
+[
+  {
+    "id": "first-breath",
+    "name": "First Breath",
+    "trigger": { "activityType": "breathing", "completions": 1 },
+    "assetPath": "assets/ui-elements/badges/first-breath.svg",
+    "description": "Completed your first breathing exercise."
+  },
+  {
+    "id": "forest-scholar",
+    "name": "Forest Scholar",
+    "trigger": { "activityType": "quiz", "minScore": 80 },
+    "assetPath": "assets/ui-elements/badges/forest-scholar.svg",
+    "description": "Scored 80%+ on a coping skills quiz."
+  },
+  {
+    "id": "inner-voice",
+    "name": "Inner Voice",
+    "trigger": { "activityType": "journal", "completions": 3 },
+    "assetPath": "assets/ui-elements/badges/inner-voice.svg",
+    "description": "Completed 3 reflection journal sessions."
+  },
+  {
+    "id": "emotion-mapper",
+    "name": "Emotion Mapper",
+    "trigger": { "activityType": "emotions", "uniqueEmotions": 5 },
+    "assetPath": "assets/ui-elements/badges/emotion-mapper.svg",
+    "description": "Explored 5 different emotions."
+  }
+]

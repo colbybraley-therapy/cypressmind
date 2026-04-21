@@ -1,0 +1,38 @@
+[
+  {
+    "id": "breathing-garden",
+    "name": "The Breathing Garden",
+    "activityType": "breathing",
+    "scene": "meadow",
+    "xpReward": 50,
+    "description": "Complete a full guided breathing exercise.",
+    "steps": 6
+  },
+  {
+    "id": "coping-quiz",
+    "name": "Knowledge of the Forest",
+    "activityType": "quiz",
+    "scene": "forest",
+    "xpReward": 75,
+    "description": "Answer coping skills questions to earn the Forest Badge.",
+    "steps": 6
+  },
+  {
+    "id": "reflection-journal",
+    "name": "Words from the Cave",
+    "activityType": "journal",
+    "scene": "cave",
+    "xpReward": 60,
+    "description": "Respond to guided reflection prompts.",
+    "steps": 6
+  },
+  {
+    "id": "emotion-explorer",
+    "name": "Emotion Meadow",
+    "activityType": "emotions",
+    "scene": "meadow",
+    "xpReward": 65,
+    "description": "Identify and explore an emotion with your character.",
+    "steps": 6
+  }
+]
