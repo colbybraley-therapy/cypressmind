@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Character Roster — Cypress Mind</title>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #f5f4f0;
+    color: #1a1a1a;
+    padding: 2rem 1.5rem;
+  }
+
+  .roster-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 0.5px solid rgba(0,0,0,0.12);
+  }
+  .roster-header h2 {
+    font-family: 'Lora', serif;
+    font-size: 26px;
+    font-weight: 500;
+    margin-bottom: 4px;
+    color: #1a1a1a;
+  }
+  .roster-header p {
+    font-size: 14px;
+    color: #6b6b6b;
+  }
+
+  /* ── GRID ── */
+  .character-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+  }
+
+  /* ── CARD ── */
+  .char-card {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    aspect-ratio: 3 / 4;
+    border: 0.5px solid rgba(0,0,0,0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .char-card:hover { transform: translateY(-3px); box-shadow: 0 8px 24px rgba(0,0,0,0.12); }
+
+  /* ── IMAGE / PLACEHOLDER ── */
+  .card-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    display: block;
+  }
+
+  .card-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 48px;
+  }
+  .placeholder-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0.5;
+    margin-top: 4px;
+  }
+
+  /* ── GRADIENT OVERLAY (text legibility) ── */
+  .card-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(0,0,0,0) 30%,
+      rgba(0,0,0,0.65) 100%
+    );
+    border-radius: 16px;
+  }
+
+  /* ── TEXT CONTENT ── */
+  .card-content {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    padding: 1rem 1rem 1.1rem;
+    color: #fff;
+  }
+  .char-name {
+    font-family: 'Lora', serif;
+    font-size: 16px;
+    font-weight: 500;
+    margin-bottom: 2px;
+  }
+  .char-vibe {
+    font-size: 11px;
+    opacity: 0.8;
+    font-style: italic;
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+  .char-traits {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .trait-pill {
+    font-size: 10px;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+    backdrop-filter: blur(4px);
+    border: 0.5px solid rgba(255,255,255,0.3);
+  }
+
+  /* ── DETAIL PANEL ── */
+  .detail-panel {
+    display: none;
+    margin-top: 20px;
+    background: #fff;
+    border: 0.5px solid rgba(0,0,0,0.1);
+    border-radius: 16px;
+    padding: 1.5rem;
+  }
+  .detail-panel.visible { display: block; }
+
+  .detail-top {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 1.1rem;
+    padding-bottom: 1.1rem;
+    border-bottom: 0.5px solid rgba(0,0,0,0.08);
+  }
+  .detail-icon {
+    width: 52px; height: 52px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+  .detail-name {
+    font-family: 'Lora', serif;
+    font-size: 20px;
+    font-weight: 500;
+    margin-bottom: 2px;
+    color: #1a1a1a;
+  }
+  .detail-vibe {
+    font-size: 13px;
+    color: #6b6b6b;
+    font-style: italic;
+  }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.25rem;
+  }
+  .detail-section-title {
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #999;
+    margin-bottom: 6px;
+  }
+  .detail-text {
+    font-size: 14px;
+    color: #2a2a2a;
+    line-height: 1.6;
+  }
+
+  .close-btn {
+    float: right;
+    font-size: 12px;
+    color: #999;
+    cursor: pointer;
+    padding: 3px 8px;
+    border-radius: 6px;
+    border: 0.5px solid rgba(0,0,0,0.12);
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .close-btn:hover { background: #f5f4f0; }
+</style>
+</head>
+<body>
+
+<div class="roster-header">
+  <h2>Character roster</h2>
+  <p>Select a character to view their full profile before gameplay begins.</p>
+</div>
+
+<div class="character-grid" id="grid">
+
+  <!-- THE SCOUT -->
+  <div class="char-card" onclick="openDetail('scout')" data-id="scout">
+    <img class="card-image" src="src/assets/characters/The Scout.png" alt="The Scout">
+    <div class="card-overlay"></div>
+    <div class="card-content">
+      <p class="char-name">The Scout</p>
+      <p class="char-vibe">Proactive, light, observant</p>
+      <div class="char-traits">
+        <span class="trait-pill">Curious</span>
+        <span class="trait-pill">Perceptive</span>
+        <span class="trait-pill">Brave</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- THE WEAVER -->
+  <div class="char-card" onclick="openDetail('weaver')" data-id="weaver">
+    <div class="card-placeholder" style="background: #EEEDFE;">
+      <span>🧵</span>
+      <span class="placeholder-label">Add art here</span>
+    </div>
+    <div class="card-overlay"></div>
+    <div class="card-content">
+      <p class="char-name">The Weaver</p>
+      <p class="char-vibe">Fluid, artistic, connective</p>
+      <div class="char-traits">
+        <span class="trait-pill">Creative</span>
+        <span class="trait-pill">Empathic</span>
+        <span class="trait-pill">Intuitive</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- THE WARDEN -->
+  <div class="char-card" onclick="openDetail('warden')" data-id="warden">
+    <div class="card-placeholder" style="background: #E6F1FB;">
+      <span>🛡️</span>
+      <span class="placeholder-label">Add art here</span>
+    </div>
+    <div class="card-overlay"></div>
+    <div class="card-content">
+      <p class="char-name">The Warden</p>
+      <p class="char-vibe">Protective, structured, solid</p>
+      <div class="char-traits">
+        <span class="trait-pill">Steadfast</span>
+        <span class="trait-pill">Protective</span>
+        <span class="trait-pill">Clear</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- THE DREAMER -->
+  <div class="char-card" onclick="openDetail('dreamer')" data-id="dreamer">
+    <div class="card-placeholder" style="background: #FBEAF0;">
+      <span>✨</span>
+      <span class="placeholder-label">Add art here</span>
+    </div>
+    <div class="card-overlay"></div>
+    <div class="card-content">
+      <p class="char-name">The Dreamer</p>
+      <p class="char-vibe">Ethereal, imaginative, open</p>
+      <div class="char-traits">
+        <span class="trait-pill">Visionary</span>
+        <span class="trait-pill">Open</span>
+        <span class="trait-pill">Hopeful</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- THE ANCHOR -->
+  <div class="char-card" onclick="openDetail('anchor')" data-id="anchor">
+    <div class="card-placeholder" style="background: #E1F5EE;">
+      <span>⚓</span>
+      <span class="placeholder-label">Add art here</span>
+    </div>
+    <div class="card-overlay"></div>
+    <div class="card-content">
+      <p class="char-name">The Anchor</p>
+      <p class="char-vibe">Calm, centered, immovable</p>
+      <div class="char-traits">
+        <span class="trait-pill">Present</span>
+        <span class="trait-pill">Grounded</span>
+        <span class="trait-pill">Steady</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- THE VOYAGER -->
+  <div class="char-card" onclick="openDetail('voyager')" data-id="voyager">
+    <img class="card-image" src="src/assets/characters/The Voyager.png" alt="The Voyager">
+    <div class="card-overlay"></div>
+    <div class="card-content">
+      <p class="char-name">The Voyager</p>
+      <p class="char-vibe">Purposeful, dynamic, ready</p>
+      <div class="char-traits">
+        <span class="trait-pill">Driven</span>
+        <span class="trait-pill">Resilient</span>
+        <span class="trait-pill">Forward</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- THE GARDENER -->
+  <div class="char-card" onclick="openDetail('gardener')" data-id="gardener">
+    <div class="card-placeholder" style="background: #EAF3DE;">
+      <span>🌱</span>
+      <span class="placeholder-label">Add art here</span>
+    </div>
+    <div class="card-overlay"></div>
+    <div class="card-content">
+      <p class="char-name">The Gardener</p>
+      <p class="char-vibe">Nurturing, kind, patient</p>
+      <div class="char-traits">
+        <span class="trait-pill">Compassionate</span>
+        <span class="trait-pill">Gentle</span>
+        <span class="trait-pill">Patient</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- THE SAGE -->
+  <div class="char-card" onclick="openDetail('sage')" data-id="sage">
+    <div class="card-placeholder" style="background: #F1EFE8;">
+      <span>🌙</span>
+      <span class="placeholder-label">Add art here</span>
+    </div>
+    <div class="card-overlay"></div>
+    <div class="card-content">
+      <p class="char-name">The Sage</p>
+      <p class="char-vibe">Wise, reflective, quiet</p>
+      <div class="char-traits">
+        <span class="trait-pill">Wise</span>
+        <span class="trait-pill">Reflective</span>
+        <span class="trait-pill">Accepting</span>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end .character-grid -->
+
+<!-- ── DETAIL PANEL ── -->
+<div class="detail-panel" id="detail-panel">
+  <button class="close-btn" onclick="closeDetail()">close</button>
+  <div class="detail-top">
+    <div class="detail-icon" id="d-icon"></div>
+    <div>
+      <p class="detail-name" id="d-name"></p>
+      <p class="detail-vibe" id="d-vibe"></p>
+    </div>
+  </div>
+  <div class="detail-grid">
+    <div>
+      <p class="detail-section-title">Core traits</p>
+      <p class="detail-text" id="d-traits"></p>
+    </div>
+    <div>
+      <p class="detail-section-title">Therapeutic connection</p>
+      <p class="detail-text" id="d-connection"></p>
+    </div>
+  </div>
+</div>
+
+<script>
+const data = {
+  scout:    { icon: "🔭", bg: "#EAF3DE", name: "The Scout",    vibe: "Proactive, light, observant",    traits: "Curious · Perceptive · Brave",              connection: "Curiosity, seeking clarity, taking the first step." },
+  weaver:   { icon: "🧵", bg: "#EEEDFE", name: "The Weaver",   vibe: "Fluid, artistic, connective",    traits: "Creative · Empathic · Intuitive",           connection: "Processing thoughts, finding patterns, healing." },
+  warden:   { icon: "🛡️", bg: "#E6F1FB", name: "The Warden",   vibe: "Protective, structured, solid",  traits: "Steadfast · Protective · Clear",            connection: "Boundary setting, safety, stability, strength." },
+  dreamer:  { icon: "✨", bg: "#FBEAF0", name: "The Dreamer",  vibe: "Ethereal, imaginative, open",    traits: "Visionary · Open · Hopeful",                connection: "Visualization, hope, expanding possibilities." },
+  anchor:   { icon: "⚓", bg: "#E1F5EE", name: "The Anchor",   vibe: "Calm, centered, immovable",      traits: "Present · Grounded · Steady",               connection: "Mindfulness, grounding, being present." },
+  voyager:  { icon: "⛵", bg: "#FAEEDA", name: "The Voyager",  vibe: "Purposeful, dynamic, ready",     traits: "Driven · Resilient · Forward",              connection: "Moving forward, goal setting, resilience." },
+  gardener: { icon: "🌱", bg: "#EAF3DE", name: "The Gardener", vibe: "Nurturing, kind, patient",       traits: "Compassionate · Gentle · Patient",          connection: "Self-compassion, long-term growth, care." },
+  sage:     { icon: "🌙", bg: "#F1EFE8", name: "The Sage",     vibe: "Wise, reflective, quiet",        traits: "Wise · Reflective · Accepting",             connection: "Internal clarity, wisdom, acceptance." }
+};
+
+let activeId = null;
+
+function openDetail(id) {
+  const c = data[id];
+  if (!c) return;
+
+  if (activeId) document.querySelector(`[data-id="${activeId}"]`).style.outline = '';
+  activeId = id;
+  document.querySelector(`[data-id="${id}"]`).style.outline = '2px solid rgba(0,0,0,0.25)';
+
+  document.getElementById('d-icon').textContent = c.icon;
+  document.getElementById('d-icon').style.background = c.bg;
+  document.getElementById('d-name').textContent = c.name;
+  document.getElementById('d-vibe').textContent = c.vibe;
+  document.getElementById('d-traits').textContent = c.traits;
+  document.getElementById('d-connection').textContent = c.connection;
+
+  const panel = document.getElementById('detail-panel');
+  panel.classList.add('visible');
+  panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function closeDetail() {
+  document.getElementById('detail-panel').classList.remove('visible');
+  if (activeId) document.querySelector(`[data-id="${activeId}"]`).style.outline = '';
+  activeId = null;
+}
+</script>
+</body>
+</html>
