@@ -1,0 +1,93 @@
+/* ============================================================
+   Cypress Mind — Global Styles
+   Processed by Vite + PostCSS. Import this once in main.jsx.
+   ============================================================ */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Base resets & font wiring ─────────────────────────────── */
+@layer base {
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  /* Body: DM Sans for all prose and UI */
+  body {
+    @apply font-sans text-cream-800 bg-cream-100;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  /* Headings: Playfair Display — clinical authority */
+  h1, h2, h3, h4 {
+    @apply font-serif text-cream-800 leading-tight;
+  }
+
+  h1 { @apply text-4xl font-bold;   }
+  h2 { @apply text-2xl font-semibold; }
+  h3 { @apply text-xl  font-semibold; }
+  h4 { @apply text-lg  font-medium;  }
+
+  /* Body copy and small labels: DM Sans */
+  p       { @apply font-sans leading-relaxed; }
+  label   { @apply font-sans text-sm font-medium text-cream-700; }
+  caption { @apply font-sans text-xs text-cream-600 tracking-wide uppercase; }
+
+  a {
+    @apply text-blue-500 underline-offset-2;
+    transition: color 0.15s ease;
+  }
+  a:hover { @apply text-blue-600; }
+}
+
+/* ── Component layer — reusable class shortcuts ─────────────── */
+@layer components {
+
+  /* Clinical card surface */
+  .card {
+    @apply bg-white rounded-md border border-cream-300 shadow-sm;
+  }
+
+  /* Brand gradient button */
+  .btn-brand {
+    @apply bg-brand-gradient text-white font-sans font-semibold
+           px-5 py-2.5 rounded-pill text-sm transition-opacity;
+  }
+  .btn-brand:hover { @apply opacity-90; }
+
+  /* Outline button */
+  .btn-outline {
+    @apply border border-cream-300 text-cream-700 font-sans font-medium
+           px-5 py-2.5 rounded-pill text-sm bg-white transition-colors;
+  }
+  .btn-outline:hover { @apply bg-cream-200 border-cream-400; }
+
+  /* Eyebrow label (UPPERCASE clinical label style) */
+  .eyebrow {
+    @apply font-sans text-xs font-semibold tracking-widest uppercase text-cream-500;
+  }
+
+  /* Adventure scene wrapper — full bleed dark canvas */
+  .scene-canvas {
+    @apply w-full h-full bg-adventure-deep overflow-hidden relative;
+  }
+
+  /* Botanical badge container */
+  .badge-ring {
+    @apply rounded-full border-2 border-green-300 shadow-glow-blue
+           flex items-center justify-center bg-white;
+  }
+}

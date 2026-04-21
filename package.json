@@ -3,10 +3,20 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev":   "tailwindcss -i ./styles/input.css -o ./styles/output.css --watch",
-    "build": "tailwindcss -i ./styles/input.css -o ./styles/output.css --minify"
+    "dev":     "vite",
+    "build":   "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "react":     "^18.3.1",
+    "react-dom": "^18.3.1",
+    "@supabase/supabase-js": "^2.45.0"
   },
   "devDependencies": {
-    "tailwindcss": "^3.4.0"
+    "@vitejs/plugin-react": "^4.3.1",
+    "vite":                 "^5.4.0",
+    "tailwindcss":          "^3.4.0",
+    "postcss":              "^8.4.47",
+    "autoprefixer":         "^10.4.20"
   }
 }
