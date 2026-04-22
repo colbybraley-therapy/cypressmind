@@ -1,751 +1,738 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Character Roster — Cypress Mind</title>
-  <link rel="icon" type="image/png" href="favicon.png" />
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Character Roster — Cypress Mind</title>
+<link rel="icon" type="image/png" href="favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --hunter-green: #355E3B;
+    --green-dark:   #2A4A2F;
+    --green-light:  #F0F5F0;
+    --off-white:    #F8FAF9;
+    --ink:          #1A2E1A;
+    --ink-light:    #4B5563;
+    --border:       #E2E8E2;
+  }
 
-  <style>
-    :root {
-      --hunter-green: #355E3B;
-      --royal-blue:   #4169E1;
-      --purple:       #6B3FA0;
-      --green-dark:   #2A4A2F;
-      --green-light:  #F0F5F0;
-      --off-white:    #F8FAF9;
-      --ink:          #1A2E1A;
-      --ink-light:    #4B5563;
-      --border:       #E2E8E2;
-      --serif:        'Playfair Display', Georgia, serif;
-      --sans:         'DM Sans', system-ui, sans-serif;
-    }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: #f5f4f0;
+    color: #1a1a1a;
+    min-height: 100vh;
+  }
 
-    body {
-      font-family: var(--sans);
-      background: var(--off-white);
-      color: var(--ink);
-      min-height: 100vh;
-    }
+  /* ── NAV ── */
+  .landing-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 48px;
+    background: #fff;
+    border-bottom: 0.5px solid var(--border);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    height: 100px;
+  }
+  .nav-logo img { height: 88px; width: auto; display: block; }
+  .nav-right { display: flex; align-items: center; gap: 12px; }
 
-    /* ── NAV ── */
-    .landing-nav {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 0 48px;
-      background: #fff;
-      border-bottom: 0.5px solid var(--border);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      height: 100px;
-    }
-    .nav-logo img { height: 88px; width: auto; display: block; }
-    .nav-right { display: flex; align-items: center; gap: 12px; }
+  .nav-ghost-btn {
+    background: none;
+    border: 0.5px solid var(--border);
+    color: var(--ink-light);
+    padding: 7px 16px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.12s, border-color 0.12s;
+    display: inline-flex;
+    align-items: center;
+  }
+  .nav-ghost-btn:hover { background: var(--green-light); border-color: var(--hunter-green); color: var(--hunter-green); }
 
-    .nav-ghost-btn {
-      background: none;
-      border: 0.5px solid var(--border);
-      color: var(--ink-light);
-      padding: 7px 16px;
-      border-radius: 6px;
-      font-size: 13px;
-      font-family: var(--sans);
-      font-weight: 500;
-      cursor: pointer;
-      text-decoration: none;
-      transition: background 0.12s, border-color 0.12s;
-      display: inline-flex;
-      align-items: center;
-    }
-    .nav-ghost-btn:hover { background: var(--green-light); border-color: var(--hunter-green); color: var(--hunter-green); }
+  .nav-cta {
+    background: var(--hunter-green);
+    color: #fff;
+    border: none;
+    padding: 8px 18px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background 0.12s;
+    display: inline-flex;
+    align-items: center;
+  }
+  .nav-cta:hover { background: var(--green-dark); }
 
-    .nav-cta {
-      background: var(--hunter-green);
-      color: #fff;
-      border: none;
-      padding: 8px 18px;
-      border-radius: 6px;
-      font-size: 13px;
-      font-family: var(--sans);
-      font-weight: 500;
-      cursor: pointer;
-      text-decoration: none;
-      transition: background 0.12s;
-      display: inline-flex;
-      align-items: center;
-    }
-    .nav-cta:hover { background: var(--green-dark); }
+  /* ── PAGE CONTENT ── */
+  .page-wrap {
+    padding: 2rem 1.5rem;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
 
-    /* ── PAGE HEADER ── */
-    .page-header {
-      background: #fff;
-      border-bottom: 0.5px solid var(--border);
-      padding: 48px 48px 40px;
-    }
-    .page-header-inner {
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-    .page-eyebrow {
-      font-size: 10px;
-      font-weight: 500;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--hunter-green);
-      margin-bottom: 10px;
-    }
-    .page-header h1 {
-      font-family: var(--serif);
-      font-size: 36px;
-      font-weight: 500;
-      color: var(--ink);
-      line-height: 1.2;
-      margin-bottom: 10px;
-    }
-    .page-header p {
-      font-size: 15px;
-      color: var(--ink-light);
-      max-width: 560px;
-      line-height: 1.7;
-    }
+  .top-bar {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1.25rem;
+    flex-wrap: wrap;
+  }
 
-    /* ── FILTER BAR ── */
-    .filter-bar {
-      padding: 24px 48px;
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-    .filter-label {
-      font-size: 10px;
-      font-weight: 500;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--ink-light);
-      margin-bottom: 10px;
-    }
-    .filter-pills {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .filter-pill {
-      font-size: 12px;
-      font-weight: 500;
-      font-family: var(--sans);
-      padding: 6px 16px;
-      border-radius: 999px;
-      border: 1px solid var(--border);
-      background: #fff;
-      color: var(--ink-light);
-      cursor: pointer;
-      transition: all 0.15s;
-    }
-    .filter-pill:hover {
-      border-color: var(--hunter-green);
-      color: var(--hunter-green);
-      background: var(--green-light);
-    }
-    .filter-pill.active {
-      background: var(--hunter-green);
-      border-color: var(--hunter-green);
-      color: #fff;
-    }
+  .top-bar h2 {
+    font-family: 'Lora', serif;
+    font-size: 26px;
+    font-weight: 500;
+    color: #1a1a1a;
+    margin-bottom: 3px;
+  }
 
-    /* ── GRID ── */
-    .roster-grid-wrap {
-      padding: 0 48px 64px;
-      max-width: 1100px;
-      margin: 0 auto;
-    }
-    .result-count {
-      font-size: 12px;
-      color: var(--ink-light);
-      margin-bottom: 16px;
-    }
-    .character-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-      gap: 18px;
-    }
+  .top-bar p { font-size: 13px; color: #6b6b6b; }
 
-    /* ── CARD ── */
-    .char-card {
-      position: relative;
-      border-radius: 16px;
-      overflow: hidden;
-      cursor: pointer;
-      aspect-ratio: 3 / 4;
-      border: 0.5px solid rgba(0,0,0,0.08);
-      transition: transform 0.2s, box-shadow 0.2s, opacity 0.2s;
-      background: #fff;
-    }
-    .char-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 32px rgba(53,94,59,0.13);
-    }
-    .char-card.hidden {
-      display: none;
-    }
+  .search-box {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #fff;
+    border: 0.5px solid rgba(0,0,0,0.12);
+    border-radius: 10px;
+    padding: 0 12px;
+    height: 36px;
+    min-width: 200px;
+  }
 
-    .card-image {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center center;
-      display: block;
-    }
-    .card-placeholder {
-      position: absolute;
-      inset: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      font-size: 52px;
-    }
-    .placeholder-label {
-      font-size: 10px;
-      font-weight: 500;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      opacity: 0.4;
-      font-family: var(--sans);
-    }
-    .card-overlay {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to bottom, rgba(0,0,0,0) 35%, rgba(0,0,0,0.72) 100%);
-    }
-    .card-content {
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      padding: 1rem 1rem 1.2rem;
-      color: #fff;
-    }
-    .char-name {
-      font-family: var(--serif);
-      font-size: 17px;
-      font-weight: 500;
-      margin-bottom: 3px;
-    }
-    .char-vibe {
-      font-size: 11px;
-      opacity: 0.78;
-      font-style: italic;
-      margin-bottom: 10px;
-      line-height: 1.4;
-    }
-    .char-traits {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-    }
-    .trait-pill {
-      font-size: 10px;
-      font-weight: 500;
-      padding: 2px 9px;
-      border-radius: 20px;
-      background: rgba(255,255,255,0.18);
-      color: #fff;
-      backdrop-filter: blur(4px);
-      border: 0.5px solid rgba(255,255,255,0.28);
-    }
+  .search-box input {
+    border: none;
+    background: transparent;
+    font-size: 13px;
+    color: #1a1a1a;
+    outline: none;
+    width: 100%;
+    font-family: 'DM Sans', sans-serif;
+  }
 
-    /* ── DETAIL DRAWER ── */
-    .detail-drawer {
-      position: fixed;
-      top: 0; right: 0;
-      width: 380px;
-      height: 100vh;
-      background: #fff;
-      border-left: 0.5px solid var(--border);
-      box-shadow: -8px 0 40px rgba(53,94,59,0.08);
-      transform: translateX(100%);
-      transition: transform 0.3s cubic-bezier(.4,0,.2,1);
-      z-index: 200;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-    }
-    .detail-drawer.open { transform: translateX(0); }
+  .search-box input::placeholder { color: #bbb; }
 
-    .drawer-image-wrap {
-      width: 100%;
-      aspect-ratio: 3 / 2.8;
-      overflow: hidden;
-      position: relative;
-      flex-shrink: 0;
-    }
-    .drawer-image {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center center;
-      display: block;
-    }
-    .drawer-placeholder {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 72px;
-    }
-    .drawer-overlay {
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      height: 60%;
-      background: linear-gradient(to bottom, transparent, rgba(0,0,0,0.55));
-    }
+  .filter-row {
+    display: flex;
+    gap: 7px;
+    flex-wrap: wrap;
+    margin-bottom: 1rem;
+    align-items: center;
+  }
 
-    .drawer-body { padding: 1.5rem 1.5rem 2.5rem; flex: 1; }
+  .filter-label {
+    font-size: 11px;
+    font-weight: 500;
+    color: #aaa;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin-right: 2px;
+  }
 
-    .drawer-name {
-      font-family: var(--serif);
-      font-size: 26px;
-      font-weight: 500;
-      color: var(--ink);
-      margin-bottom: 4px;
-    }
-    .drawer-vibe {
-      font-size: 13px;
-      color: var(--ink-light);
-      font-style: italic;
-      margin-bottom: 20px;
-      line-height: 1.5;
-    }
+  .filter-btn {
+    font-size: 12px;
+    font-weight: 500;
+    padding: 5px 13px;
+    border-radius: 20px;
+    border: 0.5px solid rgba(0,0,0,0.15);
+    background: #fff;
+    color: #777;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
 
-    .drawer-section {
-      margin-bottom: 20px;
-    }
-    .drawer-section-title {
-      font-size: 9px;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.12em;
-      color: #aaa;
-      margin-bottom: 8px;
-    }
-    .drawer-text {
-      font-size: 14px;
-      color: #2a2a2a;
-      line-height: 1.7;
-    }
-    .drawer-traits {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-    .drawer-trait {
-      font-size: 11px;
-      font-weight: 500;
-      padding: 4px 12px;
-      border-radius: 999px;
-      background: var(--green-light);
-      color: var(--hunter-green);
-      border: 0.5px solid #c6dcc8;
-    }
+  .filter-btn:hover { background: #f0efe9; }
+  .filter-btn.active { background: #1a1a1a; color: #fff; border-color: #1a1a1a; }
 
-    .drawer-close {
-      position: absolute;
-      top: 14px; right: 14px;
-      width: 32px; height: 32px;
-      border-radius: 50%;
-      background: rgba(0,0,0,0.35);
-      border: none;
-      color: #fff;
-      font-size: 16px;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      transition: background 0.15s;
-      z-index: 10;
-    }
-    .drawer-close:hover { background: rgba(0,0,0,0.55); }
+  .results-bar { font-size: 12px; color: #bbb; margin-bottom: 1rem; }
 
-    /* Backdrop */
-    .drawer-backdrop {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.2);
-      z-index: 199;
-    }
-    .drawer-backdrop.open { display: block; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(185px, 1fr));
+    gap: 14px;
+    margin-bottom: 1.5rem;
+  }
 
-    /* ── EMPTY STATE ── */
-    .empty-state {
-      display: none;
-      text-align: center;
-      padding: 4rem 1rem;
-      color: var(--ink-light);
-    }
-    .empty-state.visible { display: block; }
-    .empty-state p { font-size: 14px; margin-top: 6px; }
+  .card {
+    position: relative;
+    border-radius: 16px;
+    overflow: hidden;
+    cursor: pointer;
+    aspect-ratio: 3 / 4;
+    border: 0.5px solid rgba(0,0,0,0.1);
+    transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+  }
 
-    /* ── RESPONSIVE ── */
-    @media (max-width: 640px) {
-      .landing-nav { padding: 0 20px; }
-      .page-header { padding: 32px 20px 28px; }
-      .filter-bar { padding: 20px 20px; }
-      .roster-grid-wrap { padding: 0 20px 48px; }
-      .character-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
-      .detail-drawer { width: 100%; }
-    }
-  </style>
+  .card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.1); }
+  .card.active { border: 2px solid #1a1a1a; }
+  .card.hidden { display: none; }
+
+  .card-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: top center;
+    display: block;
+  }
+
+  .card-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to bottom, rgba(0,0,0,0) 20%, rgba(0,0,0,0.72) 100%);
+  }
+
+  .card-content {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 0.9rem;
+  }
+
+  .card-name {
+    font-family: 'Lora', serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: #fff;
+    margin-bottom: 2px;
+  }
+
+  .card-vibe {
+    font-size: 10px;
+    color: rgba(255,255,255,0.75);
+    font-style: italic;
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+
+  .card-pills { display: flex; flex-wrap: wrap; gap: 3px; }
+
+  .pill {
+    font-size: 9px;
+    font-weight: 500;
+    padding: 2px 7px;
+    border-radius: 20px;
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+    border: 0.5px solid rgba(255,255,255,0.3);
+  }
+
+  .empty-state {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #ccc;
+    font-size: 14px;
+  }
+
+  .detail {
+    background: #fff;
+    border: 0.5px solid rgba(0,0,0,0.1);
+    border-radius: 16px;
+    overflow: hidden;
+    display: none;
+    margin-bottom: 1.5rem;
+  }
+
+  .detail.open { display: block; }
+
+  .detail-hero {
+    padding: 1.25rem 1.5rem 1rem;
+    border-bottom: 0.5px solid rgba(0,0,0,0.08);
+  }
+
+  .detail-hero-top {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 0.85rem;
+  }
+
+  .d-icon {
+    width: 54px; height: 54px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 26px;
+    flex-shrink: 0;
+  }
+
+  .d-name {
+    font-family: 'Lora', serif;
+    font-size: 22px;
+    font-weight: 500;
+    color: #1a1a1a;
+    margin-bottom: 2px;
+  }
+
+  .d-vibe { font-size: 13px; color: #999; font-style: italic; }
+
+  .d-theme-pills { display: flex; flex-wrap: wrap; gap: 5px; }
+
+  .d-theme-pill {
+    font-size: 11px;
+    font-weight: 500;
+    padding: 3px 11px;
+    border-radius: 20px;
+  }
+
+  .detail-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    border-bottom: 0.5px solid rgba(0,0,0,0.08);
+  }
+
+  .detail-col { padding: 1.1rem 1.5rem; }
+  .detail-col:first-child { border-right: 0.5px solid rgba(0,0,0,0.08); }
+
+  .d-section-label {
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #ccc;
+    margin-bottom: 7px;
+  }
+
+  .d-section-text {
+    font-size: 14px;
+    color: #2a2a2a;
+    line-height: 1.65;
+  }
+
+  .detail-copy {
+    padding: 1.1rem 1.5rem;
+    border-bottom: 0.5px solid rgba(0,0,0,0.08);
+    background: #fafaf8;
+  }
+
+  .detail-copy-label {
+    font-size: 10px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #185FA5;
+    margin-bottom: 7px;
+  }
+
+  .detail-copy-text {
+    font-size: 14px;
+    color: #2a2a2a;
+    line-height: 1.75;
+  }
+
+  .detail-footer {
+    display: flex;
+    justify-content: flex-end;
+    padding: 0.85rem 1.5rem;
+  }
+
+  .close-btn {
+    font-size: 12px;
+    color: #888;
+    cursor: pointer;
+    padding: 5px 12px;
+    border-radius: 8px;
+    border: 0.5px solid rgba(0,0,0,0.12);
+    background: transparent;
+    font-family: 'DM Sans', sans-serif;
+    transition: background 0.15s;
+  }
+
+  .close-btn:hover { background: #f5f4f0; }
+
+  @media (max-width: 600px) {
+    .landing-nav { padding: 0 20px; }
+    .detail-body { grid-template-columns: 1fr; }
+    .detail-col:first-child { border-right: none; border-bottom: 0.5px solid rgba(0,0,0,0.08); }
+    .top-bar { flex-direction: column; }
+    .search-box { width: 100%; }
+  }
+</style>
 </head>
 <body>
 
-  <!-- ── NAV ── -->
-  <nav class="landing-nav">
-    <a href="index.html" class="nav-logo">
-      <img src="assets/ui-elements/Cypress Mind Logo.png" alt="Cypress Mind" />
-    </a>
-    <div class="nav-right">
-      <a href="index.html" class="nav-ghost-btn">← Back to home</a>
-      <a href="index.html#signup" class="nav-cta">Request Demo</a>
-    </div>
-  </nav>
+<!-- NAV -->
+<nav class="landing-nav">
+  <a href="index.html" class="nav-logo">
+    <img src="assets/ui-elements/Cypress Mind Logo.png" alt="Cypress Mind">
+  </a>
+  <div class="nav-right">
+    <a href="index.html" class="nav-ghost-btn">Home</a>
+    <a href="index.html#sign-in" class="nav-cta">Therapist Login</a>
+  </div>
+</nav>
 
-  <!-- ── PAGE HEADER ── -->
-  <div class="page-header">
-    <div class="page-header-inner">
-      <p class="page-eyebrow">Adventure System</p>
-      <h1>Character Roster</h1>
-      <p>Each character is rooted in a therapeutic archetype. Clients choose the one that resonates — or the one they aspire to become. Click any character to explore their profile.</p>
+<div class="page-wrap">
+
+  <div class="top-bar">
+    <div>
+      <h2>Character roster</h2>
+      <p>Therapist view — review character profiles before gameplay begins.</p>
+    </div>
+    <div class="search-box">
+      <span style="font-size:14px;color:#ccc;">&#9906;</span>
+      <input type="text" id="search" placeholder="Search characters..." oninput="applyFilters()">
     </div>
   </div>
 
-  <!-- ── FILTERS ── -->
-  <div class="filter-bar">
-    <p class="filter-label">Filter by focus area</p>
-    <div class="filter-pills" id="filter-pills">
-      <button class="filter-pill active" data-filter="all">All characters</button>
-      <button class="filter-pill" data-filter="curious">Curious</button>
-      <button class="filter-pill" data-filter="grounded">Grounded</button>
-      <button class="filter-pill" data-filter="resilient">Resilient</button>
-      <button class="filter-pill" data-filter="creative">Creative</button>
-      <button class="filter-pill" data-filter="empathic">Empathic</button>
-      <button class="filter-pill" data-filter="wise">Wise</button>
+  <div class="filter-row">
+    <span class="filter-label">Theme</span>
+    <button class="filter-btn active" data-filter="all" onclick="setFilter(this,'all')">All</button>
+    <button class="filter-btn" data-filter="grounding" onclick="setFilter(this,'grounding')">Grounding</button>
+    <button class="filter-btn" data-filter="growth" onclick="setFilter(this,'growth')">Growth</button>
+    <button class="filter-btn" data-filter="boundaries" onclick="setFilter(this,'boundaries')">Boundaries</button>
+    <button class="filter-btn" data-filter="clarity" onclick="setFilter(this,'clarity')">Clarity</button>
+    <button class="filter-btn" data-filter="hope" onclick="setFilter(this,'hope')">Hope</button>
+    <button class="filter-btn" data-filter="resilience" onclick="setFilter(this,'resilience')">Resilience</button>
+  </div>
+
+  <div class="results-bar" id="results-bar">Showing all 8 characters</div>
+
+  <div class="grid" id="grid">
+
+    <!-- THE SCOUT -->
+    <div class="card" data-id="scout" data-themes="clarity growth" data-name="the scout" data-vibe="proactive light observant curious perceptive brave" onclick="openDetail('scout',this)">
+      <img class="card-image" src="src/assets/characters/The Scout.png" alt="The Scout">
+      <div class="card-overlay"></div>
+      <div class="card-content">
+        <p class="card-name">The Scout</p>
+        <p class="card-vibe">Proactive, light, observant</p>
+        <div class="card-pills">
+          <span class="pill">Curious</span>
+          <span class="pill">Perceptive</span>
+          <span class="pill">Brave</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- THE WEAVER -->
+    <div class="card" data-id="weaver" data-themes="clarity growth" data-name="the weaver" data-vibe="fluid artistic connective creative empathic intuitive" onclick="openDetail('weaver',this)">
+      <img class="card-image" src="src/assets/characters/The Weaver.png" alt="The Weaver">
+      <div class="card-overlay"></div>
+      <div class="card-content">
+        <p class="card-name">The Weaver</p>
+        <p class="card-vibe">Fluid, artistic, connective</p>
+        <div class="card-pills">
+          <span class="pill">Creative</span>
+          <span class="pill">Empathic</span>
+          <span class="pill">Intuitive</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- THE WARDEN -->
+    <div class="card" data-id="warden" data-themes="boundaries grounding" data-name="the warden" data-vibe="protective structured solid steadfast clear" onclick="openDetail('warden',this)">
+      <img class="card-image" src="src/assets/characters/The Warden.png" alt="The Warden">
+      <div class="card-overlay"></div>
+      <div class="card-content">
+        <p class="card-name">The Warden</p>
+        <p class="card-vibe">Protective, structured, solid</p>
+        <div class="card-pills">
+          <span class="pill">Steadfast</span>
+          <span class="pill">Protective</span>
+          <span class="pill">Clear</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- THE DREAMER -->
+    <div class="card" data-id="dreamer" data-themes="hope growth" data-name="the dreamer" data-vibe="ethereal imaginative open visionary hopeful" onclick="openDetail('dreamer',this)">
+      <img class="card-image" src="src/assets/characters/The Dreamer.png" alt="The Dreamer">
+      <div class="card-overlay"></div>
+      <div class="card-content">
+        <p class="card-name">The Dreamer</p>
+        <p class="card-vibe">Ethereal, imaginative, open</p>
+        <div class="card-pills">
+          <span class="pill">Visionary</span>
+          <span class="pill">Open</span>
+          <span class="pill">Hopeful</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- THE ANCHOR -->
+    <div class="card" data-id="anchor" data-themes="grounding clarity" data-name="the anchor" data-vibe="calm centered immovable present grounded steady" onclick="openDetail('anchor',this)">
+      <img class="card-image" src="src/assets/characters/The Anchor.png" alt="The Anchor">
+      <div class="card-overlay"></div>
+      <div class="card-content">
+        <p class="card-name">The Anchor</p>
+        <p class="card-vibe">Calm, centered, immovable</p>
+        <div class="card-pills">
+          <span class="pill">Present</span>
+          <span class="pill">Grounded</span>
+          <span class="pill">Steady</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- THE VOYAGER -->
+    <div class="card" data-id="voyager" data-themes="resilience hope growth" data-name="the voyager" data-vibe="purposeful dynamic ready driven resilient forward" onclick="openDetail('voyager',this)">
+      <img class="card-image" src="src/assets/characters/The Voyager.png" alt="The Voyager" style="object-position: 75% center;">
+      <div class="card-overlay"></div>
+      <div class="card-content">
+        <p class="card-name">The Voyager</p>
+        <p class="card-vibe">Purposeful, dynamic, ready</p>
+        <div class="card-pills">
+          <span class="pill">Driven</span>
+          <span class="pill">Resilient</span>
+          <span class="pill">Forward</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- THE GARDENER -->
+    <div class="card" data-id="gardener" data-themes="growth grounding" data-name="the gardener" data-vibe="nurturing kind patient compassionate gentle" onclick="openDetail('gardener',this)">
+      <img class="card-image" src="src/assets/characters/The Gardener.png" alt="The Gardener">
+      <div class="card-overlay"></div>
+      <div class="card-content">
+        <p class="card-name">The Gardener</p>
+        <p class="card-vibe">Nurturing, kind, patient</p>
+        <div class="card-pills">
+          <span class="pill">Compassionate</span>
+          <span class="pill">Gentle</span>
+          <span class="pill">Patient</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- THE SAGE -->
+    <div class="card" data-id="sage" data-themes="clarity resilience" data-name="the sage" data-vibe="wise reflective quiet accepting" onclick="openDetail('sage',this)">
+      <img class="card-image" src="src/assets/characters/The Sage.png" alt="The Sage">
+      <div class="card-overlay"></div>
+      <div class="card-content">
+        <p class="card-name">The Sage</p>
+        <p class="card-vibe">Wise, reflective, quiet</p>
+        <div class="card-pills">
+          <span class="pill">Wise</span>
+          <span class="pill">Reflective</span>
+          <span class="pill">Accepting</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="empty-state" id="empty" style="display:none;">No characters match this filter.</div>
+
+  </div>
+
+  <!-- DETAIL PANEL -->
+  <div class="detail" id="detail">
+    <div class="detail-hero">
+      <div class="detail-hero-top">
+        <div class="d-icon" id="d-icon"></div>
+        <div>
+          <p class="d-name" id="d-name"></p>
+          <p class="d-vibe" id="d-vibe"></p>
+        </div>
+      </div>
+      <div class="d-theme-pills" id="d-theme-pills"></div>
+    </div>
+    <div class="detail-body">
+      <div class="detail-col">
+        <p class="d-section-label">Core traits</p>
+        <p class="d-section-text" id="d-traits"></p>
+      </div>
+      <div class="detail-col">
+        <p class="d-section-label">Therapeutic connection</p>
+        <p class="d-section-text" id="d-connection"></p>
+      </div>
+    </div>
+    <div class="detail-copy">
+      <p class="detail-copy-label">A client might choose this character because...</p>
+      <p class="detail-copy-text" id="d-copy-text"></p>
+    </div>
+    <div class="detail-footer">
+      <button class="close-btn" onclick="closeDetail()">Close profile</button>
     </div>
   </div>
 
-  <!-- ── GRID ── -->
-  <div class="roster-grid-wrap">
-    <p class="result-count" id="result-count">Showing 8 characters</p>
-    <div class="character-grid" id="grid">
-
-      <!-- THE SCOUT -->
-      <div class="char-card" onclick="openDrawer('scout')" data-id="scout" data-filters="curious resilient">
-        <img class="card-image" src="src/assets/characters/The Scout.png" alt="The Scout">
-        <div class="card-overlay"></div>
-        <div class="card-content">
-          <p class="char-name">The Scout</p>
-          <p class="char-vibe">Proactive, light, observant</p>
-          <div class="char-traits">
-            <span class="trait-pill">Curious</span>
-            <span class="trait-pill">Perceptive</span>
-            <span class="trait-pill">Brave</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- THE WEAVER -->
-      <div class="char-card" onclick="openDrawer('weaver')" data-id="weaver" data-filters="creative empathic">
-        <img class="card-image" src="src/assets/characters/The Weaver.png" alt="The Weaver">
-        <div class="card-overlay"></div>
-        <div class="card-content">
-          <p class="char-name">The Weaver</p>
-          <p class="char-vibe">Fluid, artistic, connective</p>
-          <div class="char-traits">
-            <span class="trait-pill">Creative</span>
-            <span class="trait-pill">Empathic</span>
-            <span class="trait-pill">Intuitive</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- THE WARDEN -->
-      <div class="char-card" onclick="openDrawer('warden')" data-id="warden" data-filters="grounded resilient">
-        <img class="card-image" src="src/assets/characters/The Warden.png" alt="The Warden">
-        <div class="card-overlay"></div>
-        <div class="card-content">
-          <p class="char-name">The Warden</p>
-          <p class="char-vibe">Protective, structured, solid</p>
-          <div class="char-traits">
-            <span class="trait-pill">Steadfast</span>
-            <span class="trait-pill">Protective</span>
-            <span class="trait-pill">Clear</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- THE DREAMER -->
-      <div class="char-card" onclick="openDrawer('dreamer')" data-id="dreamer" data-filters="creative curious">
-        <img class="card-image" src="src/assets/characters/The Dreamer.png" alt="The Dreamer">
-        <div class="card-overlay"></div>
-        <div class="card-content">
-          <p class="char-name">The Dreamer</p>
-          <p class="char-vibe">Ethereal, imaginative, open</p>
-          <div class="char-traits">
-            <span class="trait-pill">Visionary</span>
-            <span class="trait-pill">Open</span>
-            <span class="trait-pill">Hopeful</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- THE ANCHOR -->
-      <div class="char-card" onclick="openDrawer('anchor')" data-id="anchor" data-filters="grounded wise">
-        <img class="card-image" src="src/assets/characters/The Anchor.png" alt="The Anchor">
-        <div class="card-overlay"></div>
-        <div class="card-content">
-          <p class="char-name">The Anchor</p>
-          <p class="char-vibe">Calm, centered, immovable</p>
-          <div class="char-traits">
-            <span class="trait-pill">Present</span>
-            <span class="trait-pill">Grounded</span>
-            <span class="trait-pill">Steady</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- THE VOYAGER -->
-      <div class="char-card" onclick="openDrawer('voyager')" data-id="voyager" data-filters="resilient curious">
-        <img class="card-image" src="src/assets/characters/The Voyager.png" alt="The Voyager" style="object-position: 75% center;">
-        <div class="card-overlay"></div>
-        <div class="card-content">
-          <p class="char-name">The Voyager</p>
-          <p class="char-vibe">Purposeful, dynamic, ready</p>
-          <div class="char-traits">
-            <span class="trait-pill">Driven</span>
-            <span class="trait-pill">Resilient</span>
-            <span class="trait-pill">Forward</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- THE GARDENER -->
-      <div class="char-card" onclick="openDrawer('gardener')" data-id="gardener" data-filters="empathic grounded">
-        <img class="card-image" src="src/assets/characters/The Gardener.png" alt="The Gardener">
-        <div class="card-overlay"></div>
-        <div class="card-content">
-          <p class="char-name">The Gardener</p>
-          <p class="char-vibe">Nurturing, kind, patient</p>
-          <div class="char-traits">
-            <span class="trait-pill">Compassionate</span>
-            <span class="trait-pill">Gentle</span>
-            <span class="trait-pill">Patient</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- THE SAGE -->
-      <div class="char-card" onclick="openDrawer('sage')" data-id="sage" data-filters="wise empathic">
-        <img class="card-image" src="src/assets/characters/The Sage.png" alt="The Sage">
-        <div class="card-overlay"></div>
-        <div class="card-content">
-          <p class="char-name">The Sage</p>
-          <p class="char-vibe">Wise, reflective, quiet</p>
-          <div class="char-traits">
-            <span class="trait-pill">Wise</span>
-            <span class="trait-pill">Reflective</span>
-            <span class="trait-pill">Accepting</span>
-          </div>
-        </div>
-      </div>
-
-    </div><!-- end grid -->
-
-    <div class="empty-state" id="empty-state">
-      <p style="font-size:24px;">🌿</p>
-      <p>No characters match this filter.</p>
-    </div>
-  </div>
-
-  <!-- ── DETAIL DRAWER ── -->
-  <div class="drawer-backdrop" id="drawer-backdrop" onclick="closeDrawer()"></div>
-  <div class="detail-drawer" id="detail-drawer">
-    <button class="drawer-close" onclick="closeDrawer()">✕</button>
-    <div class="drawer-image-wrap" id="d-image-wrap">
-      <div class="drawer-placeholder" id="d-placeholder"></div>
-      <div class="drawer-overlay"></div>
-    </div>
-    <div class="drawer-body">
-      <p class="drawer-name"  id="d-name"></p>
-      <p class="drawer-vibe"  id="d-vibe"></p>
-      <div class="drawer-section">
-        <p class="drawer-section-title">Core traits</p>
-        <div class="drawer-traits" id="d-traits"></div>
-      </div>
-      <div class="drawer-section">
-        <p class="drawer-section-title">Therapeutic focus</p>
-        <p class="drawer-text" id="d-connection"></p>
-      </div>
-      <div class="drawer-section">
-        <p class="drawer-section-title">Best suited for clients who are</p>
-        <p class="drawer-text" id="d-suited"></p>
-      </div>
-    </div>
-  </div>
+</div><!-- /page-wrap -->
 
 <script>
-const characters = {
+const chars = {
   scout: {
-    icon: "🔭", bg: "linear-gradient(160deg,#EAF3DE,#CDE8B8)",
+    icon: "🔭", bg: "#EAF3DE",
     name: "The Scout",
     vibe: "Proactive, light, observant",
-    traits: ["Curious", "Perceptive", "Brave"],
-    connection: "Curiosity, seeking clarity, and taking the first step toward self-understanding.",
-    suited: "Beginning to explore their inner world, or who need a gentle push toward self-reflection.",
-    hasImage: true,
-    imgSrc: "src/assets/characters/The Scout.png"
+    traits: "Curious · Perceptive · Brave",
+    connection: "Curiosity, seeking clarity, taking the first step.",
+    themes: ["Clarity","Growth"],
+    themeColors: {
+      Clarity: { bg:"#EAF3DE", text:"#27500A" },
+      Growth:  { bg:"#C0DD97", text:"#173404" }
+    },
+    copy: "They feel stuck or avoidant and are looking for a way in. They may be curious about their own patterns but unsure how to start exploring them. They respond well to incremental steps and can use The Scout as permission to move at their own pace while still moving forward."
   },
   weaver: {
-    icon: "🧵", bg: "linear-gradient(160deg,#EEEDFE,#D9D6FD)",
+    icon: "🧵", bg: "#EEEDFE",
     name: "The Weaver",
     vibe: "Fluid, artistic, connective",
-    traits: ["Creative", "Empathic", "Intuitive"],
-    connection: "Processing complex thoughts, finding patterns between experiences, and healing through expression.",
-    suited: "Creative or artistic, or who process emotions through metaphor and storytelling.",
-    hasImage: true, imgSrc: "src/assets/characters/The Weaver.png"
+    traits: "Creative · Empathic · Intuitive",
+    connection: "Processing thoughts, finding patterns, healing.",
+    themes: ["Clarity","Growth"],
+    themeColors: {
+      Clarity: { bg:"#EEEDFE", text:"#3C3489" },
+      Growth:  { bg:"#CECBF6", text:"#26215C" }
+    },
+    copy: "They struggle to put their feelings into words but communicate easily through creativity or metaphor. They may be carrying a lot emotionally and need a character that reflects the complexity of their inner world. The Weaver can help them feel seen without requiring direct disclosure."
   },
   warden: {
-    icon: "🛡️", bg: "linear-gradient(160deg,#E6F1FB,#C8DEFA)",
+    icon: "🛡️", bg: "#E6F1FB",
     name: "The Warden",
     vibe: "Protective, structured, solid",
-    traits: ["Steadfast", "Protective", "Clear"],
-    connection: "Boundary setting, building safety, and developing a structured sense of inner stability.",
-    suited: "Working through trust issues, trauma, or who need to establish healthy personal boundaries.",
-    hasImage: true, imgSrc: "src/assets/characters/The Warden.png"
+    traits: "Steadfast · Protective · Clear",
+    connection: "Boundary setting, safety, stability, strength.",
+    themes: ["Boundaries","Grounding"],
+    themeColors: {
+      Boundaries: { bg:"#E6F1FB", text:"#0C447C" },
+      Grounding:  { bg:"#B5D4F4", text:"#042C53" }
+    },
+    copy: "They have experienced situations where their limits were not respected, or they find it difficult to say no. They may feel unsafe in relationships or need support recognizing what is and is not okay. The Warden gives them a strong, protective identity to step into during play."
   },
   dreamer: {
-    icon: "✨", bg: "linear-gradient(160deg,#FBEAF0,#F9D0E0)",
+    icon: "✨", bg: "#FBEAF0",
     name: "The Dreamer",
     vibe: "Ethereal, imaginative, open",
-    traits: ["Visionary", "Open", "Hopeful"],
-    connection: "Visualization, cultivating hope, and expanding what feels possible for the future.",
-    suited: "Hopeful but uncertain, or who benefit from future-focused and possibility-oriented work.",
-    hasImage: true, imgSrc: "src/assets/characters/The Dreamer.png"
+    traits: "Visionary · Open · Hopeful",
+    connection: "Visualization, hope, expanding possibilities.",
+    themes: ["Hope","Growth"],
+    themeColors: {
+      Hope:   { bg:"#FBEAF0", text:"#72243E" },
+      Growth: { bg:"#F4C0D1", text:"#4B1528" }
+    },
+    copy: "They are navigating hopelessness, low motivation, or difficulty imagining things getting better. They may be drawn to fantasy or storytelling as a way of coping. The Dreamer meets them there and gently opens the door to future-oriented thinking without dismissing how hard the present feels."
   },
   anchor: {
-    icon: "⚓", bg: "linear-gradient(160deg,#E1F5EE,#BFEADB)",
+    icon: "⚓", bg: "#E1F5EE",
     name: "The Anchor",
     vibe: "Calm, centered, immovable",
-    traits: ["Present", "Grounded", "Steady"],
-    connection: "Mindfulness, grounding techniques, and learning to stay present amid emotional storms.",
-    suited: "Experiencing anxiety, dysregulation, or who struggle to stay present in the moment.",
-    hasImage: true, imgSrc: "src/assets/characters/The Anchor.png"
+    traits: "Present · Grounded · Steady",
+    connection: "Mindfulness, grounding, being present.",
+    themes: ["Grounding","Clarity"],
+    themeColors: {
+      Grounding: { bg:"#E1F5EE", text:"#085041" },
+      Clarity:   { bg:"#9FE1CB", text:"#04342C" }
+    },
+    copy: "They experience anxiety, emotional overwhelm, or difficulty staying present. They may feel like their feelings carry them away and are looking for something solid to hold onto. The Anchor gives them a grounded identity and a framework for using calming strategies during gameplay."
   },
   voyager: {
-    icon: "⛵", bg: "linear-gradient(160deg,#FAEEDA,#F5D8A8)",
+    icon: "⛵", bg: "#FAEEDA",
     name: "The Voyager",
     vibe: "Purposeful, dynamic, ready",
-    traits: ["Driven", "Resilient", "Forward"],
-    connection: "Moving forward with intention, goal-directed behaviour, and building resilience after setbacks.",
-    suited: "Goal-oriented, or who are ready to move through difficulty and build toward something new.",
-    hasImage: true,
-    imgSrc: "src/assets/characters/The Voyager.png"
+    traits: "Driven · Resilient · Forward",
+    connection: "Moving forward, goal setting, resilience.",
+    themes: ["Resilience","Hope","Growth"],
+    themeColors: {
+      Resilience: { bg:"#FAEEDA", text:"#633806" },
+      Hope:       { bg:"#FAC775", text:"#412402" },
+      Growth:     { bg:"#EF9F27", text:"#412402" }
+    },
+    copy: "They are ready to make change but need structure and momentum to get there. They may have worked through a difficult period and are looking for a character that reflects their determination. The Voyager validates how far they have come while keeping the focus on what is possible next."
   },
   gardener: {
-    icon: "🌱", bg: "linear-gradient(160deg,#EAF3DE,#CDE8B8)",
+    icon: "🌱", bg: "#EAF3DE",
     name: "The Gardener",
     vibe: "Nurturing, kind, patient",
-    traits: ["Compassionate", "Gentle", "Patient"],
-    connection: "Self-compassion, long-term growth, and learning to nurture emotional wellbeing over time.",
-    suited: "Self-critical or who struggle with self-compassion and need a slower, gentler pace.",
-    hasImage: true, imgSrc: "src/assets/characters/The Gardener.png"
+    traits: "Compassionate · Gentle · Patient",
+    connection: "Self-compassion, long-term growth, care.",
+    themes: ["Growth","Grounding"],
+    themeColors: {
+      Growth:    { bg:"#EAF3DE", text:"#27500A" },
+      Grounding: { bg:"#C0DD97", text:"#173404" }
+    },
+    copy: "They are hard on themselves and struggle to recognize progress that feels slow or imperfect. They may carry shame or a harsh inner critic and need a character that models gentleness and patience. The Gardener can be a meaningful mirror for clients learning what it looks like to care for themselves over time."
   },
   sage: {
-    icon: "🌙", bg: "linear-gradient(160deg,#F1EFE8,#E0DCCE)",
+    icon: "🌙", bg: "#F1EFE8",
     name: "The Sage",
     vibe: "Wise, reflective, quiet",
-    traits: ["Wise", "Reflective", "Accepting"],
-    connection: "Internal clarity, integrating lived experience, and finding wisdom through acceptance.",
-    suited: "More introspective, or working through grief, identity, or major life transitions.",
-    hasImage: true, imgSrc: "src/assets/characters/The Sage.png"
+    traits: "Wise · Reflective · Accepting",
+    connection: "Internal clarity, wisdom, acceptance.",
+    themes: ["Clarity","Resilience"],
+    themeColors: {
+      Clarity:    { bg:"#F1EFE8", text:"#444441" },
+      Resilience: { bg:"#D3D1C7", text:"#2C2C2A" }
+    },
+    copy: "They are naturally introspective and process deeply before they speak. They may be working toward accepting something difficult or learning to trust their own judgment. The Sage honors their inner world and gives language to the kind of quiet, internal strength they may not yet recognize in themselves."
   }
 };
 
-// ── FILTER ──────────────────────────────────────────
-document.getElementById('filter-pills').addEventListener('click', e => {
-  const pill = e.target.closest('.filter-pill');
-  if (!pill) return;
+let activeFilter = "all";
+let activeCard = null;
 
-  document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
-  pill.classList.add('active');
+function setFilter(btn, f) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  activeFilter = f;
+  applyFilters();
+}
 
-  const filter = pill.dataset.filter;
-  const cards  = document.querySelectorAll('.char-card');
-  let visible  = 0;
-
-  cards.forEach(card => {
-    const filters = card.dataset.filters || '';
-    const show = filter === 'all' || filters.includes(filter);
-    card.classList.toggle('hidden', !show);
-    if (show) visible++;
+function applyFilters() {
+  const q = document.getElementById('search').value.toLowerCase().trim();
+  const cards = document.querySelectorAll('.card');
+  let visible = 0;
+  cards.forEach(c => {
+    const themes = c.dataset.themes || "";
+    const name   = c.dataset.name   || "";
+    const vibe   = c.dataset.vibe   || "";
+    const matchFilter = activeFilter === "all" || themes.includes(activeFilter);
+    const matchSearch = !q || name.includes(q) || vibe.includes(q) || themes.includes(q);
+    if (matchFilter && matchSearch) { c.classList.remove('hidden'); visible++; }
+    else { c.classList.add('hidden'); }
   });
+  document.getElementById('empty').style.display = visible === 0 ? 'block' : 'none';
+  const label = activeFilter === "all"
+    ? "all 8 characters"
+    : `${visible} character${visible !== 1 ? 's' : ''} · ${activeFilter}`;
+  document.getElementById('results-bar').textContent = `Showing ${label}`;
+}
 
-  document.getElementById('result-count').textContent =
-    `Showing ${visible} character${visible !== 1 ? 's' : ''}`;
-  document.getElementById('empty-state').classList.toggle('visible', visible === 0);
-});
+function openDetail(id, card) {
+  if (activeCard) activeCard.classList.remove('active');
+  activeCard = card;
+  card.classList.add('active');
 
-// ── DRAWER ──────────────────────────────────────────
-function openDrawer(id) {
-  const c = characters[id];
-  if (!c) return;
-
-  const wrap = document.getElementById('d-image-wrap');
-
-  // Image or placeholder
-  const existing = wrap.querySelector('.drawer-image');
-  if (existing) existing.remove();
-
-  if (c.hasImage) {
-    const img = document.createElement('img');
-    img.className = 'drawer-image';
-    img.src = c.imgSrc;
-    img.alt = c.name;
-    wrap.insertBefore(img, wrap.firstChild);
-    document.getElementById('d-placeholder').style.display = 'none';
-  } else {
-    document.getElementById('d-placeholder').style.display = 'flex';
-    document.getElementById('d-placeholder').textContent = c.icon;
-    document.getElementById('d-placeholder').style.background = c.bg;
-  }
-
-  document.getElementById('d-name').textContent = c.name;
-  document.getElementById('d-vibe').textContent = c.vibe;
+  const c = chars[id];
+  document.getElementById('d-icon').textContent       = c.icon;
+  document.getElementById('d-icon').style.background  = c.bg;
+  document.getElementById('d-name').textContent       = c.name;
+  document.getElementById('d-vibe').textContent       = c.vibe;
+  document.getElementById('d-traits').textContent     = c.traits;
   document.getElementById('d-connection').textContent = c.connection;
-  document.getElementById('d-suited').textContent = c.suited;
+  document.getElementById('d-copy-text').textContent  = c.copy;
 
-  const traitsEl = document.getElementById('d-traits');
-  traitsEl.innerHTML = c.traits
-    .map(t => `<span class="drawer-trait">${t}</span>`)
-    .join('');
+  const tp = document.getElementById('d-theme-pills');
+  tp.innerHTML = c.themes.map(t => {
+    const col = c.themeColors[t] || { bg:'#eee', text:'#333' };
+    return `<span class="d-theme-pill" style="background:${col.bg};color:${col.text}">${t}</span>`;
+  }).join('');
 
-  document.getElementById('detail-drawer').classList.add('open');
-  document.getElementById('drawer-backdrop').classList.add('open');
+  const detail = document.getElementById('detail');
+  detail.classList.add('open');
+  setTimeout(() => detail.scrollIntoView({ behavior:'smooth', block:'nearest' }), 50);
 }
 
-function closeDrawer() {
-  document.getElementById('detail-drawer').classList.remove('open');
-  document.getElementById('drawer-backdrop').classList.remove('open');
+function closeDetail() {
+  document.getElementById('detail').classList.remove('open');
+  if (activeCard) activeCard.classList.remove('active');
+  activeCard = null;
 }
-
-document.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closeDrawer();
-});
 </script>
 </body>
 </html>
