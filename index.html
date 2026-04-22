@@ -189,31 +189,53 @@
     }
     .showcase-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 1px;
-      background: var(--border);
-      border: 0.5px solid var(--border);
-      border-radius: 8px;
-      overflow: hidden;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+    @media (max-width: 640px) {
+      .showcase-grid { grid-template-columns: repeat(2, 1fr); }
     }
     .showcase-card {
-      background: #fff;
-      padding: 32px 28px;
-      transition: background 0.15s;
+      position: relative;
+      border-radius: 14px;
+      overflow: hidden;
+      aspect-ratio: 3 / 4;
+      border: 0.5px solid rgba(0,0,0,0.08);
+      transition: transform 0.2s, box-shadow 0.2s;
+      background: var(--green-light);
+      cursor: default;
     }
-    .showcase-card:hover { background: var(--green-light); }
-    .showcase-icon { font-size: 20px; margin-bottom: 16px; display: block; }
+    .showcase-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(53,94,59,0.13); }
+    .showcase-card img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      object-position: center center;
+      display: block;
+    }
+    .showcase-card-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to bottom, rgba(0,0,0,0) 35%, rgba(0,0,0,0.7) 100%);
+    }
+    .showcase-card-content {
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      padding: 1rem;
+      color: #fff;
+    }
     .showcase-name {
       font-family: var(--serif);
       font-size: 15px;
       font-weight: 500;
-      color: var(--ink);
-      margin-bottom: 8px;
+      margin-bottom: 4px;
     }
     .showcase-desc {
-      font-size: 13px;
-      color: var(--slate);
-      line-height: 1.65;
+      font-size: 11px;
+      opacity: 0.82;
+      line-height: 1.5;
     }
 
     /* ── CTA BLOCK ── */
@@ -711,24 +733,36 @@
         </p>
         <div class="showcase-grid">
           <div class="showcase-card">
-            <span class="showcase-icon">🔭</span>
-            <div class="showcase-name">The Scout</div>
-            <div class="showcase-desc">Curiosity, clarity, and taking the first step toward self-understanding.</div>
+            <img src="src/assets/characters/The Scout.png" alt="The Scout">
+            <div class="showcase-card-overlay"></div>
+            <div class="showcase-card-content">
+              <div class="showcase-name">The Scout</div>
+              <div class="showcase-desc">Curiosity, clarity, and taking the first step toward self-understanding.</div>
+            </div>
           </div>
           <div class="showcase-card">
-            <span class="showcase-icon">⛵</span>
-            <div class="showcase-name">The Voyager</div>
-            <div class="showcase-desc">Forward momentum, resilience, and goal-directed behaviour.</div>
+            <img src="src/assets/characters/The Voyager.png" alt="The Voyager">
+            <div class="showcase-card-overlay"></div>
+            <div class="showcase-card-content">
+              <div class="showcase-name">The Voyager</div>
+              <div class="showcase-desc">Forward momentum, resilience, and goal-directed behaviour.</div>
+            </div>
           </div>
           <div class="showcase-card">
-            <span class="showcase-icon">🛡️</span>
-            <div class="showcase-name">The Warden</div>
-            <div class="showcase-desc">Boundary setting, safety, and building structured inner stability.</div>
+            <img src="src/assets/characters/The Warden.png" alt="The Warden">
+            <div class="showcase-card-overlay"></div>
+            <div class="showcase-card-content">
+              <div class="showcase-name">The Warden</div>
+              <div class="showcase-desc">Boundary setting, safety, and building structured inner stability.</div>
+            </div>
           </div>
           <div class="showcase-card">
-            <span class="showcase-icon">🌱</span>
-            <div class="showcase-name">The Gardener</div>
-            <div class="showcase-desc">Self-compassion, long-term growth, and nurturing emotional wellbeing.</div>
+            <img src="src/assets/characters/The Gardener.png" alt="The Gardener">
+            <div class="showcase-card-overlay"></div>
+            <div class="showcase-card-content">
+              <div class="showcase-name">The Gardener</div>
+              <div class="showcase-desc">Self-compassion, long-term growth, and nurturing emotional wellbeing.</div>
+            </div>
           </div>
         </div>
         <div style="margin-top:1.5rem;">
