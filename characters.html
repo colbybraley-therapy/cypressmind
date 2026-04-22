@@ -461,10 +461,7 @@
 
       <!-- THE WEAVER -->
       <div class="char-card" onclick="openDrawer('weaver')" data-id="weaver" data-filters="creative empathic">
-        <div class="card-placeholder" style="background:linear-gradient(160deg,#EEEDFE,#D9D6FD);">
-          <span>🧵</span>
-          <span class="placeholder-label">Art coming soon</span>
-        </div>
+        <img class="card-image" src="src/assets/characters/The Weaver.png" alt="The Weaver">
         <div class="card-overlay"></div>
         <div class="card-content">
           <p class="char-name">The Weaver</p>
@@ -479,10 +476,7 @@
 
       <!-- THE WARDEN -->
       <div class="char-card" onclick="openDrawer('warden')" data-id="warden" data-filters="grounded resilient">
-        <div class="card-placeholder" style="background:linear-gradient(160deg,#E6F1FB,#C8DEFA);">
-          <span>🛡️</span>
-          <span class="placeholder-label">Art coming soon</span>
-        </div>
+        <img class="card-image" src="src/assets/characters/The Warden.png" alt="The Warden">
         <div class="card-overlay"></div>
         <div class="card-content">
           <p class="char-name">The Warden</p>
@@ -497,10 +491,7 @@
 
       <!-- THE DREAMER -->
       <div class="char-card" onclick="openDrawer('dreamer')" data-id="dreamer" data-filters="creative curious">
-        <div class="card-placeholder" style="background:linear-gradient(160deg,#FBEAF0,#F9D0E0);">
-          <span>✨</span>
-          <span class="placeholder-label">Art coming soon</span>
-        </div>
+        <img class="card-image" src="src/assets/characters/The Dreamer.png" alt="The Dreamer">
         <div class="card-overlay"></div>
         <div class="card-content">
           <p class="char-name">The Dreamer</p>
@@ -515,10 +506,7 @@
 
       <!-- THE ANCHOR -->
       <div class="char-card" onclick="openDrawer('anchor')" data-id="anchor" data-filters="grounded wise">
-        <div class="card-placeholder" style="background:linear-gradient(160deg,#E1F5EE,#BFEADB);">
-          <span>⚓</span>
-          <span class="placeholder-label">Art coming soon</span>
-        </div>
+        <img class="card-image" src="src/assets/characters/The Anchor.png" alt="The Anchor">
         <div class="card-overlay"></div>
         <div class="card-content">
           <p class="char-name">The Anchor</p>
@@ -548,10 +536,7 @@
 
       <!-- THE GARDENER -->
       <div class="char-card" onclick="openDrawer('gardener')" data-id="gardener" data-filters="empathic grounded">
-        <div class="card-placeholder" style="background:linear-gradient(160deg,#EAF3DE,#CDE8B8);">
-          <span>🌱</span>
-          <span class="placeholder-label">Art coming soon</span>
-        </div>
+        <img class="card-image" src="src/assets/characters/The Gardener.png" alt="The Gardener">
         <div class="card-overlay"></div>
         <div class="card-content">
           <p class="char-name">The Gardener</p>
@@ -566,10 +551,7 @@
 
       <!-- THE SAGE -->
       <div class="char-card" onclick="openDrawer('sage')" data-id="sage" data-filters="wise empathic">
-        <div class="card-placeholder" style="background:linear-gradient(160deg,#F1EFE8,#E0DCCE);">
-          <span>🌙</span>
-          <span class="placeholder-label">Art coming soon</span>
-        </div>
+        <img class="card-image" src="src/assets/characters/The Sage.png" alt="The Sage">
         <div class="card-overlay"></div>
         <div class="card-content">
           <p class="char-name">The Sage</p>
@@ -635,7 +617,7 @@ const characters = {
     traits: ["Creative", "Empathic", "Intuitive"],
     connection: "Processing complex thoughts, finding patterns between experiences, and healing through expression.",
     suited: "Creative or artistic, or who process emotions through metaphor and storytelling.",
-    hasImage: false
+    hasImage: true, imgSrc: "src/assets/characters/The Weaver.png"
   },
   warden: {
     icon: "🛡️", bg: "linear-gradient(160deg,#E6F1FB,#C8DEFA)",
@@ -644,7 +626,7 @@ const characters = {
     traits: ["Steadfast", "Protective", "Clear"],
     connection: "Boundary setting, building safety, and developing a structured sense of inner stability.",
     suited: "Working through trust issues, trauma, or who need to establish healthy personal boundaries.",
-    hasImage: false
+    hasImage: true, imgSrc: "src/assets/characters/The Warden.png"
   },
   dreamer: {
     icon: "✨", bg: "linear-gradient(160deg,#FBEAF0,#F9D0E0)",
@@ -653,7 +635,7 @@ const characters = {
     traits: ["Visionary", "Open", "Hopeful"],
     connection: "Visualization, cultivating hope, and expanding what feels possible for the future.",
     suited: "Hopeful but uncertain, or who benefit from future-focused and possibility-oriented work.",
-    hasImage: false
+    hasImage: true, imgSrc: "src/assets/characters/The Dreamer.png"
   },
   anchor: {
     icon: "⚓", bg: "linear-gradient(160deg,#E1F5EE,#BFEADB)",
@@ -662,7 +644,7 @@ const characters = {
     traits: ["Present", "Grounded", "Steady"],
     connection: "Mindfulness, grounding techniques, and learning to stay present amid emotional storms.",
     suited: "Experiencing anxiety, dysregulation, or who struggle to stay present in the moment.",
-    hasImage: false
+    hasImage: true, imgSrc: "src/assets/characters/The Anchor.png"
   },
   voyager: {
     icon: "⛵", bg: "linear-gradient(160deg,#FAEEDA,#F5D8A8)",
@@ -681,7 +663,7 @@ const characters = {
     traits: ["Compassionate", "Gentle", "Patient"],
     connection: "Self-compassion, long-term growth, and learning to nurture emotional wellbeing over time.",
     suited: "Self-critical or who struggle with self-compassion and need a slower, gentler pace.",
-    hasImage: false
+    hasImage: true, imgSrc: "src/assets/characters/The Gardener.png"
   },
   sage: {
     icon: "🌙", bg: "linear-gradient(160deg,#F1EFE8,#E0DCCE)",
@@ -690,7 +672,7 @@ const characters = {
     traits: ["Wise", "Reflective", "Accepting"],
     connection: "Internal clarity, integrating lived experience, and finding wisdom through acceptance.",
     suited: "More introspective, or working through grief, identity, or major life transitions.",
-    hasImage: false
+    hasImage: true, imgSrc: "src/assets/characters/The Sage.png"
   }
 };
 
