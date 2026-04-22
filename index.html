@@ -198,15 +198,18 @@
     }
     .showcase-card {
       position: relative;
-      border-radius: 14px;
+      border-radius: 16px;
       overflow: hidden;
+      cursor: pointer;
       aspect-ratio: 3 / 4;
       border: 0.5px solid rgba(0,0,0,0.08);
       transition: transform 0.2s, box-shadow 0.2s;
-      background: var(--green-light);
-      cursor: default;
+      background: #fff;
     }
-    .showcase-card:hover { transform: translateY(-3px); box-shadow: 0 10px 28px rgba(53,94,59,0.13); }
+    .showcase-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 32px rgba(53,94,59,0.13);
+    }
     .showcase-card img {
       position: absolute;
       inset: 0;
@@ -219,24 +222,41 @@
     .showcase-card-overlay {
       position: absolute;
       inset: 0;
-      background: linear-gradient(to bottom, rgba(0,0,0,0) 35%, rgba(0,0,0,0.7) 100%);
+      background: linear-gradient(to bottom, rgba(0,0,0,0) 35%, rgba(0,0,0,0.72) 100%);
     }
     .showcase-card-content {
       position: absolute;
       bottom: 0; left: 0; right: 0;
-      padding: 1rem;
+      padding: 1rem 1rem 1.2rem;
       color: #fff;
     }
     .showcase-name {
       font-family: var(--serif);
-      font-size: 15px;
+      font-size: 17px;
       font-weight: 500;
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
     .showcase-desc {
       font-size: 11px;
-      opacity: 0.82;
+      opacity: 0.78;
+      font-style: italic;
       line-height: 1.5;
+    }
+    .showcase-traits {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+      margin-top: 10px;
+    }
+    .showcase-trait-pill {
+      font-size: 10px;
+      font-weight: 500;
+      padding: 2px 9px;
+      border-radius: 20px;
+      background: rgba(255,255,255,0.18);
+      color: #fff;
+      backdrop-filter: blur(4px);
+      border: 0.5px solid rgba(255,255,255,0.28);
     }
 
     /* ── CTA BLOCK ── */
@@ -738,15 +758,25 @@
             <div class="showcase-card-overlay"></div>
             <div class="showcase-card-content">
               <div class="showcase-name">The Scout</div>
-              <div class="showcase-desc">Curiosity, clarity, and taking the first step toward self-understanding.</div>
+              <div class="showcase-desc">Proactive, light, observant</div>
+              <div class="showcase-traits">
+                <span class="showcase-trait-pill">Curious</span>
+                <span class="showcase-trait-pill">Perceptive</span>
+                <span class="showcase-trait-pill">Brave</span>
+              </div>
             </div>
           </div>
           <div class="showcase-card">
-            <img src="src/assets/characters/The Voyager.png" alt="The Voyager">
+            <img src="src/assets/characters/The Voyager.png" alt="The Voyager" style="object-position: left center;">
             <div class="showcase-card-overlay"></div>
             <div class="showcase-card-content">
               <div class="showcase-name">The Voyager</div>
-              <div class="showcase-desc">Forward momentum, resilience, and goal-directed behaviour.</div>
+              <div class="showcase-desc">Purposeful, dynamic, ready</div>
+              <div class="showcase-traits">
+                <span class="showcase-trait-pill">Driven</span>
+                <span class="showcase-trait-pill">Resilient</span>
+                <span class="showcase-trait-pill">Forward</span>
+              </div>
             </div>
           </div>
           <div class="showcase-card">
@@ -754,7 +784,12 @@
             <div class="showcase-card-overlay"></div>
             <div class="showcase-card-content">
               <div class="showcase-name">The Warden</div>
-              <div class="showcase-desc">Boundary setting, safety, and building structured inner stability.</div>
+              <div class="showcase-desc">Protective, structured, solid</div>
+              <div class="showcase-traits">
+                <span class="showcase-trait-pill">Steadfast</span>
+                <span class="showcase-trait-pill">Protective</span>
+                <span class="showcase-trait-pill">Clear</span>
+              </div>
             </div>
           </div>
           <div class="showcase-card">
@@ -762,7 +797,12 @@
             <div class="showcase-card-overlay"></div>
             <div class="showcase-card-content">
               <div class="showcase-name">The Gardener</div>
-              <div class="showcase-desc">Self-compassion, long-term growth, and nurturing emotional wellbeing.</div>
+              <div class="showcase-desc">Nurturing, kind, patient</div>
+              <div class="showcase-traits">
+                <span class="showcase-trait-pill">Compassionate</span>
+                <span class="showcase-trait-pill">Gentle</span>
+                <span class="showcase-trait-pill">Patient</span>
+              </div>
             </div>
           </div>
         </div>
