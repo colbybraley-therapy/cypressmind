@@ -262,6 +262,111 @@
       border: 0.5px solid rgba(255,255,255,0.28);
     }
 
+    /* ── CHARACTER DRAWER ── */
+    .char-drawer-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.35);
+      z-index: 200;
+      backdrop-filter: blur(2px);
+    }
+    .char-drawer-backdrop.open { display: block; }
+
+    .char-drawer {
+      position: fixed;
+      top: 0; right: 0; bottom: 0;
+      width: 380px;
+      max-width: 92vw;
+      background: #fff;
+      z-index: 201;
+      display: flex;
+      flex-direction: column;
+      transform: translateX(100%);
+      transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+      overflow-y: auto;
+    }
+    .char-drawer.open { transform: translateX(0); }
+
+    .drawer-hero {
+      padding: 1.5rem 1.5rem 1rem;
+      border-bottom: 0.5px solid rgba(0,0,0,0.08);
+    }
+    .drawer-close {
+      display: flex;
+      justify-content: flex-end;
+      margin-bottom: 1rem;
+    }
+    .drawer-close button {
+      background: none;
+      border: 0.5px solid rgba(0,0,0,0.12);
+      border-radius: 8px;
+      padding: 4px 10px;
+      font-size: 18px;
+      color: #aaa;
+      cursor: pointer;
+      line-height: 1;
+    }
+    .drawer-close button:hover { background: #f5f4f0; }
+
+    .drawer-icon {
+      width: 52px; height: 52px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 24px;
+      margin-bottom: 0.75rem;
+    }
+    .drawer-name {
+      font-family: var(--serif);
+      font-size: 22px;
+      font-weight: 500;
+      color: #1a1a1a;
+      margin-bottom: 3px;
+    }
+    .drawer-vibe { font-size: 13px; color: #999; font-style: italic; margin-bottom: 0.75rem; }
+    .drawer-theme-pills { display: flex; flex-wrap: wrap; gap: 5px; }
+    .drawer-theme-pill {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 3px 11px;
+      border-radius: 20px;
+    }
+
+    .drawer-body { padding: 1.1rem 1.5rem; border-bottom: 0.5px solid rgba(0,0,0,0.08); }
+    .drawer-section-label {
+      font-size: 10px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #ccc;
+      margin-bottom: 6px;
+    }
+    .drawer-section-text {
+      font-size: 14px;
+      color: #2a2a2a;
+      line-height: 1.65;
+      margin-bottom: 1rem;
+    }
+    .drawer-section-text:last-child { margin-bottom: 0; }
+
+    .drawer-copy {
+      padding: 1.1rem 1.5rem;
+      background: #fafaf8;
+    }
+    .drawer-copy-label {
+      font-size: 10px;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #185FA5;
+      margin-bottom: 7px;
+    }
+    .drawer-copy-text {
+      font-size: 14px;
+      color: #2a2a2a;
+      line-height: 1.75;
+    }
+
     /* ── CTA BLOCK ── */
     .landing-cta-block {
       background: var(--ink);
@@ -756,7 +861,7 @@
           Clients choose a character that resonates with how they see themselves — or who they want to become. Each one maps directly to a clinical focus area.
         </p>
         <div class="showcase-grid">
-          <div class="showcase-card">
+          <div class="showcase-card" onclick="openCharDrawer('scout')">
             <img src="src/assets/characters/The Scout.png" alt="The Scout">
             <div class="showcase-card-overlay"></div>
             <div class="showcase-card-content">
@@ -769,7 +874,7 @@
               </div>
             </div>
           </div>
-          <div class="showcase-card">
+          <div class="showcase-card" onclick="openCharDrawer('voyager')">
             <img src="src/assets/characters/The Voyager.png" alt="The Voyager" style="object-position: 75% center;">
             <div class="showcase-card-overlay"></div>
             <div class="showcase-card-content">
@@ -782,7 +887,7 @@
               </div>
             </div>
           </div>
-          <div class="showcase-card">
+          <div class="showcase-card" onclick="openCharDrawer('warden')">
             <img src="src/assets/characters/The Warden.png" alt="The Warden">
             <div class="showcase-card-overlay"></div>
             <div class="showcase-card-content">
@@ -795,7 +900,7 @@
               </div>
             </div>
           </div>
-          <div class="showcase-card">
+          <div class="showcase-card" onclick="openCharDrawer('gardener')">
             <img src="src/assets/characters/The Gardener.png" alt="The Gardener">
             <div class="showcase-card-overlay"></div>
             <div class="showcase-card-content">
@@ -939,6 +1044,91 @@
       </div>
     </div>
   </div>
+
+  <!-- Character Drawer -->
+  <div class="char-drawer-backdrop" id="char-backdrop" onclick="closeCharDrawer()"></div>
+  <div class="char-drawer" id="char-drawer">
+    <div class="drawer-hero">
+      <div class="drawer-close"><button onclick="closeCharDrawer()">&#215;</button></div>
+      <div class="drawer-icon" id="dr-icon"></div>
+      <p class="drawer-name" id="dr-name"></p>
+      <p class="drawer-vibe" id="dr-vibe"></p>
+      <div class="drawer-theme-pills" id="dr-theme-pills"></div>
+    </div>
+    <div class="drawer-body">
+      <p class="drawer-section-label">Core traits</p>
+      <p class="drawer-section-text" id="dr-traits"></p>
+      <p class="drawer-section-label">Therapeutic connection</p>
+      <p class="drawer-section-text" id="dr-connection"></p>
+    </div>
+    <div class="drawer-copy">
+      <p class="drawer-copy-label">A client might choose this character because...</p>
+      <p class="drawer-copy-text" id="dr-copy"></p>
+    </div>
+  </div>
+
+  <script>
+  const charData = {
+    scout: {
+      icon:"🔭", bg:"#EAF3DE",
+      name:"The Scout", vibe:"Proactive, light, observant",
+      traits:"Curious · Perceptive · Brave",
+      connection:"Curiosity, seeking clarity, taking the first step.",
+      themes:[{label:"Clarity",bg:"#EAF3DE",text:"#27500A"},{label:"Growth",bg:"#C0DD97",text:"#173404"}],
+      copy:"They feel stuck or avoidant and are looking for a way in. They may be curious about their own patterns but unsure how to start exploring them. They respond well to incremental steps and can use The Scout as permission to move at their own pace while still moving forward."
+    },
+    voyager: {
+      icon:"⛵", bg:"#FAEEDA",
+      name:"The Voyager", vibe:"Purposeful, dynamic, ready",
+      traits:"Driven · Resilient · Forward",
+      connection:"Moving forward, goal setting, resilience.",
+      themes:[{label:"Resilience",bg:"#FAEEDA",text:"#633806"},{label:"Hope",bg:"#FAC775",text:"#412402"},{label:"Growth",bg:"#EF9F27",text:"#412402"}],
+      copy:"They are ready to make change but need structure and momentum to get there. They may have worked through a difficult period and are looking for a character that reflects their determination. The Voyager validates how far they have come while keeping the focus on what is possible next."
+    },
+    warden: {
+      icon:"🛡️", bg:"#E6F1FB",
+      name:"The Warden", vibe:"Protective, structured, solid",
+      traits:"Steadfast · Protective · Clear",
+      connection:"Boundary setting, safety, stability, strength.",
+      themes:[{label:"Boundaries",bg:"#E6F1FB",text:"#0C447C"},{label:"Grounding",bg:"#B5D4F4",text:"#042C53"}],
+      copy:"They have experienced situations where their limits were not respected, or they find it difficult to say no. They may feel unsafe in relationships or need support recognizing what is and is not okay. The Warden gives them a strong, protective identity to step into during play."
+    },
+    gardener: {
+      icon:"🌱", bg:"#EAF3DE",
+      name:"The Gardener", vibe:"Nurturing, kind, patient",
+      traits:"Compassionate · Gentle · Patient",
+      connection:"Self-compassion, long-term growth, care.",
+      themes:[{label:"Growth",bg:"#EAF3DE",text:"#27500A"},{label:"Grounding",bg:"#C0DD97",text:"#173404"}],
+      copy:"They are hard on themselves and struggle to recognize progress that feels slow or imperfect. They may carry shame or a harsh inner critic and need a character that models gentleness and patience. The Gardener can be a meaningful mirror for clients learning what it looks like to care for themselves over time."
+    }
+  };
+
+  function openCharDrawer(id) {
+    const c = charData[id];
+    if (!c) return;
+    document.getElementById('dr-icon').textContent      = c.icon;
+    document.getElementById('dr-icon').style.background = c.bg;
+    document.getElementById('dr-name').textContent      = c.name;
+    document.getElementById('dr-vibe').textContent      = c.vibe;
+    document.getElementById('dr-traits').textContent    = c.traits;
+    document.getElementById('dr-connection').textContent = c.connection;
+    document.getElementById('dr-copy').textContent      = c.copy;
+    document.getElementById('dr-theme-pills').innerHTML = c.themes.map(t =>
+      `<span class="drawer-theme-pill" style="background:${t.bg};color:${t.text}">${t.label}</span>`
+    ).join('');
+    document.getElementById('char-backdrop').classList.add('open');
+    document.getElementById('char-drawer').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeCharDrawer() {
+    document.getElementById('char-backdrop').classList.remove('open');
+    document.getElementById('char-drawer').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCharDrawer(); });
+  </script>
 
   <script src="src/clinical/app.js"></script>
 </body>
