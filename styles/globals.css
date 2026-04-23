@@ -310,6 +310,47 @@ h1 {
   grid-column: 1 / -1;
 }
 
+/* ── Past Clients ── */
+.past-client-card {
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: 1rem .9rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .12s, opacity .12s;
+  position: relative;
+  opacity: 0.6;
+}
+.past-client-card:hover { border-color: var(--color-border-hover); opacity: 0.85; }
+.past-client-card:hover .restore-btn { opacity: 1; }
+
+.restore-btn {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  padding: 2px 7px;
+  border-radius: 3px;
+  background: var(--green-light, #e8f0e9);
+  border: 1px solid var(--color-accent);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity .15s;
+  color: var(--color-accent);
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.archived-badge {
+  display: inline-block;
+  font-size: 10px;
+  color: var(--color-text-tertiary);
+  margin-top: 3px;
+  font-style: italic;
+}
+
 /* ── Modals / Overlays ── */
 .overlay {
   display: none;

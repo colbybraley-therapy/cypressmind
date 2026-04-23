@@ -63,7 +63,8 @@ let selectedAvatar       = AVATARS[0];
 let selectedActivityType = null;
 let viewingClient        = null;   // full client row object
 let scoringActivity      = null;   // activity uuid string
-let _clients             = [];     // cached for openClientById
+let _clients             = [];     // active clients cache
+let _pastClients         = [];     // archived clients cache
 
 /* ── Page navigation ── */
 function showPage(id) {
@@ -196,6 +197,7 @@ async function renderClients() {
     .from('clients')
     .select('*, activities(id, done)')
     .eq('user_id', currentUser.id)
+    .neq('archived', true)
     .order('created_at', { ascending: true });
 
   if (error) {
@@ -209,34 +211,85 @@ async function renderClients() {
 
   if (!clients.length) {
     grid.innerHTML = '<div class="empty">No clients yet — add one to get started.</div>';
+  } else {
+    grid.innerHTML = clients.map(c => {
+      const acts  = c.activities || [];
+      const done  = acts.filter(a => a.done).length;
+      const pct   = acts.length ? Math.round(done / acts.length * 100) : 0;
+      const color = COLORS[c.color_index % COLORS.length];
+      return `
+        <div class="client-card" onclick="openClientById('${c.id}')">
+          <button class="del-client-btn" onclick="event.stopPropagation(); archiveClient('${c.id}')" title="Remove client">✕</button>
+          <div class="av" style="background:${color}">${c.avatar}</div>
+          <div class="cn">${c.name}</div>
+          <div class="cs">Since ${new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</div>
+          <div class="prog-bar-wrap"><div class="prog-bar" style="width:${pct}%"></div></div>
+          <div style="font-size:10px;color:var(--color-text-tertiary);margin-top:4px;">${pct}% complete</div>
+        </div>`;
+    }).join('');
+  }
+
+  renderPastClients();
+}
+
+async function renderPastClients() {
+  const label = document.getElementById('past-clients-label');
+  const grid  = document.getElementById('past-client-grid');
+
+  const { data: clients } = await db
+    .from('clients')
+    .select('*, activities(id, done)')
+    .eq('user_id', currentUser.id)
+    .eq('archived', true)
+    .order('archived_at', { ascending: false });
+
+  _pastClients = clients || [];
+
+  if (!_pastClients.length) {
+    label.style.display = 'none';
+    grid.style.display  = 'none';
     return;
   }
 
-  grid.innerHTML = clients.map(c => {
+  label.style.display = '';
+  grid.style.display  = '';
+
+  grid.innerHTML = _pastClients.map(c => {
     const acts  = c.activities || [];
     const done  = acts.filter(a => a.done).length;
     const pct   = acts.length ? Math.round(done / acts.length * 100) : 0;
     const color = COLORS[c.color_index % COLORS.length];
+    const archivedStr = c.archived_at
+      ? new Date(c.archived_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+      : '';
     return `
-      <div class="client-card" onclick="openClientById('${c.id}')">
-        <button class="del-client-btn" onclick="event.stopPropagation(); deleteClient('${c.id}')" title="Remove client">✕</button>
-        <div class="av" style="background:${color}">${c.avatar}</div>
+      <div class="past-client-card" onclick="openClientById('${c.id}')">
+        <button class="restore-btn" onclick="event.stopPropagation(); restoreClient('${c.id}')" title="Restore client">Restore</button>
+        <div class="av" style="background:${color};filter:grayscale(0.5);">${c.avatar}</div>
         <div class="cn">${c.name}</div>
         <div class="cs">Since ${new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</div>
-        <div class="prog-bar-wrap"><div class="prog-bar" style="width:${pct}%"></div></div>
+        ${archivedStr ? `<div class="archived-badge">Archived ${archivedStr}</div>` : ''}
+        <div class="prog-bar-wrap"><div class="prog-bar" style="width:${pct}%;background:var(--color-text-tertiary);"></div></div>
         <div style="font-size:10px;color:var(--color-text-tertiary);margin-top:4px;">${pct}% complete</div>
       </div>`;
   }).join('');
 }
 
 function openClientById(id) {
-  const client = _clients.find(c => c.id === id);
+  const client = _clients.find(c => c.id === id) || _pastClients.find(c => c.id === id);
   if (client) openClient(client);
 }
 
-async function deleteClient(id) {
-  if (!confirm('Remove this client? Their activity data will also be deleted.')) return;
-  await db.from('clients').delete().eq('id', id);
+async function archiveClient(id) {
+  const client = _clients.find(c => c.id === id);
+  const name   = client?.name || 'this client';
+  if (!confirm(`Remove ${name} from active clients? Their session records will be preserved in Past Clients.`)) return;
+  await db.from('clients').update({ archived: true, archived_at: new Date().toISOString() }).eq('id', id);
+  renderClients();
+}
+
+async function restoreClient(id) {
+  await db.from('clients').update({ archived: false, archived_at: null }).eq('id', id);
   renderClients();
 }
 
