@@ -87,6 +87,12 @@ function goToSignIn() {
   setTimeout(toggleSignIn, 80);
 }
 
+/* ── Clinical Marketing ── */
+function requestDemo() {
+  // Logic for the clinical demo request
+  alert("Demo Request: Our clinical partnership team will contact you at your registered email to schedule a walkthrough.");
+}
+
 /* ── Auth ── */
 async function doSignIn() {
   const email = document.getElementById('si-email').value.trim().toLowerCase();
