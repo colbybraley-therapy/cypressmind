@@ -39,6 +39,194 @@ const CHARACTER_COPY = {
   sage:     'They are naturally introspective and process deeply before they speak. They may be working toward accepting something difficult or learning to trust their own judgment. The Sage honors their inner world and gives language to the kind of quiet, internal strength they may not yet recognize in themselves.',
 };
 
+const ARCHETYPE_MODULE_SLOTS = {
+  scout:    { id: 'scout',    name: 'The Scout',    connects: 'Curiosity & Mapping',      specialization: 'MAPPING'    },
+  voyager:  { id: 'voyager',  name: 'The Voyager',  connects: 'Momentum & Resilience',    specialization: 'MOMENTUM'   },
+  warden:   { id: 'warden',   name: 'The Warden',   connects: 'Structure & Grounding',    specialization: 'STRUCTURE'  },
+  gardener: { id: 'gardener', name: 'The Gardener', connects: 'Self-Compassion & Growth', specialization: 'GROWTH'     },
+  dreamer:  { id: 'dreamer',  name: 'The Dreamer',  connects: 'Future-Oriented Hope',     specialization: 'HOPE'       },
+  weaver:   { id: 'weaver',   name: 'The Weaver',   connects: 'Creative Expression',      specialization: 'EXPRESSION' },
+  anchor:   { id: 'anchor',   name: 'The Anchor',   connects: 'Emotional Regulation',     specialization: 'REGULATION' },
+  sage:     { id: 'sage',     name: 'The Sage',     connects: 'Internal Clarity',         specialization: 'WISDOM'     },
+};
+
+const MODULAR_SPECIALIZATIONS = {
+  MAPPING:    'Externalizing Emotion',
+  MOMENTUM:   'Resilience & Forward Motion',
+  STRUCTURE:  'Grounded Structure',
+  GROWTH:     'Self-Compassion & Patience',
+  HOPE:       'Future-Oriented Thinking',
+  EXPRESSION: 'Creative & Emotional Expression',
+  REGULATION: 'Calm & Emotional Regulation',
+  WISDOM:     'Mindful Wisdom & Focus',
+};
+
+const CHARACTER_MATERIALS = {
+  sage: 'Violet Robe with Silver Thread Embroidery',
+};
+
+/* ── Integration function stubs ─────────────────────────────────────────────
+   Each function translates a source archetype's item onto a target character
+   model. Signature: (targetModel) => void — swap in renderer calls when ready.
+   ─────────────────────────────────────────────────────────────────────────── */
+function integrateSageRobeToScout(scoutModel) {
+  scoutModel.simplifyGearPockets();
+  scoutModel.multiPocketGear.setMaterial(CHARACTER_MATERIALS.sage);
+  scoutModel.satchelStrap.addSilverThreadEmbroidery('CompassRose');
+}
+
+function integrateSageCrystalToScout(scoutModel) {
+  scoutModel.telescope.replaceLensMaterial('QuartzCrystal_Sage');
+  scoutModel.telescope.setGlowEffect({ color: 'Indigo', behavior: 'Internal' });
+}
+
+// Non-visual — modifies Scout's animation behavior when Wisdom trait is active
+// [sources 1888, 1899]
+function applyWisdomTraitToScout(scoutModel) {
+  scoutModel.activateTraitAnimationOverrides(MODULAR_SPECIALIZATIONS.WISDOM);
+  scoutModel.setHaloEffect({ color: 'Indigo', intensity: 0.1 });
+}
+
+function addAncientBookPropToScout(target)   { /* attach Ancient Book to Scout's satchel         */ }
+function setBaseScoutGear(target)            { /* apply multi-pocket tactical gear to Scout       */ }
+function addAetherCompassToScout(target)     { /* fix Aether Compass to Scout's wrist or pack     */ }
+function setBaseWardenArmor(target)          { /* apply Warden's structural plate armor           */ }
+function addBoundaryShieldToWarden(target)   { /* mount Boundary Shield on Warden's forearm       */ }
+function addGroundingStakesToWarden(target)  { /* place Grounding Stakes on Warden's belt         */ }
+
+const ITEM_BLUEPRINT_REGISTRY = {
+  [ARCHETYPE_MODULE_SLOTS.sage.id]: {
+    RobeMaterial: {
+      id:                  'RobeMaterial',
+      name:                'Violet Fabric with Silver Embroidery',
+      type:                'Fabric/Material',
+      specialization:      MODULAR_SPECIALIZATIONS.WISDOM,
+      integrationFunction: integrateSageRobeToScout,
+    },
+    QuartzCrystal_Sage: {
+      id:                  'QuartzCrystal_Sage',
+      name:                "Sage's Quartz Crystal",
+      type:                'Crystal/Glow',
+      specialization:      MODULAR_SPECIALIZATIONS.WISDOM,
+      integrationFunction: integrateSageCrystalToScout,
+    },
+    AncientBook: {
+      id:                  'AncientBook',
+      name:                'Ancient Book',
+      type:                'Prop/Book',
+      specialization:      MODULAR_SPECIALIZATIONS.WISDOM,
+      integrationFunction: addAncientBookPropToScout,
+    },
+  },
+  [ARCHETYPE_MODULE_SLOTS.scout.id]: {
+    MultiPocketGear: {
+      id:                  'MultiPocketGear',
+      name:                'Multi-Pocket Tactical Gear',
+      type:                'Armor/Gear',
+      specialization:      MODULAR_SPECIALIZATIONS.MAPPING,
+      integrationFunction: setBaseScoutGear,
+    },
+    AetherCompass: {
+      id:                  'AetherCompass',
+      name:                'Aether-Guided Compass',
+      type:                'Navigation/Tool',
+      specialization:      MODULAR_SPECIALIZATIONS.MAPPING,
+      integrationFunction: addAetherCompassToScout,
+    },
+  },
+  [ARCHETYPE_MODULE_SLOTS.warden.id]: {
+    StructuralArmor: {
+      id:                  'StructuralArmor',
+      name:                "Warden's Plated Armor",
+      type:                'Armor/Structure',
+      specialization:      MODULAR_SPECIALIZATIONS.STRUCTURE,
+      integrationFunction: setBaseWardenArmor,
+    },
+    BoundaryShield: {
+      id:                  'BoundaryShield',
+      name:                'Boundary Shield',
+      type:                'Shield/Barrier',
+      specialization:      MODULAR_SPECIALIZATIONS.STRUCTURE,
+      integrationFunction: addBoundaryShieldToWarden,
+    },
+    GroundingStakes: {
+      id:                  'GroundingStakes',
+      name:                'Grounding Stakes',
+      type:                'Prop/Marker',
+      specialization:      MODULAR_SPECIALIZATIONS.STRUCTURE,
+      integrationFunction: addGroundingStakesToWarden,
+    },
+  },
+};
+
+// Maps MODULAR_SPECIALIZATIONS keys to their trait modifier functions
+const TRAIT_INTEGRATION_FUNCTIONS = {
+  WISDOM: applyWisdomTraitToScout,
+};
+
+class CharacterBuilder {
+  constructor() {
+    this.currentBaseArchetype = null;
+    this.selectedItems       = [];
+    this.conceptualTraits    = [];
+    this.currentModel        = null;
+  }
+
+  setBaseArchetype(archetypeId) {
+    if (!ARCHETYPE_MODULE_SLOTS[archetypeId]) return;
+
+    this.currentBaseArchetype = ARCHETYPE_MODULE_SLOTS[archetypeId];
+    console.log(`Setting base archetype to: ${this.currentBaseArchetype.name}`);
+    console.log(`Connecting to: ${this.currentBaseArchetype.connects}`);
+
+    this.clearCustomization();
+    this.loadBaseModel(archetypeId);
+  }
+
+  integrateItem(itemId, sourceArchetypeId) {
+    if (!this.currentBaseArchetype) return;
+
+    const blueprint = ITEM_BLUEPRINT_REGISTRY[sourceArchetypeId]?.[itemId];
+    if (!blueprint) return;
+
+    if (this.currentBaseArchetype.id === ARCHETYPE_MODULE_SLOTS.scout.id) {
+      this.selectedItems.push(blueprint);
+      this.currentModel.queueSpecialization(blueprint.specialization);
+    } else {
+      console.error(
+        `Error: Cannot directly integrate ${blueprint.name} onto ` +
+        `${this.currentBaseArchetype.name}. A modular visual blueprint does not exist.`
+      );
+    }
+  }
+
+  integrateConceptualTrait(traitId) {
+    if (!MODULAR_SPECIALIZATIONS[traitId]) return;
+    this.conceptualTraits.push(traitId);
+  }
+
+  finalizeCharacter() {
+    console.log(`Starting synthesis for: ${this.currentBaseArchetype.name}...`);
+    this.currentModel.beginSynthesisMode();
+
+    this.selectedItems.forEach(itemBlueprint => {
+      console.log(`-> Integrating Modular Item: ${itemBlueprint.name}...`);
+      itemBlueprint.integrationFunction(this.currentModel);
+    });
+
+    this.conceptualTraits.forEach(traitId => {
+      const fn = TRAIT_INTEGRATION_FUNCTIONS[traitId];
+      if (fn) {
+        console.log(`-> Applying Conceptual Trait Overrides: ${traitId}...`);
+        fn(this.currentModel);
+      }
+    });
+
+    this.currentModel.endSynthesisMode();
+    console.log('Synthesis Complete. New customized visual asset generated.');
+  }
+}
+
 const ACTIVITY_TYPES = [
   { id: 'quiz',      icon: '🧠', name: 'Coping Skills Quiz'  },
   { id: 'breathing', icon: '🌬️', name: 'Breathing Garden'    },
@@ -333,6 +521,7 @@ async function openClient(client) {
       <div>
         <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--color-text-tertiary);font-weight:500;margin-bottom:4px;">Client's Character</div>
         <div style="font-family:var(--serif,Georgia,serif);font-size:17px;font-weight:500;color:var(--color-text-primary,#1A2E1A);">${CHARACTER_NAMES[char]}</div>
+        ${ARCHETYPE_MODULE_SLOTS[char]?.connects ? `<div style="font-size:11px;color:var(--color-text-tertiary);margin-top:3px;letter-spacing:0.04em;">${ARCHETYPE_MODULE_SLOTS[char].connects}</div>` : ''}
       </div>`;
     charEl.style.display = 'flex';
   } else {
