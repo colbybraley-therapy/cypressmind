@@ -839,7 +839,7 @@
 </div>
 
 <!-- CONGRATS -->
-<div id="congrats" class="screen">
+<div id="congrats" style="display:none;">
   <div style="font-size:64px;margin-bottom:1.25rem;">🎉</div>
   <h2 style="font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--text);margin-bottom:8px;">Session Complete!</h2>
   <p id="congrats-msg" style="font-size:15px;color:var(--text-muted);font-weight:500;line-height:1.6;max-width:300px;margin:0 auto 1.75rem;"></p>
@@ -890,10 +890,10 @@ const CHAR_IMG_URLS = {
 };
 
 function closeCongrats() {
+  document.getElementById('congrats').style.display = 'none';
   sessionEnded = false;
   if (sessionChannel) { db.removeChannel(sessionChannel); sessionChannel = null; }
   currentSession = null;
-  document.getElementById('congrats').classList.remove('active');
   document.getElementById('join-screen').classList.add('active');
   setCharBg(false);
 }
@@ -904,7 +904,7 @@ function showCongrats() {
   stopBreath();
   if (sessionChannel) { db.removeChannel(sessionChannel); sessionChannel = null; }
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('congrats').classList.add('active');
+  document.getElementById('congrats').style.display = 'flex';
   setCharBg(true);
 
   const msg = CHAR_CONGRATS[heroCharacter] || "Amazing work today. You showed up and gave it your all.";
@@ -1114,6 +1114,7 @@ function go(id) {
 }
 
 function launchAdventure(activityType) {
+  if (sessionEnded) return;
   if (!heroName) {
     // Show character builder first
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
