@@ -26,6 +26,16 @@ const CHARACTER_NAMES = {
   gardener: 'The Gardener', dreamer: 'The Dreamer', weaver: 'The Weaver',
   anchor: 'The Anchor', sage: 'The Sage',
 };
+const CHARACTER_COPY = {
+  scout:    'They feel stuck or avoidant and are looking for a way in. They may be curious about their own patterns but unsure how to start exploring them. They respond well to incremental steps and can use The Scout as permission to move at their own pace while still moving forward.',
+  voyager:  'They are ready to make change but need structure and momentum to get there. They may have worked through a difficult period and are looking for a character that reflects their determination. The Voyager validates how far they have come while keeping the focus on what is possible next.',
+  warden:   'They have experienced situations where their limits were not respected, or they find it difficult to say no. They may feel unsafe in relationships or need support recognizing what is and is not okay. The Warden gives them a strong, protective identity to step into during play.',
+  gardener: 'They are hard on themselves and struggle to recognize progress that feels slow or imperfect. They may carry shame or a harsh inner critic and need a character that models gentleness and patience. The Gardener can be a meaningful mirror for clients learning what it looks like to care for themselves over time.',
+  dreamer:  'They are navigating hopelessness, low motivation, or difficulty imagining things getting better. They may be drawn to fantasy or storytelling as a way of coping. The Dreamer meets them there and gently opens the door to future-oriented thinking without dismissing how hard the present feels.',
+  weaver:   'They struggle to put their feelings into words but communicate easily through creativity or metaphor. They may be carrying a lot emotionally and need a character that reflects the complexity of their inner world. The Weaver can help them feel seen without requiring direct disclosure.',
+  anchor:   'They experience anxiety, emotional overwhelm, or difficulty staying present. They may feel like their feelings carry them away and are looking for something solid to hold onto. The Anchor gives them a grounded identity and a framework for using calming strategies during gameplay.',
+  sage:     'They are naturally introspective and process deeply before they speak. They may be working toward accepting something difficult or learning to trust their own judgment. The Sage honors their inner world and gives language to the kind of quiet, internal strength they may not yet recognize in themselves.',
+};
 
 const ACTIVITY_TYPES = [
   { id: 'quiz',      icon: '🧠', name: 'Coping Skills Quiz'  },
@@ -754,20 +764,29 @@ function updatePrompts(activityType, step) {
 function addResponseToPanel(response) {
   const list = document.getElementById('responses-list');
   if (!list) return;
-  const data = response.response_data;
 
-  if (data?.type === 'character_selected' && CHARACTER_IMAGES[data.character]) {
+  // response_data may arrive as a string from real-time payloads
+  let data = response.response_data;
+  if (typeof data === 'string') { try { data = JSON.parse(data); } catch(e) {} }
+
+  if (data?.type === 'character_selected' && CHARACTER_NAMES[data.character]) {
     const existing = document.getElementById('session-char-display');
     if (existing) existing.remove();
     const div = document.createElement('div');
     div.id = 'session-char-display';
-    div.style.cssText = 'display:flex;align-items:center;gap:12px;background:#f8faf9;border:0.5px solid #E2E8E2;border-radius:8px;padding:12px 14px;margin-bottom:12px;';
+    div.style.cssText = 'background:#f8faf9;border:0.5px solid #E2E8E2;border-radius:10px;overflow:hidden;margin-bottom:14px;';
     div.innerHTML = `
-      <img src="${CHARACTER_IMAGES[data.character]}" alt="${CHARACTER_NAMES[data.character]}"
-           style="width:48px;height:64px;object-fit:cover;object-position:top center;border-radius:6px;">
-      <div>
-        <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#7B7899;font-weight:600;margin-bottom:3px;">Client chose</div>
-        <div style="font-size:15px;font-weight:600;color:#1A2E1A;">${CHARACTER_NAMES[data.character]}</div>
+      <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:0.5px solid #E2E8E2;">
+        <img src="${CHARACTER_IMAGES[data.character]}" alt="${CHARACTER_NAMES[data.character]}"
+             style="width:48px;height:64px;object-fit:cover;object-position:top center;border-radius:6px;flex-shrink:0;">
+        <div>
+          <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#7B7899;font-weight:600;margin-bottom:4px;">Character Chosen</div>
+          <div style="font-size:16px;font-weight:600;color:#1A2E1A;">${CHARACTER_NAMES[data.character]}</div>
+        </div>
+      </div>
+      <div style="padding:12px 14px;font-size:13px;color:#4B5563;line-height:1.65;">
+        <span style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;color:#7B7899;display:block;margin-bottom:6px;">A client might choose this character because...</span>
+        ${CHARACTER_COPY[data.character]}
       </div>`;
     list.prepend(div);
     return;
