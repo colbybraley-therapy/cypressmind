@@ -821,6 +821,16 @@
 
 </div>
 
+<!-- CONGRATS -->
+<div id="congrats" class="screen" style="text-align:center;padding:2.5rem 1.5rem 3rem;">
+  <div style="font-size:64px;margin-bottom:1.25rem;">🎉</div>
+  <h2 style="font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--text);margin-bottom:8px;">Session Complete!</h2>
+  <p id="congrats-msg" style="font-size:15px;color:var(--text-muted);font-weight:500;line-height:1.6;max-width:300px;margin:0 auto 1.75rem;"></p>
+  <img id="congrats-char-img" src="" alt="" style="display:none;width:140px;height:186px;object-fit:cover;object-position:top center;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.18);margin:0 auto 1.5rem;">
+  <div id="congrats-xp" style="display:inline-flex;align-items:center;gap:8px;background:var(--green-light);color:var(--hunter-green);border:0.5px solid var(--hunter-green);border-radius:999px;padding:7px 18px;font-size:14px;font-weight:700;margin-bottom:2rem;"></div>
+  <p style="font-size:12px;color:var(--text-muted);font-weight:500;">You can close this window — see you next time.</p>
+</div>
+
 <!-- TOAST -->
 <div class="toast" id="toast"></div>
 
@@ -837,6 +847,17 @@ let heroTrait      = null;
 let heroCompanion  = null;
 let heroName       = '';
 
+const CHAR_CONGRATS = {
+  scout:    "You explored today with curiosity and courage. Every step forward counts — keep moving.",
+  voyager:  "You stayed the course. Every session is another step in your journey, and you showed up.",
+  warden:   "You held steady today. Showing up for yourself the way you did takes real strength.",
+  gardener: "You were patient and gentle with yourself today. That's exactly where growth begins.",
+  dreamer:  "You kept the door to possibility open today. That kind of hope is worth holding onto.",
+  weaver:   "You made connections today that matter. Keep weaving your story — it's a good one.",
+  anchor:   "You stayed present through it all. That groundedness is your greatest strength.",
+  sage:     "You sat with yourself honestly today. That kind of quiet courage takes real wisdom.",
+};
+
 const _BASE = 'https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters';
 const CHAR_IMG_URLS = {
   scout:    `${_BASE}/The%20Scout.png`,
@@ -848,6 +869,25 @@ const CHAR_IMG_URLS = {
   anchor:   `${_BASE}/The%20Anchor.png`,
   sage:     `${_BASE}/The%20Sage.png`,
 };
+
+function showCongrats() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('congrats').classList.add('active');
+  setCharBg(true);
+
+  const msg = CHAR_CONGRATS[heroCharacter] || "Amazing work today. You showed up and gave it your all.";
+  document.getElementById('congrats-msg').textContent = msg;
+
+  const img = document.getElementById('congrats-char-img');
+  if (heroCharacter && CHAR_IMG_URLS[heroCharacter]) {
+    img.src = CHAR_IMG_URLS[heroCharacter];
+    img.style.display = 'block';
+  }
+
+  const levelNames = ['Explorer','Adventurer','Trailblazer','Champion','Luminary','Sage'];
+  document.getElementById('congrats-xp').textContent =
+    `⭐ ${xp} XP · Level ${level} – ${levelNames[level - 1]}`;
+}
 
 function setCharBg(show) {
   const bg = document.getElementById('char-bg');
@@ -952,6 +992,14 @@ async function joinSession() {
   // Subscribe to session updates from therapist
   sessionChannel = db
     .channel('client-session-' + session.id)
+    .on('postgres_changes', {
+      event: 'UPDATE',
+      schema: 'public',
+      table: 'sessions',
+      filter: `id=eq.${session.id}`
+    }, payload => {
+      if (payload.new.status === 'completed') showCongrats();
+    })
     .subscribe();
 
   // Restore previously chosen character for this client
