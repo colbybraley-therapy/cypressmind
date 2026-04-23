@@ -527,6 +527,23 @@
     );
   }
   #char-bg.visible { opacity: 1; }
+
+  /* CONGRATS OVERLAY — fixed on top of everything */
+  #congrats {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: var(--bg);
+    overflow-y: auto;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2.5rem 1.5rem 3rem;
+    text-align: center;
+  }
+  #congrats.active { display: flex; }
+
   /* Keep cards legible over the character background */
   .level-card,
   .act-card,
@@ -822,7 +839,7 @@
 </div>
 
 <!-- CONGRATS -->
-<div id="congrats" class="screen" style="text-align:center;padding:2.5rem 1.5rem 3rem;">
+<div id="congrats" class="screen">
   <div style="font-size:64px;margin-bottom:1.25rem;">🎉</div>
   <h2 style="font-family:'Playfair Display',serif;font-size:26px;font-weight:700;color:var(--text);margin-bottom:8px;">Session Complete!</h2>
   <p id="congrats-msg" style="font-size:15px;color:var(--text-muted);font-weight:500;line-height:1.6;max-width:300px;margin:0 auto 1.75rem;"></p>
