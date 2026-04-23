@@ -972,6 +972,16 @@ function addXP(n, label) {
   document.getElementById('level-name').textContent = name;
   document.getElementById('xp-fill').style.width = xp + '%';
   showToast(leveled ? '🎉 Level Up! You are now a ' + levelNames[level-1] + '!' : '⭐ +' + n + ' XP — ' + label);
+  // Persist XP so therapist can see it
+  if (currentSession) {
+    db.from('session_responses').insert({
+      session_id:    currentSession.id,
+      client_id:     currentClientId,
+      activity_type: 'xp_update',
+      step_index:    -2,
+      response_data: { type: 'xp_update', xp, level }
+    });
+  }
 }
 
 function showToast(msg) {

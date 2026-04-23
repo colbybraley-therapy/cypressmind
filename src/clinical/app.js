@@ -21,6 +21,8 @@ const CHARACTER_IMAGES = {
   anchor:   `${BASE_IMG}/The%20Anchor.png`,
   sage:     `${BASE_IMG}/The%20Sage.png`,
 };
+const LEVEL_NAMES = ['Explorer','Adventurer','Trailblazer','Champion','Luminary','Sage'];
+
 const CHARACTER_NAMES = {
   scout: 'The Scout', voyager: 'The Voyager', warden: 'The Warden',
   gardener: 'The Gardener', dreamer: 'The Dreamer', weaver: 'The Weaver',
@@ -270,15 +272,27 @@ async function openClient(client) {
   document.getElementById('cp-since').textContent     = 'Since ' + new Date(client.created_at)
     .toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 
-  // Show character if client has chosen one
-  const { data: charRow } = await db
-    .from('session_responses')
-    .select('response_data')
-    .eq('client_id', client.id)
-    .eq('step_index', -1)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
+  // Fetch character and XP in parallel
+  const [{ data: charRow }, { data: xpRow }] = await Promise.all([
+    db.from('session_responses').select('response_data')
+      .eq('client_id', client.id).eq('step_index', -1)
+      .order('created_at', { ascending: false }).limit(1).maybeSingle(),
+    db.from('session_responses').select('response_data')
+      .eq('client_id', client.id).eq('step_index', -2)
+      .order('created_at', { ascending: false }).limit(1).maybeSingle(),
+  ]);
+
+  // XP / level stat box
+  const xpData = xpRow?.response_data;
+  let parsedXp = typeof xpData === 'string' ? JSON.parse(xpData) : xpData;
+  if (parsedXp?.xp !== undefined) {
+    const lvl = Math.max(1, Math.min(parsedXp.level ?? 1, LEVEL_NAMES.length));
+    document.getElementById('st-xp').textContent    = parsedXp.xp + ' XP';
+    document.getElementById('st-level').textContent = `Lv.${lvl} · ${LEVEL_NAMES[lvl - 1]}`;
+  } else {
+    document.getElementById('st-xp').textContent    = '—';
+    document.getElementById('st-level').textContent = 'No sessions yet';
+  }
 
   let charEl = document.getElementById('cp-character');
   if (!charEl) {
@@ -393,7 +407,6 @@ async function renderActivities() {
 
   document.getElementById('st-total').textContent = activities.length;
   document.getElementById('st-done').textContent  = done;
-  document.getElementById('st-avg').textContent   = avg !== null ? avg + '%' : '—';
 
   const list = document.getElementById('lesson-list');
   if (!activities.length) {
