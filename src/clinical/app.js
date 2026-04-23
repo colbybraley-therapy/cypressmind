@@ -308,8 +308,25 @@ async function openClient(client) {
     document.getElementById('cp-name').closest('.profile-head').insertAdjacentElement('afterend', charEl);
   }
 
-  const char = charRow?.response_data?.character;
-  if (char && CHARACTER_IMAGES[char]) {
+  let charData = charRow?.response_data;
+  if (typeof charData === 'string') { try { charData = JSON.parse(charData); } catch(e) {} }
+  const char = charData?.character;
+
+  const _archIcons = { protector:'🛡️', explorer:'🧭', healer:'💚', sage:'📖', spark:'⚡', builder:'🔨' };
+
+  if (char === 'custom' && charData?.name) {
+    const archIcon  = _archIcons[charData.heroType] || '✦';
+    const archLabel = charData.heroType ? charData.heroType.charAt(0).toUpperCase() + charData.heroType.slice(1) : '';
+    const traitStr  = (charData.traits || []).join(', ');
+    charEl.innerHTML = `
+      <div style="width:72px;height:96px;background:var(--green-light,#F0F5F0);border:0.5px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:36px;flex-shrink:0;">${archIcon}</div>
+      <div>
+        <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--color-text-tertiary);font-weight:500;margin-bottom:4px;">Custom Hero</div>
+        <div style="font-family:var(--serif,Georgia,serif);font-size:17px;font-weight:500;color:var(--color-text-primary,#1A2E1A);">${charData.name}</div>
+        ${archLabel || traitStr ? `<div style="font-size:11px;color:var(--color-text-tertiary);margin-top:3px;">${archLabel}${traitStr ? ' · ' + traitStr : ''}</div>` : ''}
+      </div>`;
+    charEl.style.display = 'flex';
+  } else if (char && CHARACTER_IMAGES[char]) {
     charEl.innerHTML = `
       <img src="${CHARACTER_IMAGES[char]}" alt="${CHARACTER_NAMES[char]}"
            style="width:72px;height:96px;object-fit:cover;object-position:top center;border-radius:10px;border:0.5px solid var(--border);">
@@ -788,25 +805,57 @@ function addResponseToPanel(response) {
   if (typeof data === 'string') { try { data = JSON.parse(data); } catch(e) {} }
 
   // ── Character selection ──
-  if (data?.type === 'character_selected' && CHARACTER_NAMES[data.character]) {
+  if (data?.type === 'character_selected') {
     const existing = document.getElementById('session-char-display');
     if (existing) existing.remove();
     const div = document.createElement('div');
     div.id = 'session-char-display';
     div.style.cssText = 'background:#f8faf9;border:0.5px solid #E2E8E2;border-radius:10px;overflow:hidden;margin-bottom:14px;';
-    div.innerHTML = `
-      <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:0.5px solid #E2E8E2;">
-        <img src="${CHARACTER_IMAGES[data.character]}" alt="${CHARACTER_NAMES[data.character]}"
-             style="width:48px;height:64px;object-fit:cover;object-position:top center;border-radius:6px;flex-shrink:0;">
-        <div>
-          <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#7B7899;font-weight:600;margin-bottom:4px;">Character Chosen</div>
-          <div style="font-size:16px;font-weight:600;color:#1A2E1A;">${CHARACTER_NAMES[data.character]}</div>
+
+    const _archIcons = { protector:'🛡️', explorer:'🧭', healer:'💚', sage:'📖', spark:'⚡', builder:'🔨' };
+
+    if (data.character === 'custom' && data.name) {
+      const archIcon  = _archIcons[data.heroType] || '✦';
+      const archLabel = data.heroType ? data.heroType.charAt(0).toUpperCase() + data.heroType.slice(1) : 'Custom';
+      const powerLabel = data.power
+        ? data.power.replace(/_/g,' ').replace(/\b\w/g, c=>c.toUpperCase())
+        : '';
+      div.innerHTML = `
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:0.5px solid #E2E8E2;">
+          <div style="width:48px;height:64px;background:#F0F5F0;border:0.5px solid #E2E8E2;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">${archIcon}</div>
+          <div>
+            <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#7B7899;font-weight:600;margin-bottom:4px;">Custom Hero</div>
+            <div style="font-size:16px;font-weight:600;color:#1A2E1A;">${data.name}</div>
+            <div style="font-size:11px;color:#7B7899;margin-top:2px;">${archLabel}</div>
+          </div>
         </div>
-      </div>
-      <div style="padding:12px 14px;font-size:13px;color:#4B5563;line-height:1.65;">
-        <span style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;color:#7B7899;display:block;margin-bottom:6px;">A client might choose this character because...</span>
-        ${CHARACTER_COPY[data.character]}
-      </div>`;
+        ${data.traits?.length ? `
+          <div style="padding:10px 14px;display:flex;gap:6px;flex-wrap:wrap;border-bottom:0.5px solid #E2E8E2;">
+            <span style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;color:#7B7899;width:100%;margin-bottom:4px;">Traits</span>
+            ${data.traits.map(t=>`<span style="background:#F0F5F0;border:0.5px solid #E2E8E2;border-radius:3px;padding:3px 10px;font-size:11px;font-weight:600;color:#355E3B;">${t}</span>`).join('')}
+          </div>` : ''}
+        ${powerLabel ? `
+          <div style="padding:10px 14px;font-size:13px;color:#4B5563;">
+            <span style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;color:#7B7899;display:block;margin-bottom:4px;">Special Power</span>
+            ${powerLabel}
+          </div>` : ''}`;
+    } else if (CHARACTER_NAMES[data.character]) {
+      div.innerHTML = `
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 14px;border-bottom:0.5px solid #E2E8E2;">
+          <img src="${CHARACTER_IMAGES[data.character]}" alt="${CHARACTER_NAMES[data.character]}"
+               style="width:48px;height:64px;object-fit:cover;object-position:top center;border-radius:6px;flex-shrink:0;">
+          <div>
+            <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#7B7899;font-weight:600;margin-bottom:4px;">Character Chosen</div>
+            <div style="font-size:16px;font-weight:600;color:#1A2E1A;">${CHARACTER_NAMES[data.character]}</div>
+          </div>
+        </div>
+        <div style="padding:12px 14px;font-size:13px;color:#4B5563;line-height:1.65;">
+          <span style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;color:#7B7899;display:block;margin-bottom:6px;">A client might choose this character because...</span>
+          ${CHARACTER_COPY[data.character]}
+        </div>`;
+    } else {
+      return;
+    }
     list.prepend(div);
     return;
   }

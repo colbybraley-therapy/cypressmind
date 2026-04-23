@@ -591,6 +591,119 @@
   }
   .cb-next-btn:disabled { background: var(--border); color: var(--text-muted); cursor: default; }
   .cb-next-btn:not(:disabled):hover { background: var(--purple-dark); }
+
+  /* ── WIZARD ── */
+  .wz-create-btn {
+    width: 100%;
+    background: transparent;
+    color: var(--hunter-green);
+    border: 1.5px solid var(--hunter-green);
+    border-radius: var(--radius-sm);
+    padding: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    letter-spacing: 0.03em;
+    margin-bottom: 10px;
+    transition: background 0.15s, color 0.15s;
+  }
+  .wz-create-btn:hover { background: var(--hunter-green); color: #fff; }
+  .wz-arch-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 20px; }
+  .wz-arch-card {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px 8px 14px;
+    cursor: pointer;
+    text-align: center;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .wz-arch-card:hover { border-color: var(--hunter-green); background: var(--green-light); }
+  .wz-arch-card.selected { border-color: var(--hunter-green); background: var(--green-light); box-shadow: inset 0 0 0 1px var(--hunter-green); }
+  .wz-arch-icon { font-size: 28px; display: block; margin-bottom: 6px; }
+  .wz-arch-name { font-family: 'Playfair Display', serif; font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+  .wz-arch-desc { font-size: 10px; color: var(--text-muted); font-weight: 500; }
+  .wz-name-input {
+    width: 100%;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 13px 14px;
+    font-size: 20px;
+    font-family: 'Playfair Display', serif;
+    font-weight: 500;
+    color: var(--text);
+    background: var(--card);
+    margin-bottom: 14px;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .wz-name-input:focus { border-color: var(--hunter-green); }
+  .wz-name-suggestions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 20px; }
+  .wz-name-chip {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.12s;
+  }
+  .wz-name-chip:hover { border-color: var(--hunter-green); color: var(--hunter-green); background: var(--green-light); }
+  .wz-name-chip.selected { background: var(--hunter-green); color: #fff; border-color: var(--hunter-green); }
+  .wz-traits-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 10px; margin-bottom: 10px; }
+  .wz-trait-chip {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 14px 8px;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-muted);
+    cursor: pointer;
+    text-align: center;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.12s;
+  }
+  .wz-trait-chip:hover { border-color: var(--royal-blue); color: var(--royal-blue); background: rgba(65,105,225,0.06); }
+  .wz-trait-chip.selected { background: var(--royal-blue); color: #fff; border-color: var(--royal-blue); }
+  .wz-trait-count { font-size: 12px; color: var(--text-muted); font-weight: 600; margin-bottom: 20px; text-align: right; }
+  .wz-power-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 10px; margin-bottom: 20px; }
+  .wz-power-card {
+    background: var(--card);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 16px 12px 14px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .wz-power-card:hover { border-color: var(--purple); background: var(--purple-light); }
+  .wz-power-card.selected { border-color: var(--purple); background: var(--purple-light); box-shadow: inset 0 0 0 1px var(--purple); }
+  .wz-power-icon { font-size: 24px; display: block; margin-bottom: 6px; }
+  .wz-power-name { font-family: 'Playfair Display', serif; font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+  .wz-power-desc { font-size: 11px; color: var(--text-muted); line-height: 1.4; font-weight: 500; }
+  .wz-summary-card { background: var(--card); border: 0.5px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
+  .wz-summary-hero { display: flex; align-items: center; gap: 14px; margin-bottom: 16px; padding-bottom: 16px; border-bottom: 0.5px solid var(--border); }
+  .wz-summary-icon { font-size: 40px; }
+  .wz-summary-name { font-family: 'Playfair Display', serif; font-size: 20px; font-weight: 700; color: var(--text); }
+  .wz-summary-type { font-size: 11px; color: var(--text-muted); font-weight: 600; margin-top: 3px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .wz-summary-row { margin-bottom: 14px; font-size: 14px; color: var(--text); }
+  .wz-summary-label { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); font-weight: 600; display: block; margin-bottom: 6px; }
+  .wz-summary-traits { display: flex; flex-wrap: wrap; gap: 6px; }
+  .wz-clinical-notice {
+    font-size: 11px;
+    color: var(--text-muted);
+    font-weight: 500;
+    line-height: 1.6;
+    margin-bottom: 16px;
+    padding: 10px 12px;
+    background: var(--green-light);
+    border-left: 3px solid var(--hunter-green);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  }
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -685,9 +798,17 @@
 
       </div>
 
+      <button class="wz-create-btn" onclick="openWizard()">✦ Create Your Hero</button>
       <button class="cb-next-btn" id="cb-next-1" onclick="confirmCharacter()" disabled>
         Choose this hero →
       </button>
+    </div>
+
+    <!-- Custom hero wizard -->
+    <div id="cb-wizard" style="display:none;">
+      <button class="back-btn" onclick="wizardBack()">← Back</button>
+      <div class="cb-step-pills" id="wz-pills" style="margin-top:4px;"></div>
+      <div id="wz-content"></div>
     </div>
   </div>
 
@@ -860,6 +981,44 @@ let jIdx = 0;
 let bPattern = null, bRunning = false, bTimer = null, bPhase = 0, bCycle = 0;
 let sessionEnded = false;
 
+/* ── WIZARD STATE ── */
+let wizardStep   = 1;
+let wizardType   = null;
+let wizardName   = '';
+let wizardTraits = [];
+let wizardPower  = null;
+
+/* ── WIZARD DATA ── */
+const WIZARD_ARCHETYPES = [
+  { id:'protector', icon:'🛡️', name:'Protector', desc:'You keep others safe'      },
+  { id:'explorer',  icon:'🧭', name:'Explorer',  desc:'You go first'               },
+  { id:'healer',    icon:'💚', name:'Healer',    desc:'You help others heal'       },
+  { id:'sage',      icon:'📖', name:'Sage',      desc:'You know what matters'      },
+  { id:'spark',     icon:'⚡', name:'Spark',     desc:'You light the way'          },
+  { id:'builder',   icon:'🔨', name:'Builder',   desc:'You make things better'     },
+];
+const WIZARD_NAMES = {
+  protector: ['Vale','Hardin','Steele','Kira','Roan','Marsh'],
+  explorer:  ['Scout','River','North','Dash','Quinn','Ember'],
+  healer:    ['Laurel','Haven','Wren','Calla','Finn','Reed'],
+  sage:      ['Lumen','Oren','Tael','Mira','Seren','Wyn'],
+  spark:     ['Flint','Nova','Zara','Remy','Blaze','Cove'],
+  builder:   ['Bram','Reid','Forrest','Thalia','Crowe','Mason'],
+};
+const WIZARD_TRAITS = ['Brave','Kind','Clever','Calm','Strong','Playful'];
+const WIZARD_POWERS = [
+  { id:'force_field', icon:'🛡️', name:'Force Field', desc:'Protect yourself and others'              },
+  { id:'clear_sight', icon:'👁️', name:'Clear Sight',  desc:'See through confusion to what matters'   },
+  { id:'truth_voice', icon:'💬', name:'Truth Voice',  desc:'Words that heal and inspire'             },
+  { id:'swift_wind',  icon:'🌬️', name:'Swift Wind',   desc:'Move through challenges with ease'       },
+  { id:'deep_roots',  icon:'🌱', name:'Deep Roots',   desc:'Stay grounded when things get hard'      },
+  { id:'heart_link',  icon:'💛', name:'Heart Link',   desc:"Understand others' feelings deeply"      },
+];
+const ARCHETYPE_TO_CHAR = {
+  protector:'warden', explorer:'scout', healer:'gardener',
+  sage:'sage', spark:'dreamer', builder:'anchor',
+};
+
 /* ── CHARACTER STATE ── */
 let heroCharacter  = null;
 let heroTrait      = null;
@@ -980,11 +1139,21 @@ async function restoreSavedCharacter(clientId) {
   let charData = data?.response_data;
   if (typeof charData === 'string') { try { charData = JSON.parse(charData); } catch(e) {} }
 
-  if (charData?.character && CHAR_IMG_URLS[charData.character]) {
+  if (charData?.character === 'custom' && charData?.name) {
+    const mappedChar = ARCHETYPE_TO_CHAR[charData.heroType] || 'scout';
+    CHAR_IMG_URLS['custom']  = CHAR_IMG_URLS[mappedChar];
+    CHAR_CONGRATS['custom']  = `${charData.name}, you showed up today. That's what matters.`;
+    wizardType   = charData.heroType  || null;
+    wizardName   = charData.name;
+    wizardTraits = charData.traits    || [];
+    wizardPower  = charData.power     || null;
+    heroCharacter = 'custom';
+    heroName      = charData.name;
+    setCharBg(true);
+  } else if (charData?.character && CHAR_IMG_URLS[charData.character]) {
     heroCharacter = charData.character;
     heroName      = charData.character;
     setCharBg(true);
-    // Pre-highlight the card in case they end up on the builder
     setTimeout(() => {
       const card = document.querySelector(`.cb-char-card[onclick*="'${heroCharacter}'"]`);
       if (card) { card.classList.add('selected'); document.getElementById('cb-next-1').disabled = false; }
@@ -1361,6 +1530,203 @@ function pickEmotion(i) {
     <button class="primary-btn" onclick="renderEmotions()">Explore another emotion</button>
     <button class="secondary-btn" onclick="go('home')">Back to hub</button>`;
   addXP(15, 'Emotion explored!');
+}
+
+/* ══ CUSTOM HERO WIZARD ══ */
+function openWizard() {
+  wizardStep = 1; wizardType = null; wizardName = ''; wizardTraits = []; wizardPower = null;
+  document.getElementById('cb-screen-1').classList.remove('active');
+  document.getElementById('cb-wizard').style.display = 'block';
+  renderWizardStep();
+}
+
+function closeWizard() {
+  document.getElementById('cb-wizard').style.display = 'none';
+  document.getElementById('cb-screen-1').classList.add('active');
+}
+
+function wizardBack() {
+  if (wizardStep <= 1) { closeWizard(); return; }
+  wizardStep--;
+  renderWizardStep();
+}
+
+function renderWizardStep() {
+  const pills = document.getElementById('wz-pills');
+  pills.innerHTML = Array.from({length:4},(_,i) =>
+    `<div class="cb-step-pill ${i < Math.min(wizardStep,4) ? 'active' : ''}"></div>`
+  ).join('');
+  const el = document.getElementById('wz-content');
+  if      (wizardStep === 1) renderWzStep1(el);
+  else if (wizardStep === 2) renderWzStep2(el);
+  else if (wizardStep === 3) renderWzStep3(el);
+  else if (wizardStep === 4) renderWzStep4(el);
+  else                       renderWzSummary(el);
+}
+
+function renderWzStep1(el) {
+  el.innerHTML = `
+    <div class="cb-header">
+      <h2 class="cb-title">What kind of hero are you?</h2>
+      <p class="cb-sub">Choose your archetype</p>
+    </div>
+    <div class="wz-arch-grid">
+      ${WIZARD_ARCHETYPES.map(a=>`
+        <div class="wz-arch-card${wizardType===a.id?' selected':''}" onclick="wzPickType('${a.id}',this)">
+          <span class="wz-arch-icon">${a.icon}</span>
+          <div class="wz-arch-name">${a.name}</div>
+          <div class="wz-arch-desc">${a.desc}</div>
+        </div>`).join('')}
+    </div>
+    <button class="cb-next-btn" id="wz-next" onclick="wizardStep++;renderWizardStep()" ${wizardType?'':'disabled'}>Continue →</button>`;
+}
+
+function wzPickType(id, el) {
+  wizardType = id;
+  document.querySelectorAll('.wz-arch-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('wz-next').disabled = false;
+}
+
+function renderWzStep2(el) {
+  const suggestions = WIZARD_NAMES[wizardType] || [];
+  el.innerHTML = `
+    <div class="cb-header">
+      <h2 class="cb-title">Give your hero a name.</h2>
+      <p class="cb-sub">Or choose one below</p>
+    </div>
+    <input type="text" id="wz-name-input" class="wz-name-input" maxlength="20"
+      placeholder="Enter a name…" value="${wizardName}"
+      oninput="wizardName=this.value.trim();document.getElementById('wz-next').disabled=!this.value.trim();" />
+    <div class="wz-name-suggestions">
+      ${suggestions.map(n=>`<button class="wz-name-chip${wizardName===n?' selected':''}" onclick="wzPickName('${n}',this)">${n}</button>`).join('')}
+    </div>
+    <button class="cb-next-btn" id="wz-next" onclick="wizardStep++;renderWizardStep()" ${wizardName?'':'disabled'}>Continue →</button>`;
+  setTimeout(()=>document.getElementById('wz-name-input')?.focus(), 50);
+}
+
+function wzPickName(name, el) {
+  wizardName = name;
+  document.getElementById('wz-name-input').value = name;
+  document.querySelectorAll('.wz-name-chip').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('wz-next').disabled = false;
+}
+
+function renderWzStep3(el) {
+  el.innerHTML = `
+    <div class="cb-header">
+      <h2 class="cb-title">What defines ${wizardName||'your hero'}?</h2>
+      <p class="cb-sub">Pick up to 3 traits</p>
+    </div>
+    <div class="wz-traits-grid">
+      ${WIZARD_TRAITS.map(t=>`
+        <button class="wz-trait-chip${wizardTraits.includes(t)?' selected':''}" onclick="wzToggleTrait('${t}',this)">${t}</button>`
+      ).join('')}
+    </div>
+    <p class="wz-trait-count" id="wz-trait-count">${wizardTraits.length}/3 selected</p>
+    <button class="cb-next-btn" id="wz-next" onclick="wizardStep++;renderWizardStep()" ${wizardTraits.length>0?'':'disabled'}>Continue →</button>`;
+}
+
+function wzToggleTrait(trait, el) {
+  if (wizardTraits.includes(trait)) {
+    wizardTraits = wizardTraits.filter(t=>t!==trait);
+    el.classList.remove('selected');
+  } else if (wizardTraits.length < 3) {
+    wizardTraits.push(trait);
+    el.classList.add('selected');
+  }
+  const c = document.getElementById('wz-trait-count');
+  if (c) c.textContent = `${wizardTraits.length}/3 selected`;
+  const n = document.getElementById('wz-next');
+  if (n) n.disabled = wizardTraits.length === 0;
+}
+
+function renderWzStep4(el) {
+  el.innerHTML = `
+    <div class="cb-header">
+      <h2 class="cb-title">Choose your special power.</h2>
+      <p class="cb-sub">What sets your hero apart</p>
+    </div>
+    <div class="wz-power-grid">
+      ${WIZARD_POWERS.map(p=>`
+        <div class="wz-power-card${wizardPower===p.id?' selected':''}" onclick="wzPickPower('${p.id}',this)">
+          <span class="wz-power-icon">${p.icon}</span>
+          <div class="wz-power-name">${p.name}</div>
+          <div class="wz-power-desc">${p.desc}</div>
+        </div>`).join('')}
+    </div>
+    <button class="cb-next-btn" id="wz-next" onclick="wizardStep++;renderWizardStep()" ${wizardPower?'':'disabled'}>Continue →</button>`;
+}
+
+function wzPickPower(id, el) {
+  wizardPower = id;
+  document.querySelectorAll('.wz-power-card').forEach(c=>c.classList.remove('selected'));
+  el.classList.add('selected');
+  document.getElementById('wz-next').disabled = false;
+}
+
+function renderWzSummary(el) {
+  const arch  = WIZARD_ARCHETYPES.find(a=>a.id===wizardType);
+  const power = WIZARD_POWERS.find(p=>p.id===wizardPower);
+  el.innerHTML = `
+    <div class="cb-header">
+      <h2 class="cb-title">Meet ${wizardName}.</h2>
+      <p class="cb-sub">Your hero is ready</p>
+    </div>
+    <div class="wz-summary-card">
+      <div class="wz-summary-hero">
+        <span class="wz-summary-icon">${arch?.icon}</span>
+        <div>
+          <div class="wz-summary-name">${wizardName}</div>
+          <div class="wz-summary-type">The ${arch?.name}</div>
+        </div>
+      </div>
+      <div class="wz-summary-row">
+        <span class="wz-summary-label">Traits</span>
+        <div class="wz-summary-traits">
+          ${wizardTraits.map(t=>`<span class="wz-name-chip selected" style="cursor:default;">${t}</span>`).join('')}
+        </div>
+      </div>
+      <div class="wz-summary-row">
+        <span class="wz-summary-label">Special Power</span>
+        <div>${power?.icon} <strong>${power?.name}</strong>
+          <span style="color:var(--text-muted);font-size:13px;"> — ${power?.desc}</span></div>
+      </div>
+    </div>
+    <p class="wz-clinical-notice">
+      Your hero's details are shared with your therapist to help personalize your sessions.
+    </p>
+    <button class="cb-next-btn" onclick="finishWizard()">Begin the adventure →</button>`;
+}
+
+function finishWizard() {
+  const mappedChar = ARCHETYPE_TO_CHAR[wizardType] || 'scout';
+  const arch       = WIZARD_ARCHETYPES.find(a=>a.id===wizardType);
+  const traitStr   = wizardTraits.slice(0,2).join(' and ');
+
+  CHAR_IMG_URLS['custom']  = CHAR_IMG_URLS[mappedChar];
+  CHAR_CONGRATS['custom']  = `${wizardName}, you showed up today as ${arch?.name ? 'a ' + arch.name : 'yourself'}${traitStr ? ' — ' + traitStr : ''}. That's real. Keep going.`;
+
+  heroCharacter = 'custom';
+  heroName      = wizardName;
+
+  if (currentSession) {
+    saveResponse(-1, {
+      type:      'character_selected',
+      character: 'custom',
+      heroType:  wizardType,
+      name:      wizardName,
+      traits:    wizardTraits,
+      power:     wizardPower,
+    });
+  }
+
+  setCharBg(true);
+  document.getElementById('cb-wizard').style.display = 'none';
+  document.getElementById('character-builder').classList.remove('active');
+  if (currentSession) { go(currentSession.activity_type); }
+  else                { document.getElementById('home').classList.add('active'); }
 }
 </script>
 </body>
