@@ -778,10 +778,10 @@ function addResponseToPanel(response) {
   const list = document.getElementById('responses-list');
   if (!list) return;
 
-  // response_data may arrive as a string from real-time payloads
   let data = response.response_data;
   if (typeof data === 'string') { try { data = JSON.parse(data); } catch(e) {} }
 
+  // ── Character selection ──
   if (data?.type === 'character_selected' && CHARACTER_NAMES[data.character]) {
     const existing = document.getElementById('session-char-display');
     if (existing) existing.remove();
@@ -805,11 +805,44 @@ function addResponseToPanel(response) {
     return;
   }
 
+  // ── XP updates — skip, not useful for therapist ──
+  if (data?.type === 'xp_update') return;
+
+  // ── Format each activity response type ──
+  let label = '', content = '';
+
+  if (data?.emotion) {
+    // Emotion Explorer
+    label = 'Emotion Check-in';
+    content = `<span style="font-size:22px;line-height:1;">${data.icon || ''}</span> <strong>${data.emotion}</strong>`;
+  } else if (data?.correct !== undefined) {
+    // Quiz
+    const icon = data.correct ? '✓' : '✗';
+    const color = data.correct ? '#1E6B2E' : '#9E3A1E';
+    const bg    = data.correct ? '#edfbf0' : '#fff0eb';
+    label = data.correct ? 'Quiz — Correct' : 'Quiz — Incorrect';
+    content = `
+      <div style="margin-bottom:5px;font-size:12px;color:#7B7899;">${data.question || ''}</div>
+      <span style="display:inline-block;background:${bg};color:${color};padding:3px 10px;border-radius:4px;font-weight:600;font-size:13px;">${icon} ${data.answer || ''}</span>`;
+  } else if (data?.completed === true && data?.cycles !== undefined) {
+    // Breathing
+    label = 'Breathing Exercise';
+    content = `✅ Completed ${data.cycles} cycles`;
+  } else if (data?.response !== undefined) {
+    // Journal
+    const excerpt = data.response.length > 120 ? data.response.slice(0, 120) + '…' : data.response;
+    label = 'Journal Response';
+    content = `<div style="font-size:11px;color:#7B7899;margin-bottom:4px;font-style:italic;">${(data.prompt || '').slice(0, 80)}${data.prompt?.length > 80 ? '…' : ''}</div>${excerpt}`;
+  } else {
+    // Fallback — skip unrecognised internal responses
+    return;
+  }
+
   const div = document.createElement('div');
   div.className = 'response-item';
   div.innerHTML = `
-    <div class="response-step">Step ${response.step_index + 1}</div>
-    <div class="response-content">${JSON.stringify(data).replace(/[{}"]/g, '').replace(/,/g, ' · ')}</div>`;
+    <div class="response-step">${label}</div>
+    <div class="response-content" style="display:flex;align-items:center;gap:8px;">${content}</div>`;
   list.appendChild(div);
 }
 
