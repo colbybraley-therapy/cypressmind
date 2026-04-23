@@ -828,7 +828,8 @@
   <p id="congrats-msg" style="font-size:15px;color:var(--text-muted);font-weight:500;line-height:1.6;max-width:300px;margin:0 auto 1.75rem;"></p>
   <img id="congrats-char-img" src="" alt="" style="display:none;width:140px;height:186px;object-fit:cover;object-position:top center;border-radius:16px;box-shadow:0 8px 32px rgba(0,0,0,0.18);margin:0 auto 1.5rem;">
   <div id="congrats-xp" style="display:inline-flex;align-items:center;gap:8px;background:var(--green-light);color:var(--hunter-green);border:0.5px solid var(--hunter-green);border-radius:999px;padding:7px 18px;font-size:14px;font-weight:700;margin-bottom:2rem;"></div>
-  <p style="font-size:12px;color:var(--text-muted);font-weight:500;">You can close this window — see you next time.</p>
+  <p style="font-size:12px;color:var(--text-muted);font-weight:500;margin-bottom:1.5rem;">See you next time! 👋</p>
+  <button onclick="closeCongrats()" style="background:var(--hunter-green);color:#fff;border:none;border-radius:8px;padding:13px 32px;font-size:14px;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;width:100%;max-width:280px;">Close Session</button>
 </div>
 
 <!-- TOAST -->
@@ -840,6 +841,7 @@ let xp = 0, level = 1;
 let qIdx = 0, qScore = 0;
 let jIdx = 0;
 let bPattern = null, bRunning = false, bTimer = null, bPhase = 0, bCycle = 0;
+let sessionEnded = false;
 
 /* ── CHARACTER STATE ── */
 let heroCharacter  = null;
@@ -870,7 +872,20 @@ const CHAR_IMG_URLS = {
   sage:     `${_BASE}/The%20Sage.png`,
 };
 
+function closeCongrats() {
+  sessionEnded = false;
+  if (sessionChannel) { db.removeChannel(sessionChannel); sessionChannel = null; }
+  currentSession = null;
+  document.getElementById('congrats').classList.remove('active');
+  document.getElementById('join-screen').classList.add('active');
+  setCharBg(false);
+}
+
 function showCongrats() {
+  if (sessionEnded) return;
+  sessionEnded = true;
+  stopBreath();
+  if (sessionChannel) { db.removeChannel(sessionChannel); sessionChannel = null; }
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('congrats').classList.add('active');
   setCharBg(true);
@@ -1072,6 +1087,7 @@ function showToast(msg) {
 
 /* ── NAV ── */
 function go(id) {
+  if (sessionEnded) return;
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   setCharBg(!!heroName);
