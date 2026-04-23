@@ -894,6 +894,32 @@ let currentSession = null;
 let currentClientId = null;
 let sessionChannel = null;
 
+/* ── RESTORE SAVED CHARACTER ── */
+async function restoreSavedCharacter(clientId) {
+  const { data } = await db
+    .from('session_responses')
+    .select('response_data')
+    .eq('client_id', clientId)
+    .eq('step_index', -1)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  let charData = data?.response_data;
+  if (typeof charData === 'string') { try { charData = JSON.parse(charData); } catch(e) {} }
+
+  if (charData?.character && CHAR_IMG_URLS[charData.character]) {
+    heroCharacter = charData.character;
+    heroName      = charData.character;
+    setCharBg(true);
+    // Pre-highlight the card in case they end up on the builder
+    setTimeout(() => {
+      const card = document.querySelector(`.cb-char-card[onclick*="'${heroCharacter}'"]`);
+      if (card) { card.classList.add('selected'); document.getElementById('cb-next-1').disabled = false; }
+    }, 100);
+  }
+}
+
 /* ── JOIN SESSION ── */
 async function joinSession() {
   const code = document.getElementById('session-code-input').value.trim().toUpperCase();
@@ -927,6 +953,9 @@ async function joinSession() {
   sessionChannel = db
     .channel('client-session-' + session.id)
     .subscribe();
+
+  // Restore previously chosen character for this client
+  await restoreSavedCharacter(session.client_id);
 
   // Launch the correct activity
   document.getElementById('join-screen').classList.remove('active');
