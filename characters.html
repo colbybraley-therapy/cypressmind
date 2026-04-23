@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Character Roster — Cypress Mind</title>
-<link rel="icon" type="image/png" href="favicon.png">
+<link rel="icon" type="image/png" href="https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/favicon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
@@ -61,22 +61,115 @@
   }
   .nav-ghost-btn:hover { background: var(--green-light); border-color: var(--hunter-green); color: var(--hunter-green); }
 
-  .nav-cta {
-    background: var(--hunter-green);
-    color: #fff;
-    border: none;
-    padding: 8px 18px;
-    border-radius: 6px;
-    font-size: 13px;
-    font-family: 'DM Sans', sans-serif;
-    font-weight: 500;
-    cursor: pointer;
-    text-decoration: none;
-    transition: background 0.12s;
+  .signin-wrap { position: relative; }
+  .nav-signin-btn {
     display: inline-flex;
     align-items: center;
+    gap: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--ink-light);
+    background: none;
+    border: 0.5px solid var(--border);
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: border-color 0.15s;
   }
-  .nav-cta:hover { background: var(--green-dark); }
+  .nav-signin-btn:hover { border-color: #aaa; }
+  .signin-panel {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: calc(100% + 10px);
+    background: #fff;
+    border: 0.5px solid var(--border);
+    border-radius: 6px;
+    padding: 24px;
+    width: 300px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+    z-index: 200;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .signin-panel.open { display: block; }
+  .signin-panel-title {
+    font-family: 'Lora', serif;
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--ink);
+    margin: 0 0 16px;
+  }
+  .si-field { margin-bottom: 14px; }
+  .si-field label {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-light);
+    margin-bottom: 5px;
+  }
+  .si-field input {
+    width: 100%;
+    padding: 9px 11px;
+    border: 0.5px solid var(--border);
+    border-radius: 4px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--ink);
+    background: var(--off-white);
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color 0.15s;
+  }
+  .si-field input:focus { border-color: var(--hunter-green); background: #fff; }
+  .si-err { font-size: 12px; color: #c0392b; margin-bottom: 10px; min-height: 16px; }
+  .si-btn-primary {
+    width: 100%;
+    background: var(--hunter-green);
+    color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    padding: 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .si-btn-primary:hover { background: var(--green-dark); }
+  .si-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin: 14px 0;
+    font-size: 12px;
+    color: #aaa;
+  }
+  .si-divider::before, .si-divider::after {
+    content: '';
+    flex: 1;
+    height: 0.5px;
+    background: var(--border);
+  }
+  .si-btn-google {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    background: #fff;
+    border: 0.5px solid var(--border);
+    border-radius: 4px;
+    padding: 9px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--ink);
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .si-btn-google:hover { border-color: #aaa; background: var(--off-white); }
 
   /* ── PAGE CONTENT ── */
   .page-wrap {
@@ -371,11 +464,28 @@
 <!-- NAV -->
 <nav class="landing-nav">
   <a href="index.html" class="nav-logo">
-    <img src="assets/ui-elements/Cypress Mind Logo.png" alt="Cypress Mind">
+    <img src="https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/ui-elements/Cypress%20Mind%20Logo.png" alt="Cypress Mind">
   </a>
   <div class="nav-right">
     <a href="index.html" class="nav-ghost-btn">Home</a>
-    <a href="index.html#sign-in" class="nav-cta">Therapist Login</a>
+    <div class="signin-wrap" id="signin-wrap">
+      <button class="nav-signin-btn" id="signin-nav-btn" onclick="toggleSignIn()">
+        Therapist Sign In
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><polyline points="2,3 5,7 8,3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <div class="signin-panel" id="signin-panel">
+        <p class="signin-panel-title">Welcome back</p>
+        <div class="si-field"><label>Email</label><input type="email" id="si-email" placeholder="you@example.com" autocomplete="email" /></div>
+        <div class="si-field"><label>Password</label><input type="password" id="si-pass" placeholder="••••••••" autocomplete="current-password" /></div>
+        <div class="si-err" id="si-err"></div>
+        <button class="si-btn-primary" onclick="doSignIn()">Sign in</button>
+        <div class="si-divider"><span>or</span></div>
+        <button class="si-btn-google" onclick="doSignInWithGoogle()">
+          <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/><path d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 7.294C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/></svg>
+          Continue with Google
+        </button>
+      </div>
+    </div>
   </div>
 </nav>
 
@@ -409,7 +519,7 @@
 
     <!-- THE SCOUT -->
     <div class="card" data-id="scout" data-themes="clarity growth" data-name="the scout" data-vibe="proactive light observant curious perceptive brave" onclick="openDetail('scout',this)">
-      <img class="card-image" src="src/assets/characters/The Scout.png" alt="The Scout">
+      <img class="card-image" src="https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters/The%20Scout.png" alt="The Scout">
       <div class="card-overlay"></div>
       <div class="card-content">
         <p class="card-name">The Scout</p>
@@ -424,7 +534,7 @@
 
     <!-- THE WEAVER -->
     <div class="card" data-id="weaver" data-themes="clarity growth" data-name="the weaver" data-vibe="fluid artistic connective creative empathic intuitive" onclick="openDetail('weaver',this)">
-      <img class="card-image" src="src/assets/characters/The Weaver.png" alt="The Weaver">
+      <img class="card-image" src="https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters/The%20Weaver.png" alt="The Weaver">
       <div class="card-overlay"></div>
       <div class="card-content">
         <p class="card-name">The Weaver</p>
@@ -439,7 +549,7 @@
 
     <!-- THE WARDEN -->
     <div class="card" data-id="warden" data-themes="boundaries grounding" data-name="the warden" data-vibe="protective structured solid steadfast clear" onclick="openDetail('warden',this)">
-      <img class="card-image" src="src/assets/characters/The Warden.png" alt="The Warden">
+      <img class="card-image" src="https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters/The%20Warden.png" alt="The Warden">
       <div class="card-overlay"></div>
       <div class="card-content">
         <p class="card-name">The Warden</p>
@@ -454,7 +564,7 @@
 
     <!-- THE DREAMER -->
     <div class="card" data-id="dreamer" data-themes="hope growth" data-name="the dreamer" data-vibe="ethereal imaginative open visionary hopeful" onclick="openDetail('dreamer',this)">
-      <img class="card-image" src="src/assets/characters/The Dreamer.png" alt="The Dreamer">
+      <img class="card-image" src="https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters/The%20Dreamer.png" alt="The Dreamer">
       <div class="card-overlay"></div>
       <div class="card-content">
         <p class="card-name">The Dreamer</p>
@@ -469,7 +579,7 @@
 
     <!-- THE ANCHOR -->
     <div class="card" data-id="anchor" data-themes="grounding clarity" data-name="the anchor" data-vibe="calm centered immovable present grounded steady" onclick="openDetail('anchor',this)">
-      <img class="card-image" src="src/assets/characters/The Anchor.png" alt="The Anchor">
+      <img class="card-image" src="https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters/The%20Anchor.png" alt="The Anchor">
       <div class="card-overlay"></div>
       <div class="card-content">
         <p class="card-name">The Anchor</p>
@@ -484,7 +594,7 @@
 
     <!-- THE VOYAGER -->
     <div class="card" data-id="voyager" data-themes="resilience hope growth" data-name="the voyager" data-vibe="purposeful dynamic ready driven resilient forward" onclick="openDetail('voyager',this)">
-      <img class="card-image" src="src/assets/characters/The Voyager.png" alt="The Voyager" style="object-position: 75% center;">
+      <img class="card-image" src="https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters/The%20Voyager.png" alt="The Voyager" style="object-position: 75% center;">
       <div class="card-overlay"></div>
       <div class="card-content">
         <p class="card-name">The Voyager</p>
@@ -499,7 +609,7 @@
 
     <!-- THE GARDENER -->
     <div class="card" data-id="gardener" data-themes="growth grounding" data-name="the gardener" data-vibe="nurturing kind patient compassionate gentle" onclick="openDetail('gardener',this)">
-      <img class="card-image" src="src/assets/characters/The Gardener.png" alt="The Gardener">
+      <img class="card-image" src="https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters/The%20Gardener.png" alt="The Gardener">
       <div class="card-overlay"></div>
       <div class="card-content">
         <p class="card-name">The Gardener</p>
@@ -514,7 +624,7 @@
 
     <!-- THE SAGE -->
     <div class="card" data-id="sage" data-themes="clarity resilience" data-name="the sage" data-vibe="wise reflective quiet accepting" onclick="openDetail('sage',this)">
-      <img class="card-image" src="src/assets/characters/The Sage.png" alt="The Sage">
+      <img class="card-image" src="https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters/The%20Sage.png" alt="The Sage">
       <div class="card-overlay"></div>
       <div class="card-content">
         <p class="card-name">The Sage</p>
@@ -563,6 +673,53 @@
   </div>
 
 </div><!-- /page-wrap -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+(function() {
+  const SUPABASE_URL = 'https://vfpxovpwwabisfjjqkpm.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_-cIPFr0xt1CfC8fwh0e_ew_Q6LIbcX5';
+  const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  function toggleSignIn() {
+    const panel = document.getElementById('signin-panel');
+    if (panel.classList.contains('open')) {
+      closeSignIn();
+    } else {
+      panel.classList.add('open');
+      setTimeout(() => document.addEventListener('mousedown', outsideSignIn), 10);
+      setTimeout(() => document.getElementById('si-email').focus(), 60);
+    }
+  }
+  function closeSignIn() {
+    document.getElementById('signin-panel').classList.remove('open');
+    document.removeEventListener('mousedown', outsideSignIn);
+  }
+  function outsideSignIn(e) {
+    if (!document.getElementById('signin-wrap').contains(e.target)) closeSignIn();
+  }
+  async function doSignIn() {
+    const email = document.getElementById('si-email').value.trim().toLowerCase();
+    const pass  = document.getElementById('si-pass').value;
+    const err   = document.getElementById('si-err');
+    err.textContent = '';
+    if (!email || !pass) { err.textContent = 'Please enter your email and password.'; return; }
+    const { data, error } = await db.auth.signInWithPassword({ email, password: pass });
+    if (error) { err.textContent = 'Incorrect email or password.'; return; }
+    window.location.href = 'index.html';
+  }
+  async function doSignInWithGoogle() {
+    const { error } = await db.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: window.location.origin + '/index.html' }
+    });
+    if (error) document.getElementById('si-err').textContent = error.message;
+  }
+  window.toggleSignIn = toggleSignIn;
+  window.doSignIn = doSignIn;
+  window.doSignInWithGoogle = doSignInWithGoogle;
+})();
+</script>
 
 <script>
 const chars = {

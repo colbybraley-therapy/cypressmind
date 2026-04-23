@@ -558,7 +558,8 @@ function showSessionPanel(code, clientName, activityType, activityIcon, sessionI
       <div class="session-code-block" id="session-code-block">
         <p class="session-code-label">Share this code with your client</p>
         <div class="session-code">${code}</div>
-        <p class="session-code-sub">Client opens MindPlay on their device and enters this code</p>
+        <p class="session-code-sub">Have your client visit the link below and enter this code</p>
+        <a class="session-client-url" href="${window.location.origin}/adventure" target="_blank">${window.location.origin}/adventure</a>
         <div class="session-status waiting" id="session-status">
           ⏳ Waiting for client to join...
         </div>

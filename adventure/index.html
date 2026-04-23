@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>MindPlay – Therapy Activity Hub</title>
+<title>Cypress Mind – Therapy Activity Hub</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;700&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet" />
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -502,6 +502,48 @@
     .activity-grid { grid-template-columns: 1fr; }
     .emotion-grid { grid-template-columns: repeat(3,1fr); }
   }
+
+  /* CHARACTER BUILDER */
+  .cb-screen { display: none; }
+  .cb-screen.active { display: block; }
+  .cb-header { text-align: center; margin-bottom: 24px; }
+  .cb-step-pills { display: flex; justify-content: center; gap: 6px; margin-bottom: 20px; }
+  .cb-step-pill { width: 28px; height: 4px; border-radius: 2px; background: var(--border); }
+  .cb-step-pill.active { background: var(--hunter-green); }
+  .cb-title { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+  .cb-sub { font-size: 14px; color: var(--text-muted); font-weight: 500; }
+  .cb-character-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 20px; }
+  .cb-char-card {
+    position: relative;
+    border-radius: 14px;
+    overflow: hidden;
+    cursor: pointer;
+    aspect-ratio: 3 / 4;
+    border: 2px solid transparent;
+    transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+  }
+  .cb-char-card:hover { transform: translateY(-3px); box-shadow: 0 6px 20px rgba(0,0,0,0.12); }
+  .cb-char-card.selected { border-color: var(--hunter-green); box-shadow: 0 0 0 2px var(--hunter-green); }
+  .cb-char-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top center; display: block; }
+  .cb-char-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0) 25%, rgba(0,0,0,0.72) 100%); }
+  .cb-char-info { position: absolute; bottom: 0; left: 0; right: 0; padding: 0.75rem; }
+  .cb-char-name { font-family: 'Playfair Display', serif; font-size: 14px; font-weight: 700; color: #fff; margin-bottom: 2px; }
+  .cb-char-tag { font-size: 10px; color: rgba(255,255,255,0.82); font-style: italic; }
+  .cb-next-btn {
+    width: 100%;
+    background: var(--hunter-green);
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 13px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: background 0.15s;
+  }
+  .cb-next-btn:disabled { background: var(--border); color: var(--text-muted); cursor: default; }
+  .cb-next-btn:not(:disabled):hover { background: var(--purple-dark); }
 </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -510,142 +552,94 @@
 
   <!-- CHARACTER BUILDER -->
   <div id="character-builder" class="screen">
-    <div class="app">
-
-      <!-- Screen 1: Pick a character -->
-      <div id="cb-screen-1" class="cb-screen active">
-        <div class="cb-header">
-          <div class="cb-step-pills">
-            <div class="cb-step-pill active"></div>
-            <div class="cb-step-pill"></div>
-            <div class="cb-step-pill"></div>
-            <div class="cb-step-pill"></div>
-          </div>
-          <h2 class="cb-title">Every great adventure<br>starts with a hero.</h2>
-          <p class="cb-sub">Who will you be?</p>
+    <div id="cb-screen-1" class="cb-screen active">
+      <div class="cb-header">
+        <div class="cb-step-pills">
+          <div class="cb-step-pill active"></div>
         </div>
-
-        <div class="cb-character-grid">
-
-          <!-- Character 1: The Brave Knight -->
-          <div class="cb-char-card" onclick="selectCharacter('knight', this)">
-            <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" class="cb-char-svg">
-              <circle cx="50" cy="28" r="20" fill="#F5C4B3"/>
-              <rect x="30" y="50" width="40" height="45" rx="8" fill="#7C6FE0"/>
-              <rect x="22" y="52" width="14" height="35" rx="6" fill="#7C6FE0"/>
-              <rect x="64" y="52" width="14" height="35" rx="6" fill="#7C6FE0"/>
-              <rect x="33" y="95" width="14" height="22" rx="6" fill="#4A3FB5"/>
-              <rect x="53" y="95" width="14" height="22" rx="6" fill="#4A3FB5"/>
-              <ellipse cx="50" cy="22" rx="21" ry="14" fill="#4A3FB5"/>
-              <rect x="44" y="8" width="12" height="8" rx="2" fill="#F5B83D"/>
-              <circle cx="50" cy="30" r="4" fill="#F0714A" opacity="0.5"/>
-            </svg>
-            <div class="cb-char-name">The Knight</div>
-            <div class="cb-char-tag">Brave &amp; Bold</div>
-          </div>
-
-          <!-- Character 2: The Wise Explorer -->
-          <div class="cb-char-card" onclick="selectCharacter('explorer', this)">
-            <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" class="cb-char-svg">
-              <circle cx="50" cy="28" r="20" fill="#F5C4B3"/>
-              <rect x="30" y="50" width="40" height="45" rx="8" fill="#2BC4A2"/>
-              <rect x="22" y="52" width="14" height="35" rx="6" fill="#2BC4A2"/>
-              <rect x="64" y="52" width="14" height="35" rx="6" fill="#2BC4A2"/>
-              <rect x="33" y="95" width="14" height="22" rx="6" fill="#0D7A63"/>
-              <rect x="53" y="95" width="14" height="22" rx="6" fill="#0D7A63"/>
-              <ellipse cx="50" cy="16" rx="24" ry="10" fill="#F5B83D"/>
-              <rect x="26" y="10" width="48" height="6" rx="3" fill="#8C6200"/>
-              <line x1="75" y1="13" x2="85" y2="5" stroke="#8C6200" stroke-width="3" stroke-linecap="round"/>
-              <circle cx="50" cy="30" r="4" fill="#F0714A" opacity="0.5"/>
-            </svg>
-            <div class="cb-char-name">The Explorer</div>
-            <div class="cb-char-tag">Curious &amp; Free</div>
-          </div>
-
-          <!-- Character 3: The Gentle Healer -->
-          <div class="cb-char-card" onclick="selectCharacter('healer', this)">
-            <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" class="cb-char-svg">
-              <circle cx="50" cy="28" r="20" fill="#F5C4B3"/>
-              <rect x="30" y="50" width="40" height="45" rx="8" fill="#5DCB6E"/>
-              <rect x="22" y="52" width="14" height="35" rx="6" fill="#5DCB6E"/>
-              <rect x="64" y="52" width="14" height="35" rx="6" fill="#5DCB6E"/>
-              <rect x="33" y="95" width="14" height="22" rx="6" fill="#1E6B2E"/>
-              <rect x="53" y="95" width="14" height="22" rx="6" fill="#1E6B2E"/>
-              <ellipse cx="50" cy="12" rx="16" ry="8" fill="#F5C4B3"/>
-              <path d="M34 12 Q50 0 66 12" fill="#8C6200" opacity="0.4"/>
-              <rect x="44" y="58" width="12" height="4" rx="2" fill="white" opacity="0.6"/>
-              <rect x="46" y="54" width="8" height="12" rx="2" fill="white" opacity="0.6"/>
-            </svg>
-            <div class="cb-char-name">The Healer</div>
-            <div class="cb-char-tag">Kind &amp; Caring</div>
-          </div>
-
-          <!-- Character 4: The Wise Wizard -->
-          <div class="cb-char-card" onclick="selectCharacter('wizard', this)">
-            <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" class="cb-char-svg">
-              <circle cx="50" cy="32" r="20" fill="#F5C4B3"/>
-              <rect x="30" y="54" width="40" height="45" rx="8" fill="#9B6FE0"/>
-              <rect x="22" y="56" width="14" height="35" rx="6" fill="#9B6FE0"/>
-              <rect x="64" y="56" width="14" height="35" rx="6" fill="#9B6FE0"/>
-              <rect x="33" y="99" width="14" height="18" rx="6" fill="#6B3FB5"/>
-              <rect x="53" y="99" width="14" height="18" rx="6" fill="#6B3FB5"/>
-              <polygon points="50,0 28,20 72,20" fill="#4A3FB5"/>
-              <circle cx="50" cy="2" r="4" fill="#F5B83D"/>
-              <circle cx="38" cy="34" r="3" fill="#4A3FB5" opacity="0.4"/>
-              <circle cx="62" cy="34" r="3" fill="#4A3FB5" opacity="0.4"/>
-            </svg>
-            <div class="cb-char-name">The Wizard</div>
-            <div class="cb-char-tag">Wise &amp; Magical</div>
-          </div>
-
-          <!-- Character 5: The Swift Fox -->
-          <div class="cb-char-card" onclick="selectCharacter('fox', this)">
-            <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" class="cb-char-svg">
-              <circle cx="50" cy="38" r="22" fill="#F0714A"/>
-              <polygon points="32,20 22,2 42,18" fill="#F0714A"/>
-              <polygon points="68,20 78,2 58,18" fill="#F0714A"/>
-              <polygon points="32,20 22,2 42,18" fill="white" transform="scale(0.6) translate(22,8)"/>
-              <polygon points="68,20 78,2 58,18" fill="white" transform="scale(0.6) translate(22,8)"/>
-              <circle cx="50" cy="44" r="10" fill="white" opacity="0.6"/>
-              <rect x="30" y="62" width="40" height="40" rx="8" fill="#F0714A"/>
-              <rect x="22" y="64" width="14" height="32" rx="6" fill="#F0714A"/>
-              <rect x="64" y="64" width="14" height="32" rx="6" fill="#F0714A"/>
-              <rect x="33" y="102" width="14" height="16" rx="6" fill="#9E3A1E"/>
-              <rect x="53" y="102" width="14" height="16" rx="6" fill="#9E3A1E"/>
-              <circle cx="43" cy="36" r="3" fill="#1E1B3A"/>
-              <circle cx="57" cy="36" r="3" fill="#1E1B3A"/>
-              <ellipse cx="50" cy="44" rx="5" ry="3" fill="#F5B83D"/>
-            </svg>
-            <div class="cb-char-name">The Fox</div>
-            <div class="cb-char-tag">Quick &amp; Clever</div>
-          </div>
-
-          <!-- Character 6: The Dreamer -->
-          <div class="cb-char-card" onclick="selectCharacter('dreamer', this)">
-            <svg viewBox="0 0 100 120" xmlns="http://www.w3.org/2000/svg" class="cb-char-svg">
-              <circle cx="50" cy="28" r="20" fill="#F5C4B3"/>
-              <rect x="30" y="50" width="40" height="45" rx="8" fill="#4A9EF0"/>
-              <rect x="22" y="52" width="14" height="35" rx="6" fill="#4A9EF0"/>
-              <rect x="64" y="52" width="14" height="35" rx="6" fill="#4A9EF0"/>
-              <rect x="33" y="95" width="14" height="22" rx="6" fill="#0C447C"/>
-              <rect x="53" y="95" width="14" height="22" rx="6" fill="#0C447C"/>
-              <circle cx="35" cy="10" r="5" fill="#F5B83D" opacity="0.8"/>
-              <circle cx="55" cy="5" r="7" fill="#F5B83D" opacity="0.9"/>
-              <circle cx="72" cy="12" r="4" fill="#F5B83D" opacity="0.7"/>
-              <circle cx="50" cy="30" r="4" fill="#F0714A" opacity="0.4"/>
-              <path d="M38 26 Q50 20 62 26" stroke="#7C6FE0" stroke-width="2" fill="none" stroke-linecap="round"/>
-            </svg>
-            <div class="cb-char-name">The Dreamer</div>
-            <div class="cb-char-tag">Hopeful &amp; Creative</div>
-          </div>
-
-        </div>
-
-        <button class="cb-next-btn" id="cb-next-1" onclick="goToTrait()" disabled>
-          Choose this hero →
-        </button>
+        <h2 class="cb-title">Every great adventure<br>starts with a hero.</h2>
+        <p class="cb-sub">Who will you be?</p>
       </div>
 
+      <div class="cb-character-grid">
+
+        <div class="cb-char-card" onclick="selectCharacter('scout', this)">
+          <img class="cb-char-img" src="https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters/The%20Scout.png" alt="The Scout">
+          <div class="cb-char-overlay"></div>
+          <div class="cb-char-info">
+            <div class="cb-char-name">The Scout</div>
+            <div class="cb-char-tag">Curious &amp; Brave</div>
+          </div>
+        </div>
+
+        <div class="cb-char-card" onclick="selectCharacter('voyager', this)">
+          <img class="cb-char-img" src="https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters/The%20Voyager.png" alt="The Voyager" style="object-position: 75% center;">
+          <div class="cb-char-overlay"></div>
+          <div class="cb-char-info">
+            <div class="cb-char-name">The Voyager</div>
+            <div class="cb-char-tag">Driven &amp; Resilient</div>
+          </div>
+        </div>
+
+        <div class="cb-char-card" onclick="selectCharacter('warden', this)">
+          <img class="cb-char-img" src="https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters/The%20Warden.png" alt="The Warden">
+          <div class="cb-char-overlay"></div>
+          <div class="cb-char-info">
+            <div class="cb-char-name">The Warden</div>
+            <div class="cb-char-tag">Steadfast &amp; Protective</div>
+          </div>
+        </div>
+
+        <div class="cb-char-card" onclick="selectCharacter('gardener', this)">
+          <img class="cb-char-img" src="https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters/The%20Gardener.png" alt="The Gardener">
+          <div class="cb-char-overlay"></div>
+          <div class="cb-char-info">
+            <div class="cb-char-name">The Gardener</div>
+            <div class="cb-char-tag">Compassionate &amp; Patient</div>
+          </div>
+        </div>
+
+        <div class="cb-char-card" onclick="selectCharacter('dreamer', this)">
+          <img class="cb-char-img" src="https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters/The%20Dreamer.png" alt="The Dreamer">
+          <div class="cb-char-overlay"></div>
+          <div class="cb-char-info">
+            <div class="cb-char-name">The Dreamer</div>
+            <div class="cb-char-tag">Visionary &amp; Hopeful</div>
+          </div>
+        </div>
+
+        <div class="cb-char-card" onclick="selectCharacter('weaver', this)">
+          <img class="cb-char-img" src="https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters/The%20Weaver.png" alt="The Weaver">
+          <div class="cb-char-overlay"></div>
+          <div class="cb-char-info">
+            <div class="cb-char-name">The Weaver</div>
+            <div class="cb-char-tag">Creative &amp; Empathic</div>
+          </div>
+        </div>
+
+        <div class="cb-char-card" onclick="selectCharacter('anchor', this)">
+          <img class="cb-char-img" src="https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters/The%20Anchor.png" alt="The Anchor">
+          <div class="cb-char-overlay"></div>
+          <div class="cb-char-info">
+            <div class="cb-char-name">The Anchor</div>
+            <div class="cb-char-tag">Grounded &amp; Steady</div>
+          </div>
+        </div>
+
+        <div class="cb-char-card" onclick="selectCharacter('sage', this)">
+          <img class="cb-char-img" src="https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters/The%20Sage.png" alt="The Sage">
+          <div class="cb-char-overlay"></div>
+          <div class="cb-char-info">
+            <div class="cb-char-name">The Sage</div>
+            <div class="cb-char-tag">Wise &amp; Reflective</div>
+          </div>
+        </div>
+
+      </div>
+
+      <button class="cb-next-btn" id="cb-next-1" onclick="confirmCharacter()" disabled>
+        Choose this hero →
+      </button>
     </div>
   </div>
 
@@ -832,10 +826,15 @@ function selectCharacter(id, el) {
   document.getElementById('cb-next-1').disabled = false;
 }
 
-function goToTrait() {
+function confirmCharacter() {
   if (!heroCharacter) return;
-  document.getElementById('cb-screen-1').classList.remove('active');
-  document.getElementById('cb-screen-2').classList.add('active');
+  heroName = heroCharacter;
+  document.getElementById('character-builder').classList.remove('active');
+  if (currentSession) {
+    go(currentSession.activity_type);
+  } else {
+    document.getElementById('home').classList.add('active');
+  }
 }
 
 /* ── SUPABASE ── */
