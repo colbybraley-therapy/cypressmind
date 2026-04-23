@@ -985,7 +985,7 @@ function showToast(msg) {
 function go(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
-  setCharBg(id === 'home');
+  setCharBg(!!heroName);
   if (id === 'quiz') renderQuiz();
   if (id === 'journal') renderJournal();
   if (id === 'emotions') renderEmotions();
