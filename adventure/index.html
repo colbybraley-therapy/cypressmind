@@ -684,20 +684,7 @@
   <div id="home" class="screen">
     <div class="topbar">
       <div class="logo-wrap">
-        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="28" height="28">
-          <defs>
-            <linearGradient id="logoGrad" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stop-color="#6B3FA0" />
-              <stop offset="50%" stop-color="#4169E1" />
-              <stop offset="100%" stop-color="#355E3B" />
-            </linearGradient>
-          </defs>
-          <path d="M50 10 L62 35 L38 35 Z" fill="url(#logoGrad)" opacity="0.85"/>
-          <path d="M50 30 L68 60 L32 60 Z" fill="url(#logoGrad)" opacity="0.92"/>
-          <path d="M50 55 L75 85 L25 85 Z" fill="url(#logoGrad)"/>
-          <rect x="47" y="85" width="6" height="10" rx="2" fill="#355E3B" />
-        </svg>
-        <div class="logo-text"><div class="logo-top">Cypress</div><div class="logo-bot">Mind</div></div>
+        <img src="https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/ui-elements/Cypress%20Mind%20Logo.png" alt="Cypress Mind" style="height:52px;width:auto;">
       </div>
       <div class="xp-pill"><span id="xp-top">0 XP</span></div>
     </div>
@@ -829,6 +816,10 @@ function selectCharacter(id, el) {
 function confirmCharacter() {
   if (!heroCharacter) return;
   heroName = heroCharacter;
+  // Persist character so therapist can see it
+  if (currentSession) {
+    saveResponse(-1, { type: 'character_selected', character: heroCharacter });
+  }
   document.getElementById('character-builder').classList.remove('active');
   if (currentSession) {
     go(currentSession.activity_type);

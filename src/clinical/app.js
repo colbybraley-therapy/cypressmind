@@ -10,6 +10,23 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const AVATARS = ["🐻","🦊","🐺","🐱","🐶","🐸","🦁","🐯","🐼","🦋","🌻","⭐","🍀","🎯","🏔"];
 const COLORS  = ["#D3D1C7","#B5D4F4","#9FE1CB","#F4C0D1","#F5C4B3","#FAC775","#C0DD97","#CECBF6","#F7C1C1","#85B7EB"];
 
+const BASE_IMG = 'https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters';
+const CHARACTER_IMAGES = {
+  scout:    `${BASE_IMG}/The%20Scout.png`,
+  voyager:  `${BASE_IMG}/The%20Voyager.png`,
+  warden:   `${BASE_IMG}/The%20Warden.png`,
+  gardener: `${BASE_IMG}/The%20Gardener.png`,
+  dreamer:  `${BASE_IMG}/The%20Dreamer.png`,
+  weaver:   `${BASE_IMG}/The%20Weaver.png`,
+  anchor:   `${BASE_IMG}/The%20Anchor.png`,
+  sage:     `${BASE_IMG}/The%20Sage.png`,
+};
+const CHARACTER_NAMES = {
+  scout: 'The Scout', voyager: 'The Voyager', warden: 'The Warden',
+  gardener: 'The Gardener', dreamer: 'The Dreamer', weaver: 'The Weaver',
+  anchor: 'The Anchor', sage: 'The Sage',
+};
+
 const ACTIVITY_TYPES = [
   { id: 'quiz',      icon: '🧠', name: 'Coping Skills Quiz'  },
   { id: 'breathing', icon: '🌬️', name: 'Breathing Garden'    },
@@ -234,7 +251,7 @@ async function saveClient() {
 }
 
 /* ── Client profile ── */
-function openClient(client) {
+async function openClient(client) {
   viewingClient = client;
   const color = COLORS[client.color_index % COLORS.length];
   document.getElementById('cp-av').textContent        = client.avatar;
@@ -242,6 +259,39 @@ function openClient(client) {
   document.getElementById('cp-name').textContent      = client.name;
   document.getElementById('cp-since').textContent     = 'Since ' + new Date(client.created_at)
     .toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+
+  // Show character if client has chosen one
+  const { data: charRow } = await db
+    .from('session_responses')
+    .select('response_data')
+    .eq('client_id', client.id)
+    .eq('step_index', -1)
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  let charEl = document.getElementById('cp-character');
+  if (!charEl) {
+    charEl = document.createElement('div');
+    charEl.id = 'cp-character';
+    charEl.style.cssText = 'margin-bottom:24px;padding-bottom:24px;border-bottom:0.5px solid var(--border);display:flex;align-items:center;gap:16px;';
+    document.getElementById('cp-name').closest('.profile-head').insertAdjacentElement('afterend', charEl);
+  }
+
+  const char = charRow?.response_data?.character;
+  if (char && CHARACTER_IMAGES[char]) {
+    charEl.innerHTML = `
+      <img src="${CHARACTER_IMAGES[char]}" alt="${CHARACTER_NAMES[char]}"
+           style="width:72px;height:96px;object-fit:cover;object-position:top center;border-radius:10px;border:0.5px solid var(--border);">
+      <div>
+        <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--color-text-tertiary);font-weight:500;margin-bottom:4px;">Client's Character</div>
+        <div style="font-family:var(--serif,Georgia,serif);font-size:17px;font-weight:500;color:var(--color-text-primary,#1A2E1A);">${CHARACTER_NAMES[char]}</div>
+      </div>`;
+    charEl.style.display = 'flex';
+  } else {
+    charEl.style.display = 'none';
+  }
+
   renderActivities();
   renderSessionHistory();
   showPage('pg-client');
@@ -705,12 +755,29 @@ function addResponseToPanel(response) {
   const list = document.getElementById('responses-list');
   if (!list) return;
   const data = response.response_data;
+
+  if (data?.type === 'character_selected' && CHARACTER_IMAGES[data.character]) {
+    const existing = document.getElementById('session-char-display');
+    if (existing) existing.remove();
+    const div = document.createElement('div');
+    div.id = 'session-char-display';
+    div.style.cssText = 'display:flex;align-items:center;gap:12px;background:#f8faf9;border:0.5px solid #E2E8E2;border-radius:8px;padding:12px 14px;margin-bottom:12px;';
+    div.innerHTML = `
+      <img src="${CHARACTER_IMAGES[data.character]}" alt="${CHARACTER_NAMES[data.character]}"
+           style="width:48px;height:64px;object-fit:cover;object-position:top center;border-radius:6px;">
+      <div>
+        <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#7B7899;font-weight:600;margin-bottom:3px;">Client chose</div>
+        <div style="font-size:15px;font-weight:600;color:#1A2E1A;">${CHARACTER_NAMES[data.character]}</div>
+      </div>`;
+    list.prepend(div);
+    return;
+  }
+
   const div = document.createElement('div');
   div.className = 'response-item';
   div.innerHTML = `
     <div class="response-step">Step ${response.step_index + 1}</div>
-  <div class="response-content">${JSON.stringify(data).replace(/[{}"]/g, '').replace(/,/g, ' · ')}</div>
-  `;
+    <div class="response-content">${JSON.stringify(data).replace(/[{}"]/g, '').replace(/,/g, ' · ')}</div>`;
   list.appendChild(div);
 }
 
