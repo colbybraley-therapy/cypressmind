@@ -503,6 +503,34 @@
     .emotion-grid { grid-template-columns: repeat(3,1fr); }
   }
 
+  /* CHARACTER BACKGROUND */
+  #char-bg {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.6s ease;
+    background-repeat: no-repeat;
+    background-position: center top;
+    background-size: cover;
+  }
+  #char-bg::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(248,250,249,0.92) 0%,
+      rgba(248,250,249,0.82) 45%,
+      rgba(248,250,249,0.55) 100%
+    );
+  }
+  #char-bg.visible { opacity: 1; }
+  /* Keep cards legible over the character background */
+  #home .level-card,
+  #home .act-card { background: rgba(255,255,255,0.88); backdrop-filter: blur(6px); }
+
   /* CHARACTER BUILDER */
   .cb-screen { display: none; }
   .cb-screen.active { display: block; }
@@ -548,6 +576,7 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
+<div id="char-bg"></div>
 <div class="app">
 
   <!-- CHARACTER BUILDER -->
@@ -806,6 +835,29 @@ let heroTrait      = null;
 let heroCompanion  = null;
 let heroName       = '';
 
+const _BASE = 'https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters';
+const CHAR_IMG_URLS = {
+  scout:    `${_BASE}/The%20Scout.png`,
+  voyager:  `${_BASE}/The%20Voyager.png`,
+  warden:   `${_BASE}/The%20Warden.png`,
+  gardener: `${_BASE}/The%20Gardener.png`,
+  dreamer:  `${_BASE}/The%20Dreamer.png`,
+  weaver:   `${_BASE}/The%20Weaver.png`,
+  anchor:   `${_BASE}/The%20Anchor.png`,
+  sage:     `${_BASE}/The%20Sage.png`,
+};
+
+function setCharBg(show) {
+  const bg = document.getElementById('char-bg');
+  if (!bg) return;
+  if (show && heroCharacter && CHAR_IMG_URLS[heroCharacter]) {
+    bg.style.backgroundImage = `url(${CHAR_IMG_URLS[heroCharacter]})`;
+    bg.classList.add('visible');
+  } else {
+    bg.classList.remove('visible');
+  }
+}
+
 function selectCharacter(id, el) {
   heroCharacter = id;
   document.querySelectorAll('.cb-char-card').forEach(c => c.classList.remove('selected'));
@@ -820,6 +872,7 @@ function confirmCharacter() {
   if (currentSession) {
     saveResponse(-1, { type: 'character_selected', character: heroCharacter });
   }
+  setCharBg(true);
   document.getElementById('character-builder').classList.remove('active');
   if (currentSession) {
     go(currentSession.activity_type);
@@ -932,6 +985,7 @@ function showToast(msg) {
 function go(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  setCharBg(id === 'home');
   if (id === 'quiz') renderQuiz();
   if (id === 'journal') renderJournal();
   if (id === 'emotions') renderEmotions();
