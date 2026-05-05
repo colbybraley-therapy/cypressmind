@@ -1362,12 +1362,11 @@ function setCharBg(show) {
 }
 
 function selectCharacter(id) {
-  wizardArchetype = id;
-  wizardName = ''; wizardItems = []; wizardAppearance = []; wizardPowers = []; wizardTraits = [];
-  wizardStep = 2;
-  document.getElementById('cb-screen-1').classList.remove('active');
-  document.getElementById('cb-wizard').style.display = 'block';
-  renderWizardStep();
+  heroCharacter = id;
+  document.querySelectorAll('.cb-char-card').forEach(c => c.classList.remove('selected'));
+  const card = document.querySelector(`.cb-char-card[onclick*="'${id}'"]`);
+  if (card) card.classList.add('selected');
+  document.getElementById('cb-next-1').disabled = false;
 }
 
 function confirmCharacter() {
