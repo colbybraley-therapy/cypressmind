@@ -921,7 +921,10 @@
       <div class="logo-wrap">
         <img src="https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/ui-elements/Cypress%20Mind%20Logo.png" alt="Cypress Mind" style="height:52px;width:auto;">
       </div>
-      <div class="xp-pill"><span id="xp-top">0 XP</span></div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button onclick="editHero()" style="background:none;border:0.5px solid var(--border);color:var(--text-muted);padding:5px 12px;border-radius:var(--radius-pill);font-size:12px;font-weight:500;font-family:'DM Sans',sans-serif;cursor:pointer;">✦ Edit Hero</button>
+        <div class="xp-pill"><span id="xp-top">0 XP</span></div>
+      </div>
     </div>
     <div class="level-card">
       <div class="level-row">
@@ -1358,6 +1361,13 @@ function setCharBg(show) {
   } else {
     bg.classList.remove('visible');
   }
+}
+
+function editHero() {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('cb-wizard').style.display = 'none';
+  document.getElementById('cb-screen-1').classList.add('active');
+  document.getElementById('character-builder').classList.add('active');
 }
 
 function selectCharacter(id) {
