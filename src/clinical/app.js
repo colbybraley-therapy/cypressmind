@@ -668,9 +668,8 @@ async function saveScore() {
 }
 
 /* ── Keyboard shortcuts ── */
-document.getElementById('si-pass').addEventListener('keydown',  e => { if (e.key === 'Enter') doSignIn(); });
-document.getElementById('su-pass2').addEventListener('keydown', e => { if (e.key === 'Enter') doSignUp(); });
-document.getElementById('cl-name').addEventListener('keydown',  e => { if (e.key === 'Enter') saveClient(); });
+document.getElementById('si-pass').addEventListener('keydown', e => { if (e.key === 'Enter') doSignIn(); });
+document.getElementById('cl-name').addEventListener('keydown', e => { if (e.key === 'Enter') saveClient(); });
 document.getElementById('ls-name').addEventListener('keydown',  e => { if (e.key === 'Enter') saveLesson(); });
 document.getElementById('score-input').addEventListener('keydown', e => { if (e.key === 'Enter') saveScore(); });
 

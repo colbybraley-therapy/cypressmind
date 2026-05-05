@@ -770,7 +770,7 @@
         <img src="https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/ui-elements/Cypress%20Mind%20Logo.png" alt="Cypress Mind" style="height:88px;width:auto;" />
       </div>
       <div class="nav-right">
-        <button class="nav-ghost-btn" onclick="showPage('pg-signup')">Request Demo</button>
+        <button class="nav-ghost-btn" onclick="toggleSignIn()">Sign In</button>
         <div class="signin-wrap" id="signin-wrap">
           <button class="nav-signin-btn" id="signin-nav-btn" onclick="toggleSignIn()">
             Therapist Sign In
@@ -787,7 +787,6 @@
               <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/><path d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 7.294C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/></svg>
               Continue with Google
             </button>
-            <div class="link-row">No account? <a href="javascript:void(0)" onclick="closeSignIn();showPage('pg-signup')">Create one</a></div>
           </div>
         </div>
       </div>
@@ -807,8 +806,8 @@
             emotional landscapes.
           </p>
           <div class="flex space-x-4 pt-4">
-            <button class="bg-[#355E3B] text-white px-8 py-3 rounded-md hover:bg-[#2A4A2F] transition-colors shadow-sm" style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;letter-spacing:0.03em;" onclick="showPage('pg-signup')">
-              Request Clinical Demo
+            <button class="bg-[#355E3B] text-white px-8 py-3 rounded-md hover:bg-[#2A4A2F] transition-colors shadow-sm" style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;letter-spacing:0.03em;" onclick="toggleSignIn()">
+              Sign In
             </button>
             <button class="border border-[#355E3B] text-[#355E3B] px-8 py-3 rounded-md hover:bg-[#F0F5F0] transition-colors" style="font-family:'DM Sans',sans-serif;font-size:13px;" onclick="toggleSignIn()">
               Explore Framework
@@ -926,32 +925,25 @@
     <div class="landing-cta-block">
       <h2>Ready to bring your practice into the digital age?</h2>
       <p>Join clinicians using Cypress Mind to keep clients engaged and progress visible.</p>
-      <button class="hero-cta" onclick="showPage('pg-signup')">Get started — it's free</button>
+      <button class="hero-cta" onclick="toggleSignIn()">Sign in</button>
     </div>
 
     <div class="landing-footer">Cypress Mind &nbsp;·&nbsp; Growing Together</div>
   </div>
 
-  <!-- ── Sign Up ── -->
+  <!-- ── Invite Only ── -->
   <div id="pg-signup" class="page">
     <div class="center">
       <p class="eyebrow">Cypress Mind</p>
-      <h1>Create account</h1>
-      <p class="sub">Your client list will be private to you.</p>
+      <h1>Private Beta</h1>
+      <p class="sub">Cypress Mind is currently invite only.</p>
     </div>
-    <div class="card">
-      <div class="field"><label>Full name</label><input type="text" id="su-name" placeholder="your name" autocomplete="name" /></div>
-      <div class="field"><label>Email</label><input type="email" id="su-email" placeholder="you@example.com" autocomplete="email" /></div>
-      <div class="field"><label>Password</label><input type="password" id="su-pass" placeholder="at least 6 characters" autocomplete="new-password" /></div>
-      <div class="field"><label>Confirm password</label><input type="password" id="su-pass2" placeholder="repeat password" autocomplete="new-password" /></div>
-      <div class="err" id="su-err"></div>
-      <button class="btn-primary" onclick="doSignUp()">Create account</button>
-      <div class="or-divider"><span>or</span></div>
-      <button class="btn-google" onclick="doSignInWithGoogle()">
-        <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg"><path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844a4.14 4.14 0 0 1-1.796 2.716v2.259h2.908c1.702-1.567 2.684-3.875 2.684-6.615z" fill="#4285F4"/><path d="M9 18c2.43 0 4.467-.806 5.956-2.184l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/><path d="M3.964 10.706A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.706V4.962H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.038l3.007-2.332z" fill="#FBBC05"/><path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.962L3.964 7.294C4.672 5.163 6.656 3.58 9 3.58z" fill="#EA4335"/></svg>
-        Continue with Google
-      </button>
-      <div class="link-row">Already have an account? <a href="javascript:void(0)" onclick="goToSignIn()">Sign in</a></div>
+    <div class="card" style="text-align:center;">
+      <p style="font-size:14px;color:var(--color-text-secondary,#4B5563);line-height:1.7;margin-bottom:20px;">
+        We're not accepting new sign-ups at this time.<br>
+        If you've been invited, please sign in below.
+      </p>
+      <button class="btn-primary" onclick="showPage('pg-landing');setTimeout(toggleSignIn,80)">Sign in</button>
     </div>
   </div>
 
