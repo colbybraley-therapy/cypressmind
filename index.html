@@ -1473,37 +1473,117 @@
     }).join('');
   }
 
-  async function loadCharacter() {
-    const { data } = await db.from('session_responses').select('response_data').eq('client_id', currentClient.id).eq('step_index', -1).order('created_at', { ascending: false }).limit(1).maybeSingle();
-    let charData2 = data?.response_data;
-    if (typeof charData2 === 'string') { try { charData2 = JSON.parse(charData2); } catch(e) {} }
+  /* Lookup tables mirrored from adventure wizard */
+  const WZ_ITEMS_MAP = {
+    blade:   { icon:'🗡️', themed:{ scout:'Scout Knife', voyager:'Sea Dagger', warden:'Iron Sword', weaver:'Thread Blade', dreamer:'Dream Shard', anchor:'Anchor Hook', sage:'Runed Staff', gardener:'Pruning Shears' } },
+    shield:  { icon:'🛡️', themed:{ scout:'Bark Shield', voyager:'Wave Shield', warden:'Iron Bulwark', weaver:'Woven Ward', dreamer:'Mirror Shield', anchor:'Harbor Guard', sage:'Glyph Disc', gardener:'Leaf Shield' } },
+    compass: { icon:'🧭', themed:{ scout:'Trail Finder', voyager:'Star Chart', warden:'Watch Compass', weaver:'Thread Map', dreamer:'Dream Compass', anchor:'True North', sage:'Ancient Astrolabe', gardener:'Root Map' } },
+    tome:    { icon:'📖', themed:{ scout:'Field Journal', voyager:"Captain's Log", warden:'Code of Honor', weaver:'Pattern Book', dreamer:'Dream Diary', anchor:'Harbor Record', sage:'Ancient Codex', gardener:'Seed Ledger' } },
+    orb:     { icon:'🔮', themed:{ scout:'Signal Flare', voyager:'Tide Stone', warden:'Ward Crystal', weaver:'Binding Gem', dreamer:'Vision Orb', anchor:'Storm Glass', sage:'Truth Crystal', gardener:'Growth Stone' } },
+    staff:   { icon:'🪄', themed:{ scout:'Walking Stick', voyager:"Helmsman's Rod", warden:"Guardian's Spear", weaver:'Loom Staff', dreamer:'Starweave Rod', anchor:'Iron Staff', sage:'Ancient Rod', gardener:'Tending Staff' } },
+  };
+  const WZ_APPEARANCE_MAP = {
+    'cloak-green':  { icon:'🟢', themed:{ scout:'Forest Cloak', voyager:'Sea Cloak', warden:'Iron Mantle', weaver:'Silk Wrap', dreamer:'Starlight Veil', anchor:'Harbor Cape', sage:'Wisdom Robe', gardener:'Leaf Cloak' } },
+    'cloak-blue':   { icon:'🔵', themed:{ scout:'Sky Cloak', voyager:'Wave Cape', warden:'Noble Mantle', weaver:'River Wrap', dreamer:'Moonlight Veil', anchor:'Deep Cloak', sage:'Celestial Robe', gardener:'Rain Cloak' } },
+    'cloak-purple': { icon:'🟣', themed:{ scout:'Twilight Cloak', voyager:'Deep Sea Cape', warden:'Royal Mantle', weaver:'Dream Wrap', dreamer:'Astral Veil', anchor:'Storm Cape', sage:'Arcane Robe', gardener:'Bloom Cloak' } },
+    gloves:  { icon:'🧤', themed:{ scout:'Grip Gloves', voyager:"Sailor's Mitts", warden:'Iron Gauntlets', weaver:'Loom Gloves', dreamer:'Startouch Gloves', anchor:'Rope Mitts', sage:'Scribe Gloves', gardener:'Soil Gloves' } },
+    boots:   { icon:'👢', themed:{ scout:'Trail Boots', voyager:'Sea Boots', warden:'Iron Greaves', weaver:'Silent Slippers', dreamer:'Cloud Boots', anchor:'Anchor Boots', sage:"Wanderer's Shoes", gardener:'Root Boots' } },
+    pack:    { icon:'🎒', themed:{ scout:'Explorer Pack', voyager:"Sailor's Sack", warden:'Supply Pouch', weaver:'Thread Bag', dreamer:'Star Satchel', anchor:'Harbor Bag', sage:'Scroll Satchel', gardener:'Seed Sack' } },
+  };
+  const WZ_POWERS_MAP = {
+    flow:      { icon:'🌊', themed:{ scout:'Pathfinding', voyager:'Tideread', warden:'Iron Will', weaver:'Thread Sight', dreamer:'Dream Walk', anchor:'Stillwater', sage:'Truth Sight', gardener:'Root Sense' } },
+    fire:      { icon:'🔥', themed:{ scout:'Trailblaze', voyager:'Sea Fire', warden:'Battle Fury', weaver:'Spark Weave', dreamer:'Dream Flame', anchor:'Ember Hold', sage:'Forge Wisdom', gardener:'Growth Flame' } },
+    calm:      { icon:'❄️', themed:{ scout:'Still Mind', voyager:'Eye of Storm', warden:'Steadfast', weaver:'Quiet Weave', dreamer:'Dream Clarity', anchor:'Deep Calm', sage:'Inner Peace', gardener:'Patient Root' } },
+    speed:     { icon:'⚡', themed:{ scout:'Swift Trail', voyager:'Ocean Sprint', warden:'Quick Guard', weaver:'Fast Weave', dreamer:'Starleap', anchor:'Surge Hold', sage:'Flash Knowing', gardener:'Fast Growth' } },
+    healing:   { icon:'🌿', themed:{ scout:'First Aid', voyager:'Sea Remedy', warden:'Shield Heal', weaver:'Mend Weave', dreamer:'Rest Aura', anchor:'Safe Harbor', sage:'Ancient Cure', gardener:'Bloom Heal' } },
+    awareness: { icon:'👁️', themed:{ scout:'Sharp Eye', voyager:'Horizon Watch', warden:'Sentinel Eye', weaver:'Thread Read', dreamer:'Dream Eye', anchor:'Deep Watch', sage:'All Seeing', gardener:'Root Awareness' } },
+  };
+  const WZ_TRAITS_MAP = {
+    brave:       { icon:'💪', themed:{ scout:'Fearless', voyager:'Daring', warden:'Courageous', weaver:'Bold', dreamer:'Visionary', anchor:'Unshakeable', sage:'Resolute', gardener:'Tenacious' } },
+    kind:        { icon:'💛', themed:{ scout:'Open-Hearted', voyager:'Generous', warden:'Loyal', weaver:'Caring', dreamer:'Gentle', anchor:'Nurturing', sage:'Compassionate', gardener:'Tender' } },
+    clever:      { icon:'🧠', themed:{ scout:'Resourceful', voyager:'Adaptive', warden:'Strategic', weaver:'Pattern-Minded', dreamer:'Creative', anchor:'Grounded', sage:'Wise', gardener:'Patient' } },
+    focused:     { icon:'🎯', themed:{ scout:'Determined', voyager:'Purposeful', warden:'Disciplined', weaver:'Precise', dreamer:'Intentional', anchor:'Steadfast', sage:'Mindful', gardener:'Dedicated' } },
+    hopeful:     { icon:'🌟', themed:{ scout:'Optimistic', voyager:'Adventurous', warden:'Steadfast', weaver:'Curious', dreamer:'Radiant', anchor:'Faithful', sage:'Knowing', gardener:'Blooming' } },
+    trustworthy: { icon:'🤝', themed:{ scout:'Reliable', voyager:'True North', warden:'Honorable', weaver:'Consistent', dreamer:'Sincere', anchor:'Dependable', sage:'Honest', gardener:'Rooted' } },
+  };
+  const ARCH_NAMES = { scout:'The Scout', voyager:'The Voyager', warden:'The Warden', gardener:'The Gardener', dreamer:'The Dreamer', weaver:'The Weaver', anchor:'The Anchor', sage:'The Sage' };
 
-    const charId   = charData2?.character;
-    const charName = charData2?.name || (charId ? 'The ' + charId.charAt(0).toUpperCase() + charId.slice(1) : null);
+  function wzThemedLabel(map, id, archetype) {
+    const opt = map[id];
+    if (!opt) return id;
+    return (opt.themed[archetype] || opt.themed.scout);
+  }
+  function wzThemedIcon(map, id) {
+    return map[id]?.icon || '';
+  }
+
+  async function loadCharacter() {
+    const { data } = await db.from('session_responses').select('response_data')
+      .eq('client_id', currentClient.id).eq('step_index', -1)
+      .order('created_at', { ascending: false }).limit(1).maybeSingle();
+
+    let cd = data?.response_data;
+    if (typeof cd === 'string') { try { cd = JSON.parse(cd); } catch(e) {} }
 
     const wrap = document.getElementById('cp-character-wrap');
     const pill = document.getElementById('cp-character-pill');
 
-    if (charId) {
+    if (!cd) {
       wrap.style.display = 'block';
-      const dispName = charId === 'custom' && charData2?.name ? charData2.name : charName;
-      pill.innerHTML = `<span style="font-size:14px;">${charId === 'custom' ? '✦' : '🧭'}</span> ${dispName || 'Hero chosen'}`;
-
-      // Sidebar
-      const imgWrap = document.getElementById('sidebar-char-img');
-      if (CHAR_IMAGES[charId]) {
-        imgWrap.innerHTML = `<img src="${CHAR_IMAGES[charId]}" alt="${charName}" />`;
-        imgWrap.className = 'char-img-wrap';
-      } else {
-        imgWrap.innerHTML = '🎭';
-        imgWrap.className = 'char-img-wrap placeholder';
-      }
-      document.getElementById('sidebar-char-name').textContent = dispName || 'Custom Hero';
-      document.getElementById('sidebar-char-type').textContent = CHAR_TAGS[charId] || (charData2?.traits?.join(', ') || 'Custom archetype');
-    } else {
-      wrap.style.display = 'block';
-      pill.innerHTML = `✦ No character chosen yet`;
+      pill.innerHTML = '✦ No character chosen yet';
+      document.getElementById('sidebar-char-name').textContent = 'Not chosen yet';
+      document.getElementById('sidebar-char-type').textContent = "Client hasn't selected a hero";
+      return;
     }
+
+    // The wizard always saves character:'custom', archetype:'scout'|'voyager'|...
+    const archetype  = cd.archetype || cd.character; // fallback for older saves
+    const heroName   = cd.name || ARCH_NAMES[archetype] || 'Custom Hero';
+    const archName   = ARCH_NAMES[archetype] || '';
+    const archTag    = CHAR_TAGS[archetype] || '';
+    const imgSrc     = CHAR_IMAGES[archetype];
+
+    // Header pill
+    wrap.style.display = 'block';
+    pill.innerHTML = `<span style="font-size:14px;">✦</span> ${heroName} · ${archName}`;
+
+    // ── Sidebar: image + name + archetype ──
+    const imgWrap = document.getElementById('sidebar-char-img');
+    if (imgSrc) {
+      imgWrap.innerHTML = `<img src="${imgSrc}" alt="${archName}" />`;
+      imgWrap.className = 'char-img-wrap';
+    } else {
+      imgWrap.innerHTML = '🎭';
+      imgWrap.className = 'char-img-wrap placeholder';
+    }
+    document.getElementById('sidebar-char-name').textContent  = heroName;
+    document.getElementById('sidebar-char-type').textContent  = archName + (archTag ? ' · ' + archTag : '');
+
+    // ── Sidebar: additional details below the char-display ──
+    let detailEl = document.getElementById('sidebar-char-details');
+    if (!detailEl) {
+      detailEl = document.createElement('div');
+      detailEl.id = 'sidebar-char-details';
+      document.getElementById('sidebar-char').insertAdjacentElement('afterend', detailEl);
+    }
+
+    const makeRow = (label, items) => {
+      if (!items?.length) return '';
+      const pills = items.map(({ icon, text }) =>
+        `<span style="display:inline-flex;align-items:center;gap:3px;background:var(--green-faint);border:0.5px solid var(--border);border-radius:4px;padding:2px 8px;font-size:11px;color:var(--ink);margin:2px 2px 2px 0;">${icon} ${text}</span>`
+      ).join('');
+      return `<div style="margin-bottom:10px;">
+        <div style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--slate-light);font-weight:600;margin-bottom:4px;">${label}</div>
+        <div>${pills}</div>
+      </div>`;
+    };
+
+    const traitItems = (cd.traits || []).map(id => ({ icon: WZ_TRAITS_MAP[id]?.icon || '✦', text: wzThemedLabel(WZ_TRAITS_MAP, id, archetype) }));
+    const itemItems  = (cd.items  || []).map(id => ({ icon: WZ_ITEMS_MAP[id]?.icon   || '•', text: wzThemedLabel(WZ_ITEMS_MAP,   id, archetype) }));
+    const powerItems = (cd.powers || []).map(id => ({ icon: WZ_POWERS_MAP[id]?.icon  || '•', text: wzThemedLabel(WZ_POWERS_MAP,  id, archetype) }));
+    const appearItems= (cd.appearance || []).map(id => ({ icon: WZ_APPEARANCE_MAP[id]?.icon || '•', text: wzThemedLabel(WZ_APPEARANCE_MAP, id, archetype) }));
+
+    detailEl.innerHTML = makeRow('Traits', traitItems) + makeRow('Powers', powerItems) + makeRow('Items', itemItems) + makeRow('Appearance', appearItems);
   }
 
   /* ─────────────────────────────────────────
