@@ -1194,7 +1194,7 @@
 
   async function renderClientGrid() {
     const { data: { user } } = await db.auth.getUser();
-    const { data: clients } = await db.from('clients').select('*, activities(id,done)').eq('user_id', user.id).neq('archived', true).order('created_at', { ascending: false });
+    const { data: clients } = await db.from('clients').select('*').eq('user_id', user.id).neq('archived', true).order('created_at', { ascending: false });
     allClientsCache = clients || [];
     await renderRosterStats(clients || []);
     renderFilteredClients(clients || []);
@@ -1208,18 +1208,17 @@
 
     const { data: sessions } = await db.from('sessions').select('id').eq('therapist_id', user.id).gte('created_at', monthStart).then(r => r).catch(() => ({ data: [] }));
 
-    const allActivities = clients.flatMap(c => c.activities || []);
-    const active = clients.length;
-    const sessCount = sessions?.length || 0;
-    const total = allActivities.length;
-    const done = allActivities.filter(a => a.done).length;
-    const pending = total - done;
-    const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+    const active   = clients.length;
+    const sessCount= sessions?.length || 0;
+    const total    = clients.reduce((s, c) => s + (c.activity_total || 0), 0);
+    const done     = clients.reduce((s, c) => s + (c.activity_done  || 0), 0);
+    const pending  = total - done;
+    const pct      = total > 0 ? Math.round((done / total) * 100) : 0;
 
-    document.getElementById('rs-active').textContent = active;
-    document.getElementById('rs-sessions').textContent = sessCount;
+    document.getElementById('rs-active').textContent     = active;
+    document.getElementById('rs-sessions').textContent   = sessCount;
     document.getElementById('rs-completion').textContent = total > 0 ? pct + '%' : '—';
-    document.getElementById('rs-pending').textContent = pending;
+    document.getElementById('rs-pending').textContent    = pending;
   }
 
   function filterClients(filter, el) {
@@ -1247,11 +1246,10 @@
       ? `<div class="client-char-pill">${charIcons[charId] || '✦'} ${charNames[charId] || 'Custom hero'}</div>`
       : `<div class="client-no-char">No character chosen yet</div>`;
 
-    const acts = c.activities || [];
-    const total = acts.length;
-    const done = acts.filter(a => a.done).length;
-    const xp = c.xp || 0;
-    const pct = total > 0 ? Math.round((done/total)*100) + '%' : '—';
+    const total = c.activity_total || 0;
+    const done  = c.activity_done  || 0;
+    const xp    = c.xp             || 0;
+    const pct   = total > 0 ? Math.round((done/total)*100) + '%' : '—';
 
     const lastSessionAgo = c.last_session_at ? daysSince(c.last_session_at) : null;
     let sessionLine = '';
@@ -1616,8 +1614,16 @@
   async function toggleDone(actId, e) {
     e.stopPropagation();
     await db.from('activities').update({ done: true }).eq('id', actId);
+    syncClientStats(currentClient.id);
     loadActivities();
     loadClientStats();
+  }
+
+  async function syncClientStats(clientId) {
+    const { data: acts } = await db.from('activities').select('id, done').eq('client_id', clientId);
+    const total = acts?.length || 0;
+    const done  = acts?.filter(a => a.done).length || 0;
+    await db.from('clients').update({ activity_total: total, activity_done: done }).eq('id', clientId);
   }
 
   /* ─────────────────────────────────────────
@@ -1662,6 +1668,7 @@
     const customName = document.getElementById('ls-name')?.value.trim();
     const name = selectedActivityType === 'custom' && customName ? customName : m.label;
     await db.from('activities').insert({ client_id: currentClient.id, activity_type: selectedActivityType, name, done: false });
+    syncClientStats(currentClient.id);
     closeOverlay('add-lesson-overlay');
     loadActivities();
     loadClientStats();

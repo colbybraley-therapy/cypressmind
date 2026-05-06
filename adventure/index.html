@@ -1396,6 +1396,7 @@ function addXP(n, label) {
       step_index:    -2,
       response_data: { type: 'xp_update', xp, level }
     });
+    db.from('clients').update({ xp }).eq('id', currentClientId);
   }
 }
 
@@ -1996,6 +1997,7 @@ function finishWizard() {
       powers:      wizardPowers,
       traits:      wizardTraits,
     });
+    db.from('clients').update({ last_character: wizardArchetype }).eq('id', currentClientId);
   }
 
   setCharBg(true);
