@@ -1347,11 +1347,11 @@
   };
 
   const ACTIVITY_META = {
-    quiz:      { icon:'🧠', label:'Coping Skills Quiz',      color:'purple' },
-    breathing: { icon:'🌬️', label:'Breathing Garden',        color:'teal'   },
-    journal:   { icon:'📓', label:'Reflection Journal',      color:'green'  },
-    emotions:  { icon:'🎭', label:'Emotion Explorer',        color:'amber'  },
-    custom:    { icon:'✏️', label:'Custom Activity',         color:'slate'  },
+    quiz:      { icon:'🧭', label:'Coping Skills Quiz',      color:'purple' },
+    breathing: { icon:'⚓', label:'Breathing Garden',        color:'teal'   },
+    journal:   { icon:'📜', label:'Reflection Journal',      color:'green'  },
+    emotions:  { icon:'🏮', label:'Emotion Explorer',        color:'amber'  },
+    custom:    { icon:'✦',  label:'Custom Activity',         color:'slate'  },
   };
 
   async function openClient(id) {
@@ -1646,11 +1646,11 @@
   let selectedActivityType = null;
 
   const ACTIVITY_TYPES = [
-    { type:'quiz',      icon:'🧠', label:'Coping Skills Quiz',   sub:'Test knowledge with guided questions' },
-    { type:'breathing', icon:'🌬️', label:'Breathing Garden',     sub:'Guided breathwork exercises' },
-    { type:'journal',   icon:'📓', label:'Reflection Journal',   sub:'Prompted journaling for self-discovery' },
-    { type:'emotions',  icon:'🎭', label:'Emotion Explorer',     sub:'Name feelings and find coping tools' },
-    { type:'custom',    icon:'✏️', label:'Custom Activity',      sub:'Add your own activity' },
+    { type:'quiz',      icon:'🧭', label:'Coping Skills Quiz',   sub:'Test knowledge with guided questions' },
+    { type:'breathing', icon:'⚓', label:'Breathing Garden',     sub:'Guided breathwork exercises' },
+    { type:'journal',   icon:'📜', label:'Reflection Journal',   sub:'Prompted journaling for self-discovery' },
+    { type:'emotions',  icon:'🏮', label:'Emotion Explorer',     sub:'Name feelings and find coping tools' },
+    { type:'custom',    icon:'✦',  label:'Custom Activity',      sub:'Add your own activity' },
   ];
 
   function openAddLesson() {
@@ -1868,7 +1868,7 @@
     }).select().single();
     if (error) { alert('Could not create session. Please try again.'); return; }
     activeSession = session;
-    showSessionPanel(code, currentClient.name, 'emotions', '🎭', session.id);
+    showSessionPanel(code, currentClient.name, 'emotions', '🏮', session.id);
     loadSessionHistory();
     loadClientStats();
   }
