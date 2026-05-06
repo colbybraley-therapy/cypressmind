@@ -51,11 +51,11 @@ const ARCHETYPE_MODULE_SLOTS = {
 };
 
 const ACTIVITY_TYPES = [
-  { id: 'quiz',      icon: '🧠', name: 'Coping Skills Quiz'  },
-  { id: 'breathing', icon: '🌬️', name: 'Breathing Garden'    },
-  { id: 'journal',   icon: '📓', name: 'Reflection Journal'  },
-  { id: 'emotions',  icon: '🎭', name: 'Emotion Explorer'    },
-  { id: 'custom',    icon: '✏️', name: 'Custom'              },
+  { id: 'quiz',      icon: '', name: 'Coping Skills Quiz'  },
+  { id: 'breathing', icon: '⚓', name: 'Breathing Garden'    },
+  { id: 'journal',   icon: '📜', name: 'Reflection Journal'  },
+  { id: 'emotions',  icon: '🏮', name: 'Emotion Explorer'    },
+  { id: 'custom',    icon: '✦', name: 'Custom'              },
 ];
 
 let currentUser          = null;
@@ -461,10 +461,10 @@ async function renderSessionHistory() {
   }
 
   const activityIcons = {
-    quiz:      '🧠',
-    breathing: '🌬️',
-    journal:   '📓',
-    emotions:  '🎭',
+    quiz:      '🧭',
+    breathing: '⚓',
+    journal:   '📜',
+    emotions:  '🏮',
   };
 
   section.innerHTML = `
@@ -553,7 +553,7 @@ async function renderActivities() {
           </div>
         </div>
         <div class="lesson-actions">
-          <button class="start-session-btn" onclick="startLiveSession('${viewingClient.id}', '${viewingClient.name.replace(/'/g,"\\'")}', '${a.activity_type}', '${a.activity_icon || '🎯'}')">▶ Start</button>
+          <button class="start-session-btn" onclick="startLiveSession('${viewingClient.id}', '${viewingClient.name.replace(/'/g,"\\'")}', '${a.activity_type}', '${a.activity_icon || '✦'}')">▶ Start</button>
           <span class="lesson-score" onclick="openScore('${a.id}', '${safeName}')">Score</span>
           <button class="del-lesson" onclick="deleteActivity('${a.id}')" title="Remove activity">✕</button>
         </div>
