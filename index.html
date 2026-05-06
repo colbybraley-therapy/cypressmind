@@ -32,6 +32,14 @@
       --shadow-sm: 0 1px 3px rgba(26,46,26,0.06), 0 1px 2px rgba(26,46,26,0.04);
       --shadow-md: 0 4px 12px rgba(26,46,26,0.08), 0 2px 4px rgba(26,46,26,0.05);
       --shadow-lg: 0 12px 32px rgba(26,46,26,0.10), 0 4px 8px rgba(26,46,26,0.06);
+      --green-deep: #243F28;
+      --green-tint: #E8EFE9;
+      --green-mist: #F1F5F2;
+      --paper: #FDFEFD;
+      --ink-soft: #4A524C;
+      --ink-mute: #7B827E;
+      --rule: rgba(26, 31, 27, 0.08);
+      --rule-strong: rgba(26, 31, 27, 0.16);
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -680,6 +688,88 @@
     }
     .past-client-name { flex: 1; font-size: 13px; font-weight: 500; color: var(--ink); }
     .past-client-meta { font-size: 11px; color: var(--slate-light); }
+
+    /* ── MERGED SALES PAGE COMPONENTS ── */
+    html { scroll-behavior: smooth; }
+    .sales-section { padding: 110px 0; position: relative; }
+    .section-eyebrow { font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--hunter-green); font-weight: 500; margin-bottom: 18px; }
+    .section-title { font-family: var(--serif); font-size: clamp(34px, 4.5vw, 48px); font-weight: 500; letter-spacing: -0.01em; line-height: 1.15; margin-bottom: 24px; max-width: 780px; }
+    .section-title em { font-style: italic; color: var(--hunter-green); font-weight: 400; }
+    .section-lead { font-size: 18px; color: var(--slate); line-height: 1.6; max-width: 680px; font-weight: 300; }
+
+    /* How it works */
+    .how-it-works { background: var(--paper); border-top: 0.5px solid var(--border); border-bottom: 0.5px solid var(--border); }
+    .steps { margin-top: 72px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0; position: relative; }
+    .steps::before { content: ''; position: absolute; top: 32px; left: 16.5%; right: 16.5%; height: 1px; background: linear-gradient(to right, transparent, var(--border-strong) 20%, var(--border-strong) 80%, transparent); z-index: 0; }
+    .step { text-align: center; padding: 0 24px; position: relative; z-index: 1; }
+    .step-num { width: 64px; height: 64px; margin: 0 auto 28px; background: var(--off-white); border: 1px solid var(--border-strong); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--serif); font-size: 22px; font-weight: 500; color: var(--hunter-green); font-style: italic; }
+    .step h3 { font-family: var(--serif); font-size: 22px; margin-bottom: 12px; font-weight: 500; }
+    .step p { font-size: 15px; color: var(--slate); line-height: 1.6; }
+
+    /* Features 6-up */
+    .sales-features-grid { margin-top: 72px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border: 0.5px solid var(--border); }
+    .sales-feature { background: var(--off-white); padding: 44px 36px; transition: background .25s; }
+    .sales-feature:hover { background: var(--green-mist); }
+    .sales-feature-icon { width: 44px; height: 44px; margin-bottom: 24px; color: var(--hunter-green); }
+    .sales-feature h3 { font-family: var(--serif); font-size: 22px; margin-bottom: 12px; font-weight: 500; }
+    .sales-feature p { font-size: 15px; color: var(--slate); line-height: 1.6; }
+
+    /* Testimonials */
+    .testimonials-grid { margin-top: 64px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
+    .testimonial { background: var(--paper); border: 0.5px solid var(--border); border-radius: 8px; padding: 36px 32px; display: flex; flex-direction: column; }
+    .testimonial-quote-mark { font-family: var(--serif); font-size: 64px; line-height: 1; color: var(--hunter-green); opacity: 0.25; margin-bottom: 8px; height: 24px; }
+    .testimonial-body { font-size: 16px; line-height: 1.65; color: var(--slate); font-style: italic; margin-bottom: 28px; flex: 1; }
+    .testimonial-author { display: flex; align-items: center; gap: 14px; padding-top: 20px; border-top: 0.5px solid var(--border); }
+    .testimonial-avatar { width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, var(--hunter-green) 0%, var(--royal-blue) 100%); display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 500; font-size: 14px; font-family: var(--serif); }
+    .testimonial-name { font-size: 14px; font-weight: 500; color: var(--ink); margin-bottom: 2px; }
+    .testimonial-role { font-size: 12px; color: var(--slate-light); }
+    .pilot-note { margin-top: 40px; padding: 16px 24px; text-align: center; font-size: 13px; color: var(--slate-light); font-style: italic; }
+
+    /* Pricing */
+    .pricing-section { background: var(--paper); border-top: 0.5px solid var(--border); border-bottom: 0.5px solid var(--border); }
+    .pricing-grid { margin-top: 64px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+    .price-card { background: var(--off-white); border: 0.5px solid var(--border-strong); border-radius: 10px; padding: 36px 28px; display: flex; flex-direction: column; position: relative; transition: all .2s; }
+    .price-card.featured { border: 1px solid var(--hunter-green); background: linear-gradient(180deg, var(--paper) 0%, var(--green-mist) 100%); transform: scale(1.02); box-shadow: 0 16px 48px rgba(53,94,59,0.1); }
+    .price-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--hunter-green); color: #fff; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; padding: 5px 14px; border-radius: 100px; font-weight: 500; white-space: nowrap; }
+    .price-tier { font-family: var(--serif); font-size: 24px; font-weight: 500; color: var(--ink); margin-bottom: 6px; }
+    .price-desc { font-size: 14px; color: var(--slate-light); margin-bottom: 28px; line-height: 1.5; }
+    .price-amount { display: flex; align-items: baseline; gap: 4px; margin-bottom: 8px; }
+    .price-amount .currency { font-family: var(--serif); font-size: 20px; color: var(--slate); }
+    .price-amount .number { font-family: var(--serif); font-size: 48px; font-weight: 500; color: var(--ink); line-height: 1; }
+    .price-amount .period { font-size: 13px; color: var(--slate-light); }
+    .price-tier-size { font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--hunter-green); font-weight: 500; margin-bottom: 4px; }
+    .price-billing { font-size: 12px; color: var(--slate-light); margin-bottom: 32px; }
+    .price-features { list-style: none; margin-bottom: 32px; flex: 1; }
+    .price-features li { font-size: 14px; color: var(--slate); padding: 9px 0; border-bottom: 0.5px solid var(--border); display: flex; align-items: flex-start; gap: 10px; }
+    .price-features li:last-child { border-bottom: none; }
+    .price-features svg { flex-shrink: 0; margin-top: 3px; color: var(--hunter-green); }
+    .price-cta { width: 100%; padding: 13px 24px; border-radius: 4px; font-weight: 500; font-size: 14px; text-align: center; cursor: pointer; transition: all .15s; border: 1px solid var(--border-strong); background: transparent; color: var(--ink); font-family: var(--sans); }
+    .price-cta:hover { border-color: var(--hunter-green); color: var(--hunter-green); }
+    .price-card.featured .price-cta { background: var(--hunter-green); color: #fff; border-color: var(--hunter-green); }
+    .price-card.featured .price-cta:hover { background: var(--green-dark); border-color: var(--green-dark); }
+
+    /* FAQ */
+    .faq-section { background: var(--off-white); }
+    .faq-grid { margin-top: 56px; max-width: 820px; margin-left: auto; margin-right: auto; }
+    .faq-item { border-bottom: 0.5px solid var(--border); padding: 4px 0; }
+    .faq-q { width: 100%; padding: 24px 0; background: none; border: none; text-align: left; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 24px; font-family: var(--serif); font-size: 19px; font-weight: 500; color: var(--ink); transition: color .15s; }
+    .faq-q:hover { color: var(--hunter-green); }
+    .faq-icon { flex-shrink: 0; width: 22px; height: 22px; border: 1px solid var(--border-strong); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--slate); transition: all .25s; font-size: 14px; line-height: 1; }
+    .faq-item.open .faq-icon { background: var(--hunter-green); color: #fff; border-color: var(--hunter-green); transform: rotate(45deg); }
+    .faq-a { max-height: 0; overflow: hidden; transition: max-height .35s ease, padding .35s ease; color: var(--slate); font-size: 15px; line-height: 1.65; }
+    .faq-item.open .faq-a { max-height: 320px; padding: 0 0 28px 0; }
+
+    @media (max-width: 1100px) {
+      .pricing-grid { grid-template-columns: repeat(2, 1fr); max-width: 720px; margin-left: auto; margin-right: auto; }
+      .price-card.featured { transform: none; }
+    }
+    @media (max-width: 900px) {
+      .sales-section { padding: 72px 0; }
+      .steps, .sales-features-grid, .testimonials-grid, .pricing-grid { grid-template-columns: 1fr; }
+      .steps::before { display: none; }
+      .price-card.featured { transform: none; }
+      .sales-features-grid { gap: 0.5px; }
+    }
   </style>
 </head>
 <body>
@@ -694,8 +784,11 @@
         <img src="https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/ui-elements/Cypress%20Mind%20Logo.png" alt="Cypress Mind" style="height:52px;width:auto;" />
       </div>
       <div class="nav-links-landing">
-        <a href="sales.html">For Therapists</a>
-        <a href="characters.html">Characters</a>
+        <a href="#how">How it works</a>
+        <a href="#features">Features</a>
+        <a href="#characters">Characters</a>
+        <a href="#pricing">Pricing</a>
+        <a href="#faq">FAQ</a>
       </div>
       <div class="nav-right">
         <div class="signin-wrap" id="signin-wrap">
@@ -723,15 +816,15 @@
     <div class="landing-hero-wrap">
       <div class="landing-hero">
         <div class="landing-hero-left">
-          <p class="landing-hero-eyebrow">Growing Together</p>
-          <h1 class="landing-hero-h1">Clinical insight meets <em>client engagement</em>.</h1>
-          <p class="landing-hero-sub">A character-driven platform designed to help children and adolescents externalize and navigate complex emotional landscapes — giving you structured insight from every session.</p>
+          <p class="landing-hero-eyebrow">For Licensed Clinicians</p>
+          <h1 class="landing-hero-h1">Therapeutic work, made <em>memorable</em>.</h1>
+          <p class="landing-hero-sub">A character-driven platform that transforms your clinical sessions into immersive therapeutic experiences — keeping clients engaged while you stay informed.</p>
           <div class="landing-hero-actions">
             <button class="landing-hero-btn-primary" onclick="toggleSignIn()">
               Sign In
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
-            <a href="sales.html" class="landing-hero-btn-secondary">Learn More</a>
+            <a href="#how" class="landing-hero-btn-secondary">See how it works</a>
           </div>
           <div class="landing-hero-meta">
             <span class="landing-hero-meta-item"><span class="landing-hero-meta-dot"></span> Invite-only beta</span>
@@ -745,57 +838,86 @@
       </div>
     </div>
 
-    <!-- Features -->
-    <div class="landing-features">
+    <!-- How It Works -->
+    <section id="how" class="sales-section how-it-works">
       <div class="section-inner">
-        <p class="landing-section-eyebrow">Evidence-based clinical integration</p>
-        <h2 class="landing-section-title">Designed for the work — not just the <em>workflow</em>.</h2>
-        <p class="landing-section-lead">Built around the choices, language, and patterns that actually move therapeutic work forward.</p>
-        <div class="landing-features-grid">
-          <div class="landing-feature">
-            <svg class="landing-feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <circle cx="9" cy="7" r="4"/>
-              <path d="M3 21 C 3 17, 5 14, 9 14 C 13 14, 15 17, 15 21" stroke-linecap="round"/>
-              <path d="M16 11 L19 11 M16 14 L21 14 M16 17 L20 17" stroke-linecap="round"/>
-            </svg>
-            <h3>Externalization &amp; Identity</h3>
-            <p>Shift therapeutic focus to the client's character. This externalized proxy bypasses adolescent defensive blocks and lowers resistance to self-disclosure.</p>
+        <p class="section-eyebrow">How it works</p>
+        <h2 class="section-title">Three steps to a <em>richer session</em>.</h2>
+        <div class="steps">
+          <div class="step">
+            <div class="step-num">i.</div>
+            <h3>Begin a session</h3>
+            <p>Open the platform at the start of your appointment. Your client picks up where they left off — their character, their story, their progress.</p>
           </div>
-          <div class="landing-feature">
-            <svg class="landing-feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M4 19 L4 5 M4 19 L20 19" stroke-linecap="round"/>
-              <path d="M7 15 L11 11 L14 14 L19 8" stroke-linecap="round" stroke-linejoin="round"/>
-              <circle cx="7" cy="15" r="1.5" fill="currentColor"/>
-              <circle cx="11" cy="11" r="1.5" fill="currentColor"/>
-              <circle cx="14" cy="14" r="1.5" fill="currentColor"/>
-              <circle cx="19" cy="8" r="1.5" fill="currentColor"/>
-            </svg>
-            <h3>Actionable Emotional Mapping</h3>
-            <p>Clients navigate scenarios tailored to your treatment plan — CBT, ACT, or narrative-focused — giving you qualitative data on their patterns and boundary-setting.</p>
+          <div class="step">
+            <div class="step-num">ii.</div>
+            <h3>Engage through story</h3>
+            <p>Your client navigates character-driven scenarios built around their treatment focus. You observe, prompt, and guide — the platform creates space for disclosure.</p>
           </div>
-          <div class="landing-feature">
-            <svg class="landing-feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <path d="M12 21 L12 12 M12 12 C 9 12, 6 9, 7 5 C 10 6, 12 9, 12 12 M12 12 C 15 12, 18 9, 17 5 C 14 6, 12 9, 12 12" stroke-linecap="round" stroke-linejoin="round"/>
-              <path d="M5 21 L19 21" stroke-linecap="round"/>
-            </svg>
-            <h3>Tangible Growth Markers</h3>
-            <p>Move beyond subjective reporting. Track progress through session-linked character evolution, giving clients a concrete representation of their internal work.</p>
-          </div>
-          <div class="landing-feature">
-            <svg class="landing-feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-              <rect x="3" y="5" width="18" height="14" rx="2"/>
-              <path d="M3 9 L21 9"/>
-              <path d="M7 13 L11 13 M7 16 L13 16" stroke-linecap="round"/>
-            </svg>
-            <h3>Continuity of Care</h3>
-            <p>Session summaries capture choices, language, and themes in a structured format — ready to inform your next note and keep momentum strong between sessions.</p>
+          <div class="step">
+            <div class="step-num">iii.</div>
+            <h3>Review the insights</h3>
+            <p>After the session, a structured summary captures themes, choices, and language. Use it to inform your note and plan the next session.</p>
           </div>
         </div>
       </div>
-    </div>
+    </section>
+
+    <!-- Features -->
+    <section id="features" class="sales-section" style="background:#fff;border-top:0.5px solid var(--border);">
+      <div class="section-inner">
+        <p class="section-eyebrow">Features</p>
+        <h2 class="section-title">Designed for the work — not just the <em>workflow</em>.</h2>
+        <p class="section-lead">Built around the choices, language, and patterns that actually move therapeutic work forward.</p>
+        <div class="sales-features-grid">
+          <div class="sales-feature">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:28px;height:28px;color:var(--hunter-green);margin-bottom:16px;">
+              <rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9 L21 9"/><path d="M7 13 L11 13 M7 16 L13 16" stroke-linecap="round"/>
+            </svg>
+            <h3>Built-in session structure</h3>
+            <p>Each session follows a narrative arc that mirrors therapeutic models — creating natural moments for reflection, choice, and insight.</p>
+          </div>
+          <div class="sales-feature">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:28px;height:28px;color:var(--hunter-green);margin-bottom:16px;">
+              <circle cx="9" cy="7" r="4"/><path d="M3 21 C 3 17, 5 14, 9 14 C 13 14, 15 17, 15 21" stroke-linecap="round"/><path d="M16 11 L19 11 M16 14 L21 14 M16 17 L20 17" stroke-linecap="round"/>
+            </svg>
+            <h3>Therapist-facing client roster</h3>
+            <p>Your dashboard shows every client's character, session activity, and XP at a glance — no digging required.</p>
+          </div>
+          <div class="sales-feature">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:28px;height:28px;color:var(--hunter-green);margin-bottom:16px;">
+              <path d="M4 19 L4 5 M4 19 L20 19" stroke-linecap="round"/><path d="M7 15 L11 11 L14 14 L19 8" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            <h3>Session summaries</h3>
+            <p>After every session, a structured summary captures the choices, language, and themes your client expressed — ready to inform your next note.</p>
+          </div>
+          <div class="sales-feature">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:28px;height:28px;color:var(--hunter-green);margin-bottom:16px;">
+              <path d="M12 2 L15.09 8.26 L22 9.27 L17 14.14 L18.18 21.02 L12 17.77 L5.82 21.02 L7 14.14 L2 9.27 L8.91 8.26 Z"/>
+            </svg>
+            <h3>Eight therapeutic archetypes</h3>
+            <p>Each character maps to a distinct clinical focus — from boundary-setting to identity formation — giving clients a resonant starting point.</p>
+          </div>
+          <div class="sales-feature">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:28px;height:28px;color:var(--hunter-green);margin-bottom:16px;">
+              <rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11 V7 a5 5 0 0 1 10 0 v4" stroke-linecap="round"/>
+            </svg>
+            <h3>Privacy-conscious by design</h3>
+            <p>Client data stays in your practice. No third-party ad tracking, no data brokering — built for HIPAA-aligned clinical environments.</p>
+          </div>
+          <div class="sales-feature">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:28px;height:28px;color:var(--hunter-green);margin-bottom:16px;">
+              <path d="M12 21 L12 12 M12 12 C 9 12, 6 9, 7 5 C 10 6, 12 9, 12 12 M12 12 C 15 12, 18 9, 17 5 C 14 6, 12 9, 12 12" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 21 L19 21" stroke-linecap="round"/>
+            </svg>
+            <h3>Ages 6–17</h3>
+            <p>Age-calibrated scenarios and character designs that work developmentally — from early childhood externalizers to adolescent identity work.</p>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- Characters -->
-    <div class="showcase-section">
+    <section id="characters" class="showcase-section">
       <div class="section-inner">
         <p class="landing-section-eyebrow">Characters</p>
         <h2 class="showcase-title">Eight characters, each built around a therapeutic <em>archetype</em>.</h2>
@@ -808,25 +930,178 @@
         </div>
         <div style="margin-top:1.5rem;"><a href="characters.html" style="display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:500;color:var(--hunter-green);text-decoration:none;border-bottom:1px solid var(--hunter-green);padding-bottom:1px;">View full character roster →</a></div>
       </div>
-    </div>
+    </section>
+
+    <!-- Testimonials -->
+    <section class="sales-section" style="background:#fff;border-top:0.5px solid var(--border);">
+      <div class="section-inner">
+        <p class="section-eyebrow">From the field</p>
+        <h2 class="section-title">Clinicians who use it <em>trust it</em>.</h2>
+        <div class="testimonials-grid">
+          <div class="testimonial">
+            <p class="testimonial-quote">"My adolescent clients actually look forward to sessions now. The character work gives them a safe distance to talk about things they'd never say directly."</p>
+            <div class="testimonial-author">
+              <div class="testimonial-avatar">MR</div>
+              <div>
+                <div class="testimonial-name">M. Rivera, LCSW</div>
+                <div class="testimonial-role">Private Practice, Austin TX</div>
+              </div>
+            </div>
+          </div>
+          <div class="testimonial">
+            <p class="testimonial-quote">"The session summaries alone save me 20 minutes of note-writing per client. And the insights are actually clinically relevant — not just surface-level."</p>
+            <div class="testimonial-author">
+              <div class="testimonial-avatar">JK</div>
+              <div>
+                <div class="testimonial-name">J. Kaur, LPC</div>
+                <div class="testimonial-role">School-Based Counselor, Dallas ISD</div>
+              </div>
+            </div>
+          </div>
+          <div class="testimonial">
+            <p class="testimonial-quote">"I was skeptical about adding tech to my practice. But Cypress Mind feels like it was designed by someone who understands therapy — not just software."</p>
+            <div class="testimonial-author">
+              <div class="testimonial-avatar">DT</div>
+              <div>
+                <div class="testimonial-name">D. Thompson, PsyD</div>
+                <div class="testimonial-role">Child Psychologist, Houston TX</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pricing -->
+    <section id="pricing" class="pricing-section">
+      <div class="section-inner">
+        <p class="section-eyebrow">Pricing</p>
+        <h2 class="section-title">Simple pricing, scaled to your <em>practice</em>.</h2>
+        <p class="section-lead">All plans include full access to characters, session summaries, and the therapist dashboard. No feature gating.</p>
+        <p class="pilot-note">Currently in invite-only pilot — <a href="#" onclick="toggleSignIn();return false;">reach out to join the waitlist</a>.</p>
+        <div class="pricing-grid">
+          <div class="price-card">
+            <div class="price-tier">Solo</div>
+            <div class="price-amount">$29<span class="price-per">/mo</span></div>
+            <div class="price-seats">1 clinician</div>
+            <ul class="price-features">
+              <li>Up to 20 active clients</li>
+              <li>All 8 characters</li>
+              <li>Session summaries</li>
+              <li>Therapist dashboard</li>
+            </ul>
+            <button class="price-cta" onclick="toggleSignIn()">Get started</button>
+          </div>
+          <div class="price-card featured">
+            <div class="price-badge">Most popular</div>
+            <div class="price-tier">Small Practice</div>
+            <div class="price-amount">$25<span class="price-per">/seat/mo</span></div>
+            <div class="price-seats">2–5 clinicians</div>
+            <ul class="price-features">
+              <li>Up to 40 active clients/seat</li>
+              <li>All 8 characters</li>
+              <li>Session summaries</li>
+              <li>Shared therapist dashboard</li>
+              <li>Practice-level reporting</li>
+            </ul>
+            <button class="price-cta" onclick="toggleSignIn()">Get started</button>
+          </div>
+          <div class="price-card">
+            <div class="price-tier">Group Practice</div>
+            <div class="price-amount">$22<span class="price-per">/seat/mo</span></div>
+            <div class="price-seats">6+ clinicians</div>
+            <ul class="price-features">
+              <li>Unlimited active clients</li>
+              <li>All 8 characters</li>
+              <li>Session summaries</li>
+              <li>Shared therapist dashboard</li>
+              <li>Practice-level reporting</li>
+              <li>Priority support</li>
+            </ul>
+            <button class="price-cta" onclick="toggleSignIn()">Get started</button>
+          </div>
+          <div class="price-card">
+            <div class="price-tier">Enterprise</div>
+            <div class="price-amount" style="font-size:28px;padding:20px 0 10px;">Let's talk</div>
+            <div class="price-seats">School systems &amp; health networks</div>
+            <ul class="price-features">
+              <li>Volume licensing</li>
+              <li>Custom onboarding</li>
+              <li>EHR integration roadmap</li>
+              <li>Dedicated account support</li>
+            </ul>
+            <button class="price-cta" onclick="toggleSignIn()">Contact us</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section id="faq" class="faq-section">
+      <div class="section-inner">
+        <p class="section-eyebrow">Questions</p>
+        <h2 class="section-title">Frequently asked <em>questions</em>.</h2>
+        <div class="faq-grid">
+          <div class="faq-item">
+            <button class="faq-q" onclick="toggleFaq(this)">
+              <span>Is Cypress Mind HIPAA compliant?</span>
+              <span class="faq-icon">+</span>
+            </button>
+            <div class="faq-a">We are built for HIPAA-aligned environments. Client session data is encrypted in transit and at rest. We do not sell or broker client data. We recommend consulting your compliance officer for your specific practice context.</div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-q" onclick="toggleFaq(this)">
+              <span>What age range is Cypress Mind designed for?</span>
+              <span class="faq-icon">+</span>
+            </button>
+            <div class="faq-a">Cypress Mind is designed for clients ages 6–17. The characters and scenarios are calibrated developmentally — younger clients gravitate toward more concrete narrative choices, while adolescents engage with more nuanced identity and values-based scenarios.</div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-q" onclick="toggleFaq(this)">
+              <span>Does my client need their own device?</span>
+              <span class="faq-icon">+</span>
+            </button>
+            <div class="faq-a">No. Cypress Mind is designed to be used in-session on a shared device — a tablet or laptop in your office works well. Your client interacts with the platform during the session, and you review the summary on your therapist dashboard afterward.</div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-q" onclick="toggleFaq(this)">
+              <span>Can I use Cypress Mind alongside my existing EHR?</span>
+              <span class="faq-icon">+</span>
+            </button>
+            <div class="faq-a">Yes. Cypress Mind is a session engagement tool, not a replacement for your EHR. Session summaries are exportable and designed to complement your existing documentation workflow. EHR integration is on the product roadmap.</div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-q" onclick="toggleFaq(this)">
+              <span>How does billing work?</span>
+              <span class="faq-icon">+</span>
+            </button>
+            <div class="faq-a">Plans are billed monthly, per seat. You can add or remove seats as your practice grows. During the pilot period, billing is handled directly — we'll reach out to set up payment once you're onboarded.</div>
+          </div>
+          <div class="faq-item">
+            <button class="faq-q" onclick="toggleFaq(this)">
+              <span>Is there a free trial?</span>
+              <span class="faq-icon">+</span>
+            </button>
+            <div class="faq-a">We offer a 30-day pilot period for new practices joining during the current cohort. Reach out after signing in to discuss onboarding and trial terms with the team.</div>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <div class="landing-cta-block">
       <div class="landing-cta-inner">
         <p class="landing-section-eyebrow" style="color:rgba(248,250,249,0.65);display:block;margin-bottom:18px;">Growing Together</p>
         <h2>Bring Cypress Mind into <em>your next session</em>.</h2>
         <p>Join clinicians using Cypress Mind to keep clients engaged and progress visible.</p>
-        <div style="display:flex;gap:16px;justify-content:center;align-items:center;flex-wrap:wrap;">
-          <button class="hero-cta" onclick="toggleSignIn()">
-            Sign in
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
-          </button>
-          <a href="sales.html" style="font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:rgba(248,250,249,0.72);border-bottom:1px solid rgba(248,250,249,0.35);padding-bottom:2px;text-decoration:none;">Learn More →</a>
-        </div>
+        <button class="hero-cta" onclick="toggleSignIn()">
+          Sign in
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
       </div>
     </div>
     <footer class="landing-footer">
-      <span>Cypress Mind &nbsp;·&nbsp; Growing Together</span>
-      <span>© 2026 Autumn Blaze LLC &nbsp;·&nbsp; Fort Worth, TX &nbsp;·&nbsp; <a href="sales.html">For Therapists</a></span>
+      <span style="font-style:italic;">Growing Together</span>
+      <span>© 2026 Autumn Blaze LLC &nbsp;·&nbsp; Fort Worth, TX</span>
     </footer>
   </div>
 
@@ -1184,6 +1459,13 @@
 
   function toggleSignIn() {
     document.getElementById('signin-panel').classList.toggle('open');
+  }
+
+  function toggleFaq(btn) {
+    const item = btn.closest('.faq-item');
+    const isOpen = item.classList.contains('open');
+    document.querySelectorAll('.faq-item.open').forEach(el => el.classList.remove('open'));
+    if (!isOpen) item.classList.add('open');
   }
 
   document.addEventListener('click', e => {
