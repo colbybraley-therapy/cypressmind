@@ -1,0 +1,1459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Start your free trial — Cypress Mind</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+<style>
+  /* ─────────────────────────────────────────────
+     Cypress Mind — Sign-up Page
+     Matches sales.html design system
+     ───────────────────────────────────────────── */
+
+  :root {
+    --green:        #355E3B;
+    --green-deep:   #243F28;
+    --green-soft:   #4A7350;
+    --green-tint:   #E8EFE9;
+    --green-mist:   #F1F5F2;
+
+    --blue:         #4169E1;
+    --purple:       #6B3FA0;
+
+    --off-white:    #F8FAF9;
+    --paper:        #FDFEFD;
+    --ink:          #1A1F1B;
+    --ink-soft:     #4A524C;
+    --ink-mute:     #7B827E;
+    --rule:         rgba(26, 31, 27, 0.08);
+    --rule-strong:  rgba(26, 31, 27, 0.16);
+
+    --error:        #B33A3A;
+    --error-soft:   #FCEDED;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', -apple-system, sans-serif;
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--ink);
+    background: var(--off-white);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+  }
+
+  ::selection { background: var(--green); color: var(--off-white); }
+
+  h1, h2, h3, h4 {
+    font-family: 'Playfair Display', serif;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+    color: var(--ink);
+  }
+
+  a { color: inherit; text-decoration: none; }
+
+  .container {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 32px;
+  }
+
+  /* ── NAV ─────────────────────────────────── */
+  .nav {
+    background: var(--off-white);
+    border-bottom: 0.5px solid var(--rule);
+  }
+  .nav-inner {
+    display: flex; align-items: center; justify-content: space-between;
+    height: 68px;
+  }
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    color: var(--green);
+    display: flex; align-items: center; gap: 10px;
+  }
+  .logo-mark { width: 24px; height: 24px; display: inline-block; }
+  .nav-back {
+    font-size: 14px;
+    color: var(--ink-soft);
+    display: inline-flex; align-items: center; gap: 8px;
+    transition: color .15s;
+  }
+  .nav-back:hover { color: var(--green); }
+
+  /* ── PAGE HEADER ─────────────────────────── */
+  .page-header {
+    padding: 64px 0 48px;
+    text-align: center;
+  }
+  .page-header-eyebrow {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--green);
+    font-weight: 500;
+    margin-bottom: 20px;
+    padding: 6px 14px;
+    background: var(--green-tint);
+    border-radius: 100px;
+  }
+  .page-header-eyebrow::before {
+    content: '';
+    width: 6px; height: 6px;
+    background: var(--green);
+    border-radius: 50%;
+  }
+  .page-header h1 {
+    font-size: clamp(36px, 4.5vw, 52px);
+    margin-bottom: 16px;
+  }
+  .page-header h1 em {
+    font-style: italic;
+    color: var(--green);
+    font-weight: 400;
+  }
+  .page-header-sub {
+    font-size: 17px;
+    color: var(--ink-soft);
+    max-width: 560px;
+    margin: 0 auto;
+    font-weight: 300;
+  }
+
+  /* ── 2-COLUMN LAYOUT ─────────────────────── */
+  .signup-layout {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: 56px;
+    padding-bottom: 96px;
+    align-items: start;
+  }
+
+  /* ── FORM COLUMN ─────────────────────────── */
+  .form-col {
+    background: var(--paper);
+    border: 0.5px solid var(--rule);
+    border-radius: 12px;
+    padding: 48px 48px 40px;
+  }
+
+  .form-section {
+    margin-bottom: 44px;
+  }
+  .form-section:last-of-type { margin-bottom: 0; }
+
+  .form-section-header {
+    display: flex; align-items: baseline; gap: 14px;
+    margin-bottom: 24px;
+    padding-bottom: 16px;
+    border-bottom: 0.5px solid var(--rule);
+  }
+  .form-section-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 16px;
+    font-style: italic;
+    color: var(--green);
+    font-weight: 500;
+  }
+  .form-section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  /* ── PLAN PICKER ─────────────────────────── */
+  .plan-picker {
+    display: flex; flex-direction: column;
+    gap: 10px;
+  }
+  .plan-option {
+    position: relative;
+    padding: 18px 20px;
+    border: 1px solid var(--rule-strong);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all .15s;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 12px;
+    align-items: center;
+    background: var(--off-white);
+  }
+  .plan-option:hover {
+    border-color: var(--green-soft);
+    background: var(--green-mist);
+  }
+  .plan-option.selected {
+    border: 1.5px solid var(--green);
+    background: var(--green-mist);
+    box-shadow: 0 0 0 4px rgba(53, 94, 59, 0.06);
+    padding: 17.5px 19.5px; /* compensate for border */
+  }
+  .plan-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .plan-option-main {
+    display: flex; align-items: baseline; gap: 12px;
+    flex-wrap: wrap;
+  }
+  .plan-option-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .plan-option-size {
+    font-size: 12px;
+    color: var(--ink-mute);
+    letter-spacing: 0.04em;
+  }
+  .plan-option-desc {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-top: 4px;
+    width: 100%;
+  }
+  .plan-option-price {
+    text-align: right;
+    flex-shrink: 0;
+  }
+  .plan-option-price .amount {
+    font-family: 'Playfair Display', serif;
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1;
+  }
+  .plan-option-price .unit {
+    font-size: 11px;
+    color: var(--ink-mute);
+    margin-top: 4px;
+    display: block;
+  }
+  .plan-option-radio {
+    width: 18px; height: 18px;
+    border: 1.5px solid var(--rule-strong);
+    border-radius: 50%;
+    position: relative;
+    flex-shrink: 0;
+    transition: all .15s;
+  }
+  .plan-option.selected .plan-option-radio {
+    border-color: var(--green);
+    background: var(--green);
+  }
+  .plan-option.selected .plan-option-radio::after {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    width: 6px; height: 6px;
+    background: var(--off-white);
+    border-radius: 50%;
+  }
+
+  /* ── SEAT COUNT ──────────────────────────── */
+  .seat-control {
+    margin-top: 16px;
+    padding: 18px 20px;
+    background: var(--green-mist);
+    border: 0.5px solid var(--green-tint);
+    border-radius: 8px;
+    display: none;
+  }
+  .seat-control.visible { display: block; }
+  .seat-control-label {
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-bottom: 12px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .seat-control-label strong {
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .seat-stepper {
+    display: flex; align-items: center; gap: 0;
+    background: var(--off-white);
+    border: 0.5px solid var(--rule-strong);
+    border-radius: 6px;
+    width: fit-content;
+    overflow: hidden;
+  }
+  .seat-btn {
+    width: 38px; height: 38px;
+    border: none;
+    background: transparent;
+    color: var(--ink-soft);
+    font-size: 18px;
+    cursor: pointer;
+    transition: background .15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .seat-btn:hover:not(:disabled) {
+    background: var(--green-mist);
+    color: var(--green);
+  }
+  .seat-btn:disabled {
+    color: var(--ink-mute);
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .seat-input {
+    width: 56px;
+    height: 38px;
+    border: none;
+    border-left: 0.5px solid var(--rule);
+    border-right: 0.5px solid var(--rule);
+    text-align: center;
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--ink);
+    background: transparent;
+    -moz-appearance: textfield;
+  }
+  .seat-input::-webkit-outer-spin-button,
+  .seat-input::-webkit-inner-spin-button {
+    -webkit-appearance: none; margin: 0;
+  }
+  .seat-input:focus { outline: none; }
+
+  .enterprise-note {
+    margin-top: 16px;
+    padding: 18px 20px;
+    background: var(--green-mist);
+    border: 0.5px solid var(--green-tint);
+    border-radius: 8px;
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+    display: none;
+  }
+  .enterprise-note.visible { display: block; }
+  .enterprise-note a {
+    color: var(--green);
+    font-weight: 500;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  /* ── BILLING TOGGLE ──────────────────────── */
+  .billing-toggle {
+    display: flex; align-items: center; gap: 0;
+    background: var(--off-white);
+    border: 0.5px solid var(--rule-strong);
+    border-radius: 100px;
+    padding: 4px;
+    width: fit-content;
+    margin: 0 auto 24px;
+    position: relative;
+  }
+  .billing-toggle button {
+    padding: 9px 22px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-soft);
+    border-radius: 100px;
+    transition: all .2s;
+    position: relative;
+    z-index: 1;
+  }
+  .billing-toggle button.active {
+    background: var(--green);
+    color: var(--off-white);
+  }
+  .billing-toggle .save-tag {
+    font-size: 10px;
+    color: var(--green);
+    margin-left: 6px;
+    letter-spacing: 0.04em;
+    font-weight: 600;
+  }
+  .billing-toggle button.active .save-tag { color: var(--off-white); opacity: 0.85; }
+
+  /* ── FORM FIELDS ─────────────────────────── */
+  .field-grid-2 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .field {
+    margin-bottom: 18px;
+  }
+  .field:last-child { margin-bottom: 0; }
+  .field label {
+    display: block;
+    font-size: 13px;
+    color: var(--ink-soft);
+    margin-bottom: 7px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+  }
+  .field label .req { color: var(--error); margin-left: 2px; }
+  .field input,
+  .field select {
+    width: 100%;
+    padding: 12px 14px;
+    border: 0.5px solid var(--rule-strong);
+    border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    color: var(--ink);
+    background: var(--off-white);
+    transition: border-color .15s, box-shadow .15s;
+  }
+  .field input::placeholder { color: var(--ink-mute); }
+  .field input:focus,
+  .field select:focus {
+    outline: none;
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px rgba(53, 94, 59, 0.1);
+  }
+  .field-hint {
+    font-size: 12px;
+    color: var(--ink-mute);
+    margin-top: 6px;
+  }
+  .field.error input {
+    border-color: var(--error);
+    background: var(--error-soft);
+  }
+  .field-error {
+    font-size: 12px;
+    color: var(--error);
+    margin-top: 6px;
+    display: none;
+  }
+  .field.error .field-error { display: block; }
+
+  .password-strength {
+    display: flex; gap: 4px;
+    margin-top: 8px;
+    height: 4px;
+  }
+  .password-strength-bar {
+    flex: 1;
+    background: var(--rule);
+    border-radius: 2px;
+    transition: background .2s;
+  }
+  .password-strength-bar.filled-1 { background: #C84A4A; }
+  .password-strength-bar.filled-2 { background: #D9A24A; }
+  .password-strength-bar.filled-3 { background: #6FA46A; }
+  .password-strength-bar.filled-4 { background: var(--green); }
+  .password-strength-label {
+    font-size: 12px;
+    color: var(--ink-mute);
+    margin-top: 6px;
+  }
+
+  /* ── PAYMENT PLACEHOLDER ─────────────────── */
+  .payment-placeholder {
+    padding: 24px;
+    background: var(--green-mist);
+    border: 0.5px dashed var(--green-soft);
+    border-radius: 8px;
+    text-align: center;
+  }
+  .payment-placeholder-icon {
+    width: 36px; height: 36px;
+    margin: 0 auto 12px;
+    color: var(--green);
+  }
+  .payment-placeholder-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .payment-placeholder-desc {
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.55;
+  }
+  .payment-trial-line {
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 0.5px solid var(--green-tint);
+    font-size: 12px;
+    color: var(--ink-mute);
+    font-style: italic;
+  }
+
+  /* ── TERMS CHECKBOX ──────────────────────── */
+  .terms {
+    display: flex; align-items: flex-start; gap: 12px;
+    margin-bottom: 24px;
+  }
+  .terms input[type="checkbox"] {
+    width: 18px; height: 18px;
+    margin-top: 2px;
+    flex-shrink: 0;
+    accent-color: var(--green);
+    cursor: pointer;
+  }
+  .terms-label {
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+    cursor: pointer;
+  }
+  .terms-label a {
+    color: var(--green);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .terms-label a:hover { color: var(--green-deep); }
+
+  /* ── SUBMIT BUTTON ───────────────────────── */
+  .submit-btn {
+    width: 100%;
+    padding: 16px 24px;
+    background: var(--green);
+    color: var(--off-white);
+    border: 1px solid var(--green);
+    border-radius: 6px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all .2s;
+    display: inline-flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  .submit-btn:hover {
+    background: var(--green-deep);
+    border-color: var(--green-deep);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px rgba(53, 94, 59, 0.18);
+  }
+  .submit-btn svg { transition: transform .2s; }
+  .submit-btn:hover svg { transform: translateX(3px); }
+  .submit-btn:disabled {
+    background: var(--ink-mute);
+    border-color: var(--ink-mute);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  .submit-meta {
+    margin-top: 16px;
+    text-align: center;
+    font-size: 12px;
+    color: var(--ink-mute);
+  }
+  .submit-meta a {
+    color: var(--green);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  /* ── SUMMARY COLUMN (sticky) ─────────────── */
+  .summary-col {
+    position: sticky;
+    top: 32px;
+  }
+  .summary-card {
+    background: var(--paper);
+    border: 0.5px solid var(--rule);
+    border-radius: 12px;
+    padding: 32px;
+  }
+  .summary-eyebrow {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--green);
+    font-weight: 500;
+    margin-bottom: 12px;
+  }
+  .summary-plan-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 26px;
+    font-weight: 500;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+  .summary-plan-size {
+    font-size: 13px;
+    color: var(--ink-mute);
+    margin-bottom: 28px;
+    padding-bottom: 24px;
+    border-bottom: 0.5px solid var(--rule);
+  }
+
+  .summary-line {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 11px 0;
+    font-size: 14px;
+    color: var(--ink-soft);
+  }
+  .summary-line .label { }
+  .summary-line .value {
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .summary-line.subtle .value { color: var(--ink-soft); font-weight: 400; }
+  .summary-line.savings .value {
+    color: var(--green);
+    font-weight: 500;
+  }
+
+  .summary-divider {
+    border: none;
+    border-top: 0.5px solid var(--rule);
+    margin: 12px 0;
+  }
+  .summary-total {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding-top: 16px;
+    border-top: 0.5px solid var(--rule-strong);
+    margin-top: 8px;
+  }
+  .summary-total .label {
+    font-family: 'Playfair Display', serif;
+    font-size: 17px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+  .summary-total .value {
+    font-family: 'Playfair Display', serif;
+    font-size: 28px;
+    font-weight: 500;
+    color: var(--ink);
+    line-height: 1;
+  }
+  .summary-total-period {
+    text-align: right;
+    font-size: 11px;
+    color: var(--ink-mute);
+    margin-top: 4px;
+    letter-spacing: 0.04em;
+  }
+
+  .summary-trial-banner {
+    margin-top: 24px;
+    padding: 16px 18px;
+    background: var(--green-mist);
+    border: 0.5px solid var(--green-tint);
+    border-radius: 8px;
+    display: flex; align-items: flex-start; gap: 12px;
+  }
+  .summary-trial-icon {
+    width: 20px; height: 20px;
+    color: var(--green);
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .summary-trial-text {
+    font-size: 13px;
+    color: var(--ink-soft);
+    line-height: 1.55;
+  }
+  .summary-trial-text strong {
+    color: var(--ink);
+    font-weight: 500;
+    display: block;
+    margin-bottom: 2px;
+  }
+
+  .summary-included {
+    margin-top: 24px;
+    padding-top: 20px;
+    border-top: 0.5px solid var(--rule);
+  }
+  .summary-included-label {
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--ink-mute);
+    margin-bottom: 14px;
+    font-weight: 500;
+  }
+  .summary-included ul {
+    list-style: none;
+    margin: 0; padding: 0;
+  }
+  .summary-included li {
+    font-size: 13px;
+    color: var(--ink-soft);
+    padding: 5px 0;
+    display: flex; align-items: flex-start; gap: 10px;
+  }
+  .summary-included svg {
+    flex-shrink: 0;
+    margin-top: 4px;
+    color: var(--green);
+  }
+
+  /* ── ENTERPRISE SUMMARY STATE ────────────── */
+  .summary-enterprise {
+    text-align: center;
+    padding: 8px 0;
+  }
+  .summary-enterprise-icon {
+    width: 44px; height: 44px;
+    color: var(--green);
+    margin-bottom: 16px;
+  }
+  .summary-enterprise h3 {
+    font-size: 20px;
+    margin-bottom: 8px;
+  }
+  .summary-enterprise p {
+    font-size: 14px;
+    color: var(--ink-soft);
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+  .summary-enterprise .btn-secondary {
+    display: inline-block;
+    padding: 11px 22px;
+    background: var(--green);
+    color: var(--off-white);
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: all .15s;
+  }
+  .summary-enterprise .btn-secondary:hover {
+    background: var(--green-deep);
+  }
+
+  /* ── FOOTER ──────────────────────────────── */
+  .footer {
+    background: var(--off-white);
+    padding: 40px 0 32px;
+    border-top: 0.5px solid var(--rule);
+  }
+  .footer-inner {
+    display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
+    gap: 20px;
+  }
+  .footer-tag {
+    font-family: 'Playfair Display', serif;
+    font-size: 13px;
+    font-style: italic;
+    color: var(--ink-mute);
+  }
+  .footer-meta {
+    font-size: 12px;
+    color: var(--ink-mute);
+  }
+
+  /* ── RESPONSIVE ──────────────────────────── */
+  @media (max-width: 1000px) {
+    .signup-layout {
+      grid-template-columns: 1fr;
+      gap: 32px;
+    }
+    .summary-col {
+      position: static;
+      order: -1;
+    }
+    .form-col { padding: 36px 32px 32px; }
+  }
+
+  @media (max-width: 600px) {
+    .container { padding: 0 20px; }
+    .page-header { padding: 40px 0 32px; }
+    .form-col { padding: 28px 22px 28px; }
+    .summary-card { padding: 24px; }
+    .field-grid-2 { grid-template-columns: 1fr; }
+    .plan-option { grid-template-columns: 1fr; }
+    .plan-option-price { text-align: left; padding-top: 6px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ─── NAV ─────────────────────────────────── -->
+<nav class="nav">
+  <div class="container nav-inner">
+    <a href="index.html" class="logo">
+      <svg class="logo-mark" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M12 2 L12 22 M12 6 C 8 6, 5 9, 5 12 C 5 9, 8 6, 12 6 M12 6 C 16 6, 19 9, 19 12 C 19 9, 16 6, 12 6 M12 12 C 8 12, 5 15, 5 18 C 5 15, 8 12, 12 12 M12 12 C 16 12, 19 15, 19 18 C 19 15, 16 12, 12 12"
+              stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+      </svg>
+      Cypress Mind
+    </a>
+    <a href="index.html#pricing" class="nav-back">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <path d="M19 12H5M12 19l-7-7 7-7" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Back to plans
+    </a>
+  </div>
+</nav>
+
+<!-- ─── PAGE HEADER ─────────────────────────── -->
+<div class="container page-header">
+  <div class="page-header-eyebrow">14-day free trial</div>
+  <h1>Bring Cypress Mind into <em>your practice</em>.</h1>
+  <p class="page-header-sub">
+    Choose your plan, set up your therapist account, and run your first session this week.
+    Cancel any time during the trial &mdash; you won&rsquo;t be charged.
+  </p>
+</div>
+
+<!-- ─── 2-COLUMN LAYOUT ─────────────────────── -->
+<div class="container">
+  <div class="signup-layout">
+
+    <!-- ════ FORM COLUMN ════════════════════════ -->
+    <div class="form-col">
+
+      <form id="signup-form" novalidate>
+
+        <!-- ── 1. PLAN ────────────────────────── -->
+        <div class="form-section">
+          <div class="form-section-header">
+            <span class="form-section-num">i.</span>
+            <span class="form-section-title">Choose your plan</span>
+          </div>
+
+          <div class="billing-toggle" role="tablist">
+            <button type="button" id="bill-monthly" class="active" onclick="setBilling('monthly')">Monthly</button>
+            <button type="button" id="bill-annual" onclick="setBilling('annual')">
+              Annual <span class="save-tag">SAVE 17%</span>
+            </button>
+          </div>
+
+          <div class="plan-picker">
+            <!-- Solo -->
+            <label class="plan-option" data-plan="solo" onclick="selectPlan('solo')">
+              <input type="radio" name="plan" value="solo">
+              <div>
+                <div class="plan-option-main">
+                  <span class="plan-option-name">Solo</span>
+                  <span class="plan-option-size">1 therapist</span>
+                </div>
+                <div class="plan-option-desc">For independent clinicians.</div>
+              </div>
+              <div style="display:flex; align-items:center; gap:14px;">
+                <div class="plan-option-price">
+                  <div class="amount" data-price-solo>$29</div>
+                  <span class="unit" data-unit>/ month</span>
+                </div>
+                <div class="plan-option-radio"></div>
+              </div>
+            </label>
+
+            <!-- Small Practice -->
+            <label class="plan-option" data-plan="small" onclick="selectPlan('small')">
+              <input type="radio" name="plan" value="small">
+              <div>
+                <div class="plan-option-main">
+                  <span class="plan-option-name">Small Practice</span>
+                  <span class="plan-option-size">2 &ndash; 5 therapists</span>
+                </div>
+                <div class="plan-option-desc">For practice owners building a team.</div>
+              </div>
+              <div style="display:flex; align-items:center; gap:14px;">
+                <div class="plan-option-price">
+                  <div class="amount" data-price-small>$25</div>
+                  <span class="unit" data-unit-seat>/ seat / mo</span>
+                </div>
+                <div class="plan-option-radio"></div>
+              </div>
+            </label>
+
+            <!-- Group -->
+            <label class="plan-option" data-plan="group" onclick="selectPlan('group')">
+              <input type="radio" name="plan" value="group">
+              <div>
+                <div class="plan-option-main">
+                  <span class="plan-option-name">Group</span>
+                  <span class="plan-option-size">6 &ndash; 15 therapists</span>
+                </div>
+                <div class="plan-option-desc">For mid-size practices and teams.</div>
+              </div>
+              <div style="display:flex; align-items:center; gap:14px;">
+                <div class="plan-option-price">
+                  <div class="amount" data-price-group>$22</div>
+                  <span class="unit" data-unit-seat>/ seat / mo</span>
+                </div>
+                <div class="plan-option-radio"></div>
+              </div>
+            </label>
+
+            <!-- Enterprise -->
+            <label class="plan-option" data-plan="enterprise" onclick="selectPlan('enterprise')">
+              <input type="radio" name="plan" value="enterprise">
+              <div>
+                <div class="plan-option-main">
+                  <span class="plan-option-name">Enterprise</span>
+                  <span class="plan-option-size">16+ therapists</span>
+                </div>
+                <div class="plan-option-desc">For large practices and clinics.</div>
+              </div>
+              <div style="display:flex; align-items:center; gap:14px;">
+                <div class="plan-option-price">
+                  <div class="amount" style="font-size:16px;">Let&rsquo;s talk</div>
+                </div>
+                <div class="plan-option-radio"></div>
+              </div>
+            </label>
+          </div>
+
+          <!-- Seat stepper (shown for small & group) -->
+          <div class="seat-control" id="seat-control">
+            <div class="seat-control-label">
+              <span>Number of therapists</span>
+              <strong id="seat-range-hint">2 &ndash; 5 seats</strong>
+            </div>
+            <div class="seat-stepper">
+              <button type="button" class="seat-btn" onclick="adjustSeats(-1)">&minus;</button>
+              <input type="number" id="seat-input" class="seat-input" value="2" min="2" max="5" oninput="seatInputChange()">
+              <button type="button" class="seat-btn" onclick="adjustSeats(1)">+</button>
+            </div>
+          </div>
+
+          <!-- Enterprise note -->
+          <div class="enterprise-note" id="enterprise-note">
+            <strong style="color: var(--ink); font-weight: 500;">Enterprise is custom.</strong>
+            For practices with 16 or more therapists, we&rsquo;ll work with you on volume pricing,
+            BAA, SSO, and dedicated implementation. <a href="mailto:hello@cypressmind.com">Contact our team</a>
+            and we&rsquo;ll be in touch within one business day.
+          </div>
+        </div>
+
+        <!-- ── 2. ACCOUNT INFO ──────────────────── -->
+        <div class="form-section" id="account-section">
+          <div class="form-section-header">
+            <span class="form-section-num">ii.</span>
+            <span class="form-section-title">Your account</span>
+          </div>
+
+          <div class="field-grid-2">
+            <div class="field">
+              <label for="first-name">First name <span class="req">*</span></label>
+              <input type="text" id="first-name" name="firstName" required autocomplete="given-name">
+              <div class="field-error">Please enter your first name.</div>
+            </div>
+            <div class="field">
+              <label for="last-name">Last name <span class="req">*</span></label>
+              <input type="text" id="last-name" name="lastName" required autocomplete="family-name">
+              <div class="field-error">Please enter your last name.</div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="email">Work email <span class="req">*</span></label>
+            <input type="email" id="email" name="email" required autocomplete="email" placeholder="you@yourpractice.com">
+            <div class="field-hint">We&rsquo;ll send your trial confirmation and receipts here.</div>
+            <div class="field-error">Please enter a valid email address.</div>
+          </div>
+
+          <div class="field">
+            <label for="practice-name">Practice or organization name</label>
+            <input type="text" id="practice-name" name="practiceName" autocomplete="organization" placeholder="Optional">
+            <div class="field-hint">Helpful for billing and client roster organization.</div>
+          </div>
+
+          <div class="field-grid-2">
+            <div class="field">
+              <label for="license-type">License type <span class="req">*</span></label>
+              <select id="license-type" name="licenseType" required>
+                <option value="">Select your credential</option>
+                <option value="LCSW">LCSW</option>
+                <option value="LPC">LPC</option>
+                <option value="LMFT">LMFT</option>
+                <option value="PsyD">PsyD</option>
+                <option value="PhD">PhD</option>
+                <option value="LMHC">LMHC</option>
+                <option value="LPCC">LPCC</option>
+                <option value="other">Other</option>
+              </select>
+              <div class="field-error">Please select your license type.</div>
+            </div>
+            <div class="field">
+              <label for="license-state">State of licensure <span class="req">*</span></label>
+              <select id="license-state" name="licenseState" required>
+                <option value="">Select state</option>
+                <option>Alabama</option><option>Alaska</option><option>Arizona</option><option>Arkansas</option>
+                <option>California</option><option>Colorado</option><option>Connecticut</option><option>Delaware</option>
+                <option>Florida</option><option>Georgia</option><option>Hawaii</option><option>Idaho</option>
+                <option>Illinois</option><option>Indiana</option><option>Iowa</option><option>Kansas</option>
+                <option>Kentucky</option><option>Louisiana</option><option>Maine</option><option>Maryland</option>
+                <option>Massachusetts</option><option>Michigan</option><option>Minnesota</option><option>Mississippi</option>
+                <option>Missouri</option><option>Montana</option><option>Nebraska</option><option>Nevada</option>
+                <option>New Hampshire</option><option>New Jersey</option><option>New Mexico</option><option>New York</option>
+                <option>North Carolina</option><option>North Dakota</option><option>Ohio</option><option>Oklahoma</option>
+                <option>Oregon</option><option>Pennsylvania</option><option>Rhode Island</option><option>South Carolina</option>
+                <option>South Dakota</option><option>Tennessee</option><option>Texas</option><option>Utah</option>
+                <option>Vermont</option><option>Virginia</option><option>Washington</option><option>West Virginia</option>
+                <option>Wisconsin</option><option>Wyoming</option><option>District of Columbia</option>
+                <option>Other / International</option>
+              </select>
+              <div class="field-error">Please select your state.</div>
+            </div>
+          </div>
+
+          <div class="field">
+            <label for="password">Create a password <span class="req">*</span></label>
+            <input type="password" id="password" name="password" required autocomplete="new-password" minlength="8" oninput="checkPassword()">
+            <div class="password-strength">
+              <div class="password-strength-bar" id="pw-1"></div>
+              <div class="password-strength-bar" id="pw-2"></div>
+              <div class="password-strength-bar" id="pw-3"></div>
+              <div class="password-strength-bar" id="pw-4"></div>
+            </div>
+            <div class="password-strength-label" id="pw-label">At least 8 characters.</div>
+            <div class="field-error">Password must be at least 8 characters.</div>
+          </div>
+        </div>
+
+        <!-- ── 3. PAYMENT ───────────────────────── -->
+        <div class="form-section" id="payment-section">
+          <div class="form-section-header">
+            <span class="form-section-num">iii.</span>
+            <span class="form-section-title">Payment details</span>
+          </div>
+
+          <div class="payment-placeholder">
+            <svg class="payment-placeholder-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="3" y="6" width="18" height="14" rx="2"/>
+              <path d="M3 10 L21 10" />
+              <path d="M7 15 L11 15" stroke-linecap="round"/>
+            </svg>
+            <div class="payment-placeholder-title">Secure payment by Stripe</div>
+            <div class="payment-placeholder-desc">
+              Card details are collected here, encrypted in transit, and never stored on our servers.
+            </div>
+            <div class="payment-trial-line">
+              You won&rsquo;t be charged for 14 days. Cancel any time before then.
+            </div>
+          </div>
+        </div>
+
+        <!-- ── TERMS & SUBMIT ───────────────────── -->
+        <div class="terms">
+          <input type="checkbox" id="terms" name="terms" required>
+          <label for="terms" class="terms-label">
+            I agree to the <a href="#" target="_blank">Terms of Service</a>,
+            <a href="#" target="_blank">Privacy Policy</a>, and
+            <a href="#" target="_blank">Acceptable Use Policy</a>.
+            I understand my card will be charged at the end of the 14-day trial unless I cancel.
+          </label>
+        </div>
+
+        <button type="submit" class="submit-btn" id="submit-btn" disabled>
+          <span id="submit-label">Start free trial</span>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M5 12h14M13 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+
+        <div class="submit-meta">
+          Already have an account? <a href="index.html">Sign in</a>
+        </div>
+
+      </form>
+    </div>
+
+    <!-- ════ SUMMARY COLUMN ════════════════════ -->
+    <div class="summary-col">
+
+      <!-- Standard summary (Solo/Small/Group) -->
+      <div class="summary-card" id="summary-standard">
+        <div class="summary-eyebrow">Order summary</div>
+        <div class="summary-plan-name" id="sum-plan-name">Select a plan</div>
+        <div class="summary-plan-size" id="sum-plan-size">Choose any plan to see your total</div>
+
+        <div id="sum-lines">
+          <div class="summary-line subtle">
+            <span class="label">Plan price</span>
+            <span class="value">&mdash;</span>
+          </div>
+        </div>
+
+        <div class="summary-total">
+          <div>
+            <div class="label">Total</div>
+            <div class="summary-total-period" id="sum-period">Per month</div>
+          </div>
+          <div class="value" id="sum-total">$0</div>
+        </div>
+
+        <div class="summary-trial-banner">
+          <svg class="summary-trial-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M12 7 L12 12 L15 14" stroke-linecap="round"/>
+          </svg>
+          <div class="summary-trial-text">
+            <strong>14 days free</strong>
+            You won&rsquo;t be charged until your trial ends. Cancel any time.
+          </div>
+        </div>
+
+        <div class="summary-included" id="sum-included" style="display:none;">
+          <div class="summary-included-label">Includes</div>
+          <ul id="sum-included-list"></ul>
+        </div>
+      </div>
+
+      <!-- Enterprise summary (alternate state) -->
+      <div class="summary-card" id="summary-enterprise" style="display:none;">
+        <div class="summary-enterprise">
+          <svg class="summary-enterprise-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <rect x="3" y="9" width="18" height="12" rx="1"/>
+            <path d="M9 9 L9 5 C 9 4, 10 3, 11 3 L13 3 C 14 3, 15 4, 15 5 L15 9" stroke-linejoin="round"/>
+            <path d="M3 14 L21 14"/>
+          </svg>
+          <h3>Let&rsquo;s build a plan together</h3>
+          <p>Enterprise pricing depends on team size, BAA needs, and onboarding scope. Tell us about your practice and we&rsquo;ll be in touch within one business day.</p>
+          <a href="mailto:hello@cypressmind.com" class="btn-secondary">Contact our team</a>
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- ─── FOOTER ─────────────────────────────── -->
+<footer class="footer">
+  <div class="container footer-inner">
+    <div class="footer-tag">Cypress Mind &middot; Growing Together</div>
+    <div class="footer-meta">&copy; 2026 Autumn Blaze LLC &middot; Fort Worth, TX</div>
+  </div>
+</footer>
+
+<script>
+  /* ─── PRICING DATA ──────────────────────── */
+  const PLANS = {
+    solo: {
+      name: 'Solo',
+      size: '1 therapist',
+      monthly: 29, annual: 290,
+      perSeat: false,
+      includes: [
+        'One therapist sign-in',
+        'Unlimited active clients',
+        'All eight therapeutic archetypes',
+        'Custom character builder',
+        'Cross-session journal access',
+        'Session summaries & history',
+        'Email support'
+      ]
+    },
+    small: {
+      name: 'Small Practice',
+      size: '2 – 5 therapists',
+      monthly: 25, annual: 250,
+      perSeat: true,
+      minSeats: 2, maxSeats: 5,
+      includes: [
+        'Individual sign-in for each therapist',
+        'Everything in Solo',
+        'Centralized practice billing',
+        'Shared client roster across team',
+        'Practice-level session history',
+        'Priority support'
+      ]
+    },
+    group: {
+      name: 'Group',
+      size: '6 – 15 therapists',
+      monthly: 22, annual: 220,
+      perSeat: true,
+      minSeats: 6, maxSeats: 15,
+      includes: [
+        'Individual sign-in for each therapist',
+        'Everything in Small Practice',
+        'Practice-wide dashboards',
+        'HIPAA-aligned infrastructure',
+        'Group onboarding session'
+      ]
+    },
+    enterprise: {
+      name: 'Enterprise',
+      size: '16+ therapists',
+      perSeat: true,
+      enterprise: true
+    }
+  };
+
+  /* ─── STATE ─────────────────────────────── */
+  const state = {
+    plan: null,
+    billing: 'monthly', // 'monthly' | 'annual'
+    seats: 2
+  };
+
+  /* ─── SELECT PLAN ───────────────────────── */
+  function selectPlan(planKey) {
+    state.plan = planKey;
+    const plan = PLANS[planKey];
+
+    // Toggle visual selection
+    document.querySelectorAll('.plan-option').forEach(el => el.classList.remove('selected'));
+    document.querySelector(`.plan-option[data-plan="${planKey}"]`).classList.add('selected');
+    document.querySelector(`.plan-option[data-plan="${planKey}"] input`).checked = true;
+
+    // Show/hide seat control
+    const seatCtrl = document.getElementById('seat-control');
+    const entNote = document.getElementById('enterprise-note');
+
+    if (plan.enterprise) {
+      seatCtrl.classList.remove('visible');
+      entNote.classList.add('visible');
+    } else if (plan.perSeat) {
+      seatCtrl.classList.add('visible');
+      entNote.classList.remove('visible');
+      // Reset seats to plan minimum
+      const seatInput = document.getElementById('seat-input');
+      seatInput.min = plan.minSeats;
+      seatInput.max = plan.maxSeats;
+      if (state.seats < plan.minSeats || state.seats > plan.maxSeats) {
+        state.seats = plan.minSeats;
+      }
+      seatInput.value = state.seats;
+      document.getElementById('seat-range-hint').innerHTML = `${plan.minSeats} &ndash; ${plan.maxSeats} seats`;
+    } else {
+      seatCtrl.classList.remove('visible');
+      entNote.classList.remove('visible');
+      state.seats = 1;
+    }
+
+    // Toggle account/payment sections for Enterprise
+    const acctSec = document.getElementById('account-section');
+    const paySec = document.getElementById('payment-section');
+    const termsEl = document.querySelector('.terms');
+    const submitBtn = document.getElementById('submit-btn');
+
+    if (plan.enterprise) {
+      acctSec.style.display = 'none';
+      paySec.style.display = 'none';
+      termsEl.style.display = 'none';
+      submitBtn.style.display = 'none';
+      document.querySelector('.submit-meta').style.display = 'none';
+    } else {
+      acctSec.style.display = '';
+      paySec.style.display = '';
+      termsEl.style.display = '';
+      submitBtn.style.display = '';
+      document.querySelector('.submit-meta').style.display = '';
+    }
+
+    updateSummary();
+    validateForm();
+  }
+
+  /* ─── BILLING TOGGLE ────────────────────── */
+  function setBilling(mode) {
+    state.billing = mode;
+    document.getElementById('bill-monthly').classList.toggle('active', mode === 'monthly');
+    document.getElementById('bill-annual').classList.toggle('active', mode === 'annual');
+    updateSummary();
+  }
+
+  /* ─── SEAT STEPPER ──────────────────────── */
+  function adjustSeats(delta) {
+    if (!state.plan) return;
+    const plan = PLANS[state.plan];
+    if (!plan.perSeat || plan.enterprise) return;
+    const newSeats = state.seats + delta;
+    if (newSeats < plan.minSeats || newSeats > plan.maxSeats) return;
+    state.seats = newSeats;
+    document.getElementById('seat-input').value = newSeats;
+    updateSummary();
+  }
+  function seatInputChange() {
+    if (!state.plan) return;
+    const plan = PLANS[state.plan];
+    if (!plan.perSeat || plan.enterprise) return;
+    let val = parseInt(document.getElementById('seat-input').value) || plan.minSeats;
+    if (val < plan.minSeats) val = plan.minSeats;
+    if (val > plan.maxSeats) val = plan.maxSeats;
+    state.seats = val;
+    document.getElementById('seat-input').value = val;
+    updateSummary();
+  }
+
+  /* ─── SUMMARY UPDATE ────────────────────── */
+  function updateSummary() {
+    const standard = document.getElementById('summary-standard');
+    const enterprise = document.getElementById('summary-enterprise');
+
+    if (!state.plan) {
+      standard.style.display = '';
+      enterprise.style.display = 'none';
+      return;
+    }
+
+    const plan = PLANS[state.plan];
+
+    if (plan.enterprise) {
+      standard.style.display = 'none';
+      enterprise.style.display = '';
+      return;
+    }
+
+    standard.style.display = '';
+    enterprise.style.display = 'none';
+
+    document.getElementById('sum-plan-name').textContent = plan.name;
+    document.getElementById('sum-plan-size').textContent = plan.size;
+
+    const isAnnual = state.billing === 'annual';
+    const seats = plan.perSeat ? state.seats : 1;
+    const unitPrice = isAnnual ? plan.annual : plan.monthly;
+    const subtotal = unitPrice * seats;
+
+    // Build line items
+    const lines = document.getElementById('sum-lines');
+    let linesHTML = '';
+
+    if (plan.perSeat) {
+      const seatLabel = isAnnual ? `$${plan.annual} / seat / year` : `$${plan.monthly} / seat / month`;
+      linesHTML += `
+        <div class="summary-line subtle">
+          <span class="label">${seatLabel}</span>
+          <span class="value">×${seats}</span>
+        </div>`;
+    } else {
+      const periodLabel = isAnnual ? 'Annual subscription' : 'Monthly subscription';
+      linesHTML += `
+        <div class="summary-line subtle">
+          <span class="label">${periodLabel}</span>
+          <span class="value">$${unitPrice}</span>
+        </div>`;
+    }
+
+    if (isAnnual) {
+      const monthlyEquivalent = plan.monthly * seats * 12;
+      const savings = monthlyEquivalent - subtotal;
+      linesHTML += `
+        <div class="summary-line savings">
+          <span class="label">Annual savings</span>
+          <span class="value">&minus;$${savings}</span>
+        </div>`;
+    }
+
+    lines.innerHTML = linesHTML;
+
+    document.getElementById('sum-total').textContent = `$${subtotal.toLocaleString()}`;
+    document.getElementById('sum-period').textContent = isAnnual ? 'Per year' : 'Per month';
+
+    // Build includes list
+    const incList = document.getElementById('sum-included-list');
+    incList.innerHTML = plan.includes.map(item => `
+      <li>
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M5 12l5 5L20 7" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+        ${item}
+      </li>
+    `).join('');
+    document.getElementById('sum-included').style.display = '';
+  }
+
+  /* ─── PASSWORD STRENGTH ─────────────────── */
+  function checkPassword() {
+    const pw = document.getElementById('password').value;
+    let score = 0;
+    if (pw.length >= 8) score++;
+    if (pw.length >= 12) score++;
+    if (/[A-Z]/.test(pw) && /[a-z]/.test(pw)) score++;
+    if (/[0-9]/.test(pw) && /[^A-Za-z0-9]/.test(pw)) score++;
+
+    for (let i = 1; i <= 4; i++) {
+      const bar = document.getElementById('pw-' + i);
+      bar.className = 'password-strength-bar';
+      if (i <= score) bar.classList.add('filled-' + score);
+    }
+
+    const labels = ['At least 8 characters.', 'Weak', 'Fair', 'Good', 'Strong'];
+    document.getElementById('pw-label').textContent = pw.length === 0 ? labels[0] : labels[score];
+
+    validateForm();
+  }
+
+  /* ─── FORM VALIDATION ───────────────────── */
+  function validateForm() {
+    const submitBtn = document.getElementById('submit-btn');
+    if (!state.plan) {
+      submitBtn.disabled = true;
+      return;
+    }
+    const plan = PLANS[state.plan];
+    if (plan.enterprise) {
+      submitBtn.disabled = true;
+      return;
+    }
+
+    const required = ['first-name', 'last-name', 'email', 'license-type', 'license-state', 'password'];
+    let valid = true;
+    for (const id of required) {
+      const el = document.getElementById(id);
+      if (!el.value || el.value.trim() === '') valid = false;
+    }
+    const email = document.getElementById('email').value;
+    if (email && !/^\S+@\S+\.\S+$/.test(email)) valid = false;
+    if (document.getElementById('password').value.length < 8) valid = false;
+    if (!document.getElementById('terms').checked) valid = false;
+
+    submitBtn.disabled = !valid;
+  }
+
+  /* ─── ATTACH VALIDATION LISTENERS ───────── */
+  ['first-name', 'last-name', 'email', 'practice-name', 'license-type', 'license-state'].forEach(id => {
+    document.getElementById(id).addEventListener('input', validateForm);
+    document.getElementById(id).addEventListener('change', validateForm);
+  });
+  document.getElementById('terms').addEventListener('change', validateForm);
+
+  /* ─── FORM SUBMIT (placeholder) ─────────── */
+  document.getElementById('signup-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    // Will hook into Stripe + Supabase here
+    const submitBtn = document.getElementById('submit-btn');
+    const submitLabel = document.getElementById('submit-label');
+    submitBtn.disabled = true;
+    submitLabel.textContent = 'Setting up your account...';
+    // For now, just simulate
+    setTimeout(() => {
+      alert('Sign-up logic ready for Stripe + Supabase integration.\n\nPlan: ' + state.plan +
+            '\nBilling: ' + state.billing +
+            '\nSeats: ' + state.seats);
+      submitBtn.disabled = false;
+      submitLabel.textContent = 'Start free trial';
+    }, 800);
+  });
+
+  /* ─── INIT ──────────────────────────────── */
+  const urlPlan = new URLSearchParams(window.location.search).get('plan');
+  if (urlPlan && PLANS[urlPlan]) selectPlan(urlPlan);
+  updateSummary();
+  validateForm();
+</script>
+
+</body>
+</html>
