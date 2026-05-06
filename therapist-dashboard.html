@@ -690,7 +690,7 @@
           </p>
           <div class="flex space-x-4 pt-4">
             <button class="bg-[#355E3B] text-white px-8 py-3 rounded-md hover:bg-[#2A4A2F] transition-colors shadow-sm" style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;letter-spacing:0.03em;" onclick="toggleSignIn()">Sign In</button>
-            <a href="sales.html" class="border border-[#355E3B] text-[#355E3B] px-8 py-3 rounded-md hover:bg-[#F0F5F0] transition-colors" style="font-family:'DM Sans',sans-serif;font-size:13px;display:inline-block;">Learn More</a>
+            <button class="border border-[#355E3B] text-[#355E3B] px-8 py-3 rounded-md hover:bg-[#F0F5F0] transition-colors" style="font-family:'DM Sans',sans-serif;font-size:13px;" onclick="toggleSignIn()">Explore Framework</button>
           </div>
         </div>
         <div class="md:w-5/12 mt-12 md:mt-0">
@@ -1122,21 +1122,7 @@
   }
 
   db.auth.onAuthStateChange((event, session) => {
-    if (event === 'SIGNED_IN' && session?.user && !currentUser) {
-      currentUser = session.user;
-      loadApp();
-    }
-    if (event === 'SIGNED_OUT') {
-      currentUser = null;
-      showPage('pg-landing');
-    }
-  });
-
-  db.auth.getSession().then(({ data: { session } }) => {
-    if (session?.user) {
-      currentUser = session.user;
-      loadApp();
-    }
+    if (session) loadApp();
   });
 
   /* ─────────────────────────────────────────
@@ -1175,12 +1161,9 @@
   /* ─────────────────────────────────────────
      APP LOAD
   ───────────────────────────────────────── */
-  let currentUser = null;
-
   async function loadApp() {
     const { data: { user } } = await db.auth.getUser();
     if (!user) return;
-    currentUser = user;
     const name = user.user_metadata?.full_name || user.email.split('@')[0];
     document.getElementById('tb-name').textContent = name;
     showPage('pg-app');
@@ -1197,11 +1180,10 @@
 
   async function renderClientGrid() {
     const { data: { user } } = await db.auth.getUser();
-    const { data: clients } = await db.from('clients').select('*').eq('user_id', user.id).neq('archived', true).order('created_at', { ascending: false });
+    const { data: clients } = await db.from('clients').select('*').eq('therapist_id', user.id).order('created_at', { ascending: false });
     allClientsCache = clients || [];
     await renderRosterStats(clients || []);
     renderFilteredClients(clients || []);
-    renderPastClients();
   }
 
   async function renderRosterStats(clients) {
@@ -1209,19 +1191,20 @@
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 
-    const { data: sessions } = await db.from('sessions').select('id').eq('therapist_id', user.id).gte('created_at', monthStart).then(r => r).catch(() => ({ data: [] }));
+    const { data: sessions } = await db.from('sessions').select('*').eq('therapist_id', user.id).gte('created_at', monthStart).catch(() => ({ data: [] }));
+    const { data: allActivities } = await db.from('activities').select('*').in('client_id', clients.map(c => c.id)).catch(() => ({ data: [] }));
 
-    const active   = clients.length;
-    const sessCount= sessions?.length || 0;
-    const total    = clients.reduce((s, c) => s + (c.activity_total || 0), 0);
-    const done     = clients.reduce((s, c) => s + (c.activity_done  || 0), 0);
-    const pending  = total - done;
-    const pct      = total > 0 ? Math.round((done / total) * 100) : 0;
+    const active = clients.length;
+    const sessCount = sessions?.length || 0;
+    const total = allActivities?.length || 0;
+    const done = allActivities?.filter(a => a.done)?.length || 0;
+    const pending = total - done;
+    const pct = total > 0 ? Math.round((done / total) * 100) : 0;
 
-    document.getElementById('rs-active').textContent     = active;
-    document.getElementById('rs-sessions').textContent   = sessCount;
+    document.getElementById('rs-active').textContent = active;
+    document.getElementById('rs-sessions').textContent = sessCount;
     document.getElementById('rs-completion').textContent = total > 0 ? pct + '%' : '—';
-    document.getElementById('rs-pending').textContent    = pending;
+    document.getElementById('rs-pending').textContent = pending;
   }
 
   function filterClients(filter, el) {
@@ -1250,9 +1233,9 @@
       : `<div class="client-no-char">No character chosen yet</div>`;
 
     const total = c.activity_total || 0;
-    const done  = c.activity_done  || 0;
-    const xp    = c.xp             || 0;
-    const pct   = total > 0 ? Math.round((done/total)*100) + '%' : '—';
+    const done = c.activity_done || 0;
+    const xp = c.xp || 0;
+    const pct = total > 0 ? Math.round((done/total)*100) + '%' : '—';
 
     const lastSessionAgo = c.last_session_at ? daysSince(c.last_session_at) : null;
     let sessionLine = '';
@@ -1268,11 +1251,7 @@
 
     return `<div class="client-card" onclick="openClient('${c.id}')">
       <div class="client-card-top">
-        <div class="client-card-av" style="${c.last_character ? 'padding:0;overflow:hidden;' : ''}">${
-          c.last_character && CHAR_IMAGES[c.last_character]
-            ? `<img src="${CHAR_IMAGES[c.last_character]}" style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;">`
-            : (c.avatar || '🌿')
-        }</div>
+        <div class="client-card-av">${c.avatar || '🌿'}</div>
         <div class="client-card-status ${statusClass}"></div>
       </div>
       <div class="client-card-name">${c.name}</div>
@@ -1285,7 +1264,7 @@
       </div>
       ${sessionLine}
       <div class="client-card-footer">
-        <button class="client-foot-btn" onclick="event.stopPropagation();archiveClient('${c.id}','${c.name.replace(/'/g,"\\'")}')">Archive</button>
+        <button class="client-foot-btn" onclick="event.stopPropagation();currentClient={id:'${c.id}',name:'${c.name}'};openAddLesson()">+ Assign</button>
         <button class="client-foot-btn primary" onclick="event.stopPropagation();openClient('${c.id}')">View profile</button>
       </div>
     </div>`;
@@ -1320,7 +1299,7 @@
     const name = document.getElementById('cl-name').value.trim();
     if (!name) return;
     const { data: { user } } = await db.auth.getUser();
-    await db.from('clients').insert({ name, avatar: selectedAvatar, user_id: user.id, color_index: 0 });
+    await db.from('clients').insert({ name, avatar: selectedAvatar, therapist_id: user.id });
     closeOverlay('add-client-overlay');
     await renderClientGrid();
   }
@@ -1350,11 +1329,11 @@
   };
 
   const ACTIVITY_META = {
-    quiz:      { icon:'🧭', label:'Coping Skills Quiz',      color:'purple' },
-    breathing: { icon:'⚓', label:'Breathing Garden',        color:'teal'   },
-    journal:   { icon:'📜', label:'Reflection Journal',      color:'green'  },
-    emotions:  { icon:'🏮', label:'Emotion Explorer',        color:'amber'  },
-    custom:    { icon:'✦',  label:'Custom Activity',         color:'slate'  },
+    quiz:      { icon:'🧠', label:'Coping Skills Quiz',      color:'purple' },
+    breathing: { icon:'🌬️', label:'Breathing Garden',        color:'teal'   },
+    journal:   { icon:'📓', label:'Reflection Journal',      color:'green'  },
+    emotions:  { icon:'🎭', label:'Emotion Explorer',        color:'amber'  },
+    custom:    { icon:'✏️', label:'Custom Activity',         color:'slate'  },
   };
 
   async function openClient(id) {
@@ -1362,17 +1341,7 @@
     if (!client) return;
     currentClient = client;
 
-    const cpAv = document.getElementById('cp-av');
-    const charImg = CHAR_IMAGES[client.last_character];
-    if (charImg) {
-      cpAv.textContent = '';
-      cpAv.style.cssText = 'padding:0;overflow:hidden;';
-      cpAv.innerHTML = `<img src="${charImg}" style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;">`;
-    } else {
-      cpAv.innerHTML = '';
-      cpAv.style.cssText = '';
-      cpAv.textContent = client.avatar || '🌿';
-    }
+    document.getElementById('cp-av').textContent   = client.avatar || '🌿';
     document.getElementById('cp-name').textContent = client.name;
     document.getElementById('cp-since').textContent = `Client since ${formatDate(client.created_at)}`;
 
@@ -1488,117 +1457,37 @@
     }).join('');
   }
 
-  /* Lookup tables mirrored from adventure wizard */
-  const WZ_ITEMS_MAP = {
-    blade:   { icon:'🗡️', themed:{ scout:'Scout Knife', voyager:'Sea Dagger', warden:'Iron Sword', weaver:'Thread Blade', dreamer:'Dream Shard', anchor:'Anchor Hook', sage:'Runed Staff', gardener:'Pruning Shears' } },
-    shield:  { icon:'🛡️', themed:{ scout:'Bark Shield', voyager:'Wave Shield', warden:'Iron Bulwark', weaver:'Woven Ward', dreamer:'Mirror Shield', anchor:'Harbor Guard', sage:'Glyph Disc', gardener:'Leaf Shield' } },
-    compass: { icon:'🧭', themed:{ scout:'Trail Finder', voyager:'Star Chart', warden:'Watch Compass', weaver:'Thread Map', dreamer:'Dream Compass', anchor:'True North', sage:'Ancient Astrolabe', gardener:'Root Map' } },
-    tome:    { icon:'📖', themed:{ scout:'Field Journal', voyager:"Captain's Log", warden:'Code of Honor', weaver:'Pattern Book', dreamer:'Dream Diary', anchor:'Harbor Record', sage:'Ancient Codex', gardener:'Seed Ledger' } },
-    orb:     { icon:'🔮', themed:{ scout:'Signal Flare', voyager:'Tide Stone', warden:'Ward Crystal', weaver:'Binding Gem', dreamer:'Vision Orb', anchor:'Storm Glass', sage:'Truth Crystal', gardener:'Growth Stone' } },
-    staff:   { icon:'🪄', themed:{ scout:'Walking Stick', voyager:"Helmsman's Rod", warden:"Guardian's Spear", weaver:'Loom Staff', dreamer:'Starweave Rod', anchor:'Iron Staff', sage:'Ancient Rod', gardener:'Tending Staff' } },
-  };
-  const WZ_APPEARANCE_MAP = {
-    'cloak-green':  { icon:'🟢', themed:{ scout:'Forest Cloak', voyager:'Sea Cloak', warden:'Iron Mantle', weaver:'Silk Wrap', dreamer:'Starlight Veil', anchor:'Harbor Cape', sage:'Wisdom Robe', gardener:'Leaf Cloak' } },
-    'cloak-blue':   { icon:'🔵', themed:{ scout:'Sky Cloak', voyager:'Wave Cape', warden:'Noble Mantle', weaver:'River Wrap', dreamer:'Moonlight Veil', anchor:'Deep Cloak', sage:'Celestial Robe', gardener:'Rain Cloak' } },
-    'cloak-purple': { icon:'🟣', themed:{ scout:'Twilight Cloak', voyager:'Deep Sea Cape', warden:'Royal Mantle', weaver:'Dream Wrap', dreamer:'Astral Veil', anchor:'Storm Cape', sage:'Arcane Robe', gardener:'Bloom Cloak' } },
-    gloves:  { icon:'🧤', themed:{ scout:'Grip Gloves', voyager:"Sailor's Mitts", warden:'Iron Gauntlets', weaver:'Loom Gloves', dreamer:'Startouch Gloves', anchor:'Rope Mitts', sage:'Scribe Gloves', gardener:'Soil Gloves' } },
-    boots:   { icon:'👢', themed:{ scout:'Trail Boots', voyager:'Sea Boots', warden:'Iron Greaves', weaver:'Silent Slippers', dreamer:'Cloud Boots', anchor:'Anchor Boots', sage:"Wanderer's Shoes", gardener:'Root Boots' } },
-    pack:    { icon:'🎒', themed:{ scout:'Explorer Pack', voyager:"Sailor's Sack", warden:'Supply Pouch', weaver:'Thread Bag', dreamer:'Star Satchel', anchor:'Harbor Bag', sage:'Scroll Satchel', gardener:'Seed Sack' } },
-  };
-  const WZ_POWERS_MAP = {
-    flow:      { icon:'🌊', themed:{ scout:'Pathfinding', voyager:'Tideread', warden:'Iron Will', weaver:'Thread Sight', dreamer:'Dream Walk', anchor:'Stillwater', sage:'Truth Sight', gardener:'Root Sense' } },
-    fire:      { icon:'🔥', themed:{ scout:'Trailblaze', voyager:'Sea Fire', warden:'Battle Fury', weaver:'Spark Weave', dreamer:'Dream Flame', anchor:'Ember Hold', sage:'Forge Wisdom', gardener:'Growth Flame' } },
-    calm:      { icon:'❄️', themed:{ scout:'Still Mind', voyager:'Eye of Storm', warden:'Steadfast', weaver:'Quiet Weave', dreamer:'Dream Clarity', anchor:'Deep Calm', sage:'Inner Peace', gardener:'Patient Root' } },
-    speed:     { icon:'⚡', themed:{ scout:'Swift Trail', voyager:'Ocean Sprint', warden:'Quick Guard', weaver:'Fast Weave', dreamer:'Starleap', anchor:'Surge Hold', sage:'Flash Knowing', gardener:'Fast Growth' } },
-    healing:   { icon:'🌿', themed:{ scout:'First Aid', voyager:'Sea Remedy', warden:'Shield Heal', weaver:'Mend Weave', dreamer:'Rest Aura', anchor:'Safe Harbor', sage:'Ancient Cure', gardener:'Bloom Heal' } },
-    awareness: { icon:'👁️', themed:{ scout:'Sharp Eye', voyager:'Horizon Watch', warden:'Sentinel Eye', weaver:'Thread Read', dreamer:'Dream Eye', anchor:'Deep Watch', sage:'All Seeing', gardener:'Root Awareness' } },
-  };
-  const WZ_TRAITS_MAP = {
-    brave:       { icon:'💪', themed:{ scout:'Fearless', voyager:'Daring', warden:'Courageous', weaver:'Bold', dreamer:'Visionary', anchor:'Unshakeable', sage:'Resolute', gardener:'Tenacious' } },
-    kind:        { icon:'💛', themed:{ scout:'Open-Hearted', voyager:'Generous', warden:'Loyal', weaver:'Caring', dreamer:'Gentle', anchor:'Nurturing', sage:'Compassionate', gardener:'Tender' } },
-    clever:      { icon:'🧠', themed:{ scout:'Resourceful', voyager:'Adaptive', warden:'Strategic', weaver:'Pattern-Minded', dreamer:'Creative', anchor:'Grounded', sage:'Wise', gardener:'Patient' } },
-    focused:     { icon:'🎯', themed:{ scout:'Determined', voyager:'Purposeful', warden:'Disciplined', weaver:'Precise', dreamer:'Intentional', anchor:'Steadfast', sage:'Mindful', gardener:'Dedicated' } },
-    hopeful:     { icon:'🌟', themed:{ scout:'Optimistic', voyager:'Adventurous', warden:'Steadfast', weaver:'Curious', dreamer:'Radiant', anchor:'Faithful', sage:'Knowing', gardener:'Blooming' } },
-    trustworthy: { icon:'🤝', themed:{ scout:'Reliable', voyager:'True North', warden:'Honorable', weaver:'Consistent', dreamer:'Sincere', anchor:'Dependable', sage:'Honest', gardener:'Rooted' } },
-  };
-  const ARCH_NAMES = { scout:'The Scout', voyager:'The Voyager', warden:'The Warden', gardener:'The Gardener', dreamer:'The Dreamer', weaver:'The Weaver', anchor:'The Anchor', sage:'The Sage' };
-
-  function wzThemedLabel(map, id, archetype) {
-    const opt = map[id];
-    if (!opt) return id;
-    return (opt.themed[archetype] || opt.themed.scout);
-  }
-  function wzThemedIcon(map, id) {
-    return map[id]?.icon || '';
-  }
-
   async function loadCharacter() {
-    const { data } = await db.from('session_responses').select('response_data')
-      .eq('client_id', currentClient.id).eq('step_index', -1)
-      .order('created_at', { ascending: false }).limit(1).maybeSingle();
+    const { data } = await db.from('session_responses').select('response_data').eq('client_id', currentClient.id).eq('step_index', -1).order('created_at', { ascending: false }).limit(1).maybeSingle();
+    let charData2 = data?.response_data;
+    if (typeof charData2 === 'string') { try { charData2 = JSON.parse(charData2); } catch(e) {} }
 
-    let cd = data?.response_data;
-    if (typeof cd === 'string') { try { cd = JSON.parse(cd); } catch(e) {} }
+    const charId   = charData2?.character;
+    const charName = charData2?.name || (charId ? 'The ' + charId.charAt(0).toUpperCase() + charId.slice(1) : null);
 
     const wrap = document.getElementById('cp-character-wrap');
     const pill = document.getElementById('cp-character-pill');
 
-    if (!cd) {
+    if (charId) {
       wrap.style.display = 'block';
-      pill.innerHTML = '✦ No character chosen yet';
-      document.getElementById('sidebar-char-name').textContent = 'Not chosen yet';
-      document.getElementById('sidebar-char-type').textContent = "Client hasn't selected a hero";
-      return;
-    }
+      const dispName = charId === 'custom' && charData2?.name ? charData2.name : charName;
+      pill.innerHTML = `<span style="font-size:14px;">${charId === 'custom' ? '✦' : '🧭'}</span> ${dispName || 'Hero chosen'}`;
 
-    // The wizard always saves character:'custom', archetype:'scout'|'voyager'|...
-    const archetype  = cd.archetype || cd.character; // fallback for older saves
-    const heroName   = cd.name || ARCH_NAMES[archetype] || 'Custom Hero';
-    const archName   = ARCH_NAMES[archetype] || '';
-    const archTag    = CHAR_TAGS[archetype] || '';
-    const imgSrc     = CHAR_IMAGES[archetype];
-
-    // Header pill
-    wrap.style.display = 'block';
-    pill.innerHTML = `<span style="font-size:14px;">✦</span> ${heroName} · ${archName}`;
-
-    // ── Sidebar: image + name + archetype ──
-    const imgWrap = document.getElementById('sidebar-char-img');
-    if (imgSrc) {
-      imgWrap.innerHTML = `<img src="${imgSrc}" alt="${archName}" />`;
-      imgWrap.className = 'char-img-wrap';
+      // Sidebar
+      const imgWrap = document.getElementById('sidebar-char-img');
+      if (CHAR_IMAGES[charId]) {
+        imgWrap.innerHTML = `<img src="${CHAR_IMAGES[charId]}" alt="${charName}" />`;
+        imgWrap.className = 'char-img-wrap';
+      } else {
+        imgWrap.innerHTML = '🎭';
+        imgWrap.className = 'char-img-wrap placeholder';
+      }
+      document.getElementById('sidebar-char-name').textContent = dispName || 'Custom Hero';
+      document.getElementById('sidebar-char-type').textContent = CHAR_TAGS[charId] || (charData2?.traits?.join(', ') || 'Custom archetype');
     } else {
-      imgWrap.innerHTML = '🎭';
-      imgWrap.className = 'char-img-wrap placeholder';
+      wrap.style.display = 'block';
+      pill.innerHTML = `✦ No character chosen yet`;
     }
-    document.getElementById('sidebar-char-name').textContent  = heroName;
-    document.getElementById('sidebar-char-type').textContent  = archName + (archTag ? ' · ' + archTag : '');
-
-    // ── Sidebar: additional details below the char-display ──
-    let detailEl = document.getElementById('sidebar-char-details');
-    if (!detailEl) {
-      detailEl = document.createElement('div');
-      detailEl.id = 'sidebar-char-details';
-      document.getElementById('sidebar-char').insertAdjacentElement('afterend', detailEl);
-    }
-
-    const makeRow = (label, items) => {
-      if (!items?.length) return '';
-      const pills = items.map(({ icon, text }) =>
-        `<span style="display:inline-flex;align-items:center;gap:3px;background:var(--green-faint);border:0.5px solid var(--border);border-radius:4px;padding:2px 8px;font-size:11px;color:var(--ink);margin:2px 2px 2px 0;">${icon} ${text}</span>`
-      ).join('');
-      return `<div style="margin-bottom:10px;">
-        <div style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase;color:var(--slate-light);font-weight:600;margin-bottom:4px;">${label}</div>
-        <div>${pills}</div>
-      </div>`;
-    };
-
-    const traitItems = (cd.traits || []).map(id => ({ icon: WZ_TRAITS_MAP[id]?.icon || '✦', text: wzThemedLabel(WZ_TRAITS_MAP, id, archetype) }));
-    const itemItems  = (cd.items  || []).map(id => ({ icon: WZ_ITEMS_MAP[id]?.icon   || '•', text: wzThemedLabel(WZ_ITEMS_MAP,   id, archetype) }));
-    const powerItems = (cd.powers || []).map(id => ({ icon: WZ_POWERS_MAP[id]?.icon  || '•', text: wzThemedLabel(WZ_POWERS_MAP,  id, archetype) }));
-    const appearItems= (cd.appearance || []).map(id => ({ icon: WZ_APPEARANCE_MAP[id]?.icon || '•', text: wzThemedLabel(WZ_APPEARANCE_MAP, id, archetype) }));
-
-    detailEl.innerHTML = makeRow('Traits', traitItems) + makeRow('Powers', powerItems) + makeRow('Items', itemItems) + makeRow('Appearance', appearItems);
   }
 
   /* ─────────────────────────────────────────
@@ -1631,16 +1520,8 @@
   async function toggleDone(actId, e) {
     e.stopPropagation();
     await db.from('activities').update({ done: true }).eq('id', actId);
-    syncClientStats(currentClient.id);
     loadActivities();
     loadClientStats();
-  }
-
-  async function syncClientStats(clientId) {
-    const { data: acts } = await db.from('activities').select('id, done').eq('client_id', clientId);
-    const total = acts?.length || 0;
-    const done  = acts?.filter(a => a.done).length || 0;
-    await db.from('clients').update({ activity_total: total, activity_done: done }).eq('id', clientId);
   }
 
   /* ─────────────────────────────────────────
@@ -1649,11 +1530,11 @@
   let selectedActivityType = null;
 
   const ACTIVITY_TYPES = [
-    { type:'quiz',      icon:'🧭', label:'Coping Skills Quiz',   sub:'Test knowledge with guided questions' },
-    { type:'breathing', icon:'⚓', label:'Breathing Garden',     sub:'Guided breathwork exercises' },
-    { type:'journal',   icon:'📜', label:'Reflection Journal',   sub:'Prompted journaling for self-discovery' },
-    { type:'emotions',  icon:'🏮', label:'Emotion Explorer',     sub:'Name feelings and find coping tools' },
-    { type:'custom',    icon:'✦',  label:'Custom Activity',      sub:'Add your own activity' },
+    { type:'quiz',      icon:'🧠', label:'Coping Skills Quiz',   sub:'Test knowledge with guided questions' },
+    { type:'breathing', icon:'🌬️', label:'Breathing Garden',     sub:'Guided breathwork exercises' },
+    { type:'journal',   icon:'📓', label:'Reflection Journal',   sub:'Prompted journaling for self-discovery' },
+    { type:'emotions',  icon:'🎭', label:'Emotion Explorer',     sub:'Name feelings and find coping tools' },
+    { type:'custom',    icon:'✏️', label:'Custom Activity',      sub:'Add your own activity' },
   ];
 
   function openAddLesson() {
@@ -1685,7 +1566,6 @@
     const customName = document.getElementById('ls-name')?.value.trim();
     const name = selectedActivityType === 'custom' && customName ? customName : m.label;
     await db.from('activities').insert({ client_id: currentClient.id, activity_type: selectedActivityType, name, done: false });
-    syncClientStats(currentClient.id);
     closeOverlay('add-lesson-overlay');
     loadActivities();
     loadClientStats();
@@ -1845,180 +1725,35 @@
   }
 
   /* ─────────────────────────────────────────
-     START SESSION (full live panel)
+     START SESSION
   ───────────────────────────────────────── */
-  let activeSession = null;
-  let sessionListener = null;
-  let sessionTimerInterval = null;
-  let sessionSeconds = 0;
-
-  function generateCode() {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let code = '';
-    for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
-    return code;
-  }
-
   async function openStartSession() {
+    document.getElementById('session-code-display').textContent = '——————';
+    document.getElementById('session-status-text').textContent  = 'Click "Create Session" to generate a code';
+    document.getElementById('create-session-btn').disabled      = false;
+    openOverlay('start-session-overlay');
+  }
+
+  async function createSession() {
     if (!currentClient) return;
-    const code = generateCode();
-    const { data: session, error } = await db.from('sessions').insert({
-      code,
-      therapist_id: currentUser?.id,
-      client_id: currentClient.id,
-      activity_type: 'emotions',
-      status: 'waiting'
-    }).select().single();
-    if (error) { alert('Could not create session. Please try again.'); return; }
-    activeSession = session;
-    showSessionPanel(code, currentClient.name, 'emotions', '🏮', session.id);
-    loadSessionHistory();
-    loadClientStats();
-  }
+    const btn = document.getElementById('create-session-btn');
+    btn.disabled = true;
+    btn.textContent = 'Creating…';
 
-  async function createSession() { await openStartSession(); }
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const { error } = await db.from('sessions').insert({ client_id: currentClient.id, code, status: 'waiting' });
 
-  function showSessionPanel(code, clientName, activityType, activityIcon, sessionId) {
-    const existing = document.getElementById('session-panel');
-    if (existing) existing.remove();
-    const panel = document.createElement('div');
-    panel.id = 'session-panel';
-    panel.innerHTML = `
-      <div class="session-panel-inner">
-        <div class="session-panel-header">
-          <div class="session-panel-title"><span>${activityIcon}</span><span>Live Session — ${clientName}</span></div>
-          <button class="session-close-btn" onclick="endSession()">End Session</button>
-        </div>
-        <div class="session-code-block" id="session-code-block">
-          <p class="session-code-label">Share this code with your client</p>
-          <div class="session-code">${code}</div>
-          <p class="session-code-sub">Have your client visit the link below and enter this code</p>
-          <a class="session-client-url" href="${window.location.origin}/adventure" target="_blank">${window.location.origin}/adventure</a>
-          <div class="session-status waiting" id="session-status">⏳ Waiting for client to join...</div>
-        </div>
-        <div class="session-live" id="session-live" style="display:none">
-          <div class="session-status connected" id="session-status-live">✅ Client connected — session in progress</div>
-          <div class="session-timer" id="session-timer">0:00</div>
-          <div class="prompt-panel" id="prompt-panel">
-            <p class="prompt-panel-label">💬 Therapist Prompts</p>
-            <div class="current-prompt" id="current-prompt">Waiting for client to begin activity...</div>
-            <div class="prompt-queue" id="prompt-queue"></div>
-          </div>
-          <div class="session-responses" id="session-responses">
-            <p class="responses-label">📋 Client Responses</p>
-            <div id="responses-list-live"></div>
-          </div>
-        </div>
-      </div>`;
-    document.body.appendChild(panel);
-    requestAnimationFrame(() => panel.classList.add('open'));
-    listenForSession(sessionId);
-    startSessionTimer();
-  }
-
-  function listenForSession(sessionId) {
-    if (sessionListener) sessionListener.unsubscribe();
-    sessionListener = db.channel('session-' + sessionId)
-      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'sessions', filter: `id=eq.${sessionId}` }, payload => {
-        const s = payload.new;
-        if (s.status === 'active') { showClientConnected(); updatePrompts(s.activity_type, s.client_step); }
-        if (s.status === 'client_disconnected') {
-          const el = document.getElementById('session-status-live');
-          if (el) { el.textContent = '⚠️ Client closed their window — ending session…'; el.className = 'session-status waiting'; }
-          setTimeout(() => endSession(true), 1500);
-        }
-        if (s.client_step !== undefined) updatePrompts(s.activity_type, s.client_step);
-      })
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'session_responses', filter: `session_id=eq.${sessionId}` }, payload => {
-        addResponseToPanel(payload.new);
-      })
-      .subscribe();
-  }
-
-  function showClientConnected() {
-    document.getElementById('session-code-block').style.display = 'none';
-    document.getElementById('session-live').style.display = 'block';
-  }
-
-  function startSessionTimer() {
-    sessionSeconds = 0;
-    if (sessionTimerInterval) clearInterval(sessionTimerInterval);
-    sessionTimerInterval = setInterval(() => {
-      sessionSeconds++;
-      const m = Math.floor(sessionSeconds / 60);
-      const s = sessionSeconds % 60;
-      const el = document.getElementById('session-timer');
-      if (el) el.textContent = m + ':' + String(s).padStart(2, '0');
-    }, 1000);
-  }
-
-  const THERAPIST_PROMPTS = {
-    quiz:      ["Before we start — ask: \"How are you feeling about testing your knowledge today?\"","They just answered a question. Ask: \"What made you choose that answer?\"","Check in: \"Is any of this bringing up things you've experienced yourself?\"","Encourage: \"You're doing great. What's feeling most familiar to you so far?\"","Reflect: \"Which question felt hardest? Why do you think that is?\"","Wrap up: \"What's one thing from this quiz you want to remember this week?\""],
-    breathing: ["Before starting: \"Where do you feel stress most in your body right now?\"","They're beginning to breathe. Gently say: \"Just follow the circle — no pressure.\"","Mid-exercise: \"Notice anything shifting? Even a tiny bit of calm counts.\"","Check in: \"Is this pace comfortable, or would you like to try a different technique?\"","Finishing up: \"What did you notice in your body during that exercise?\"","Close: \"When could you use this technique on your own this week?\""],
-    journal:   ["Before writing: \"There are no wrong answers here — just honest ones.\"","They're writing. Give them space. When ready: \"Want to share anything you wrote?\"","Follow up: \"What felt surprising or hard to write?\"","Go deeper: \"If you could say one more thing about that, what would it be?\"","Connect: \"How does what you wrote connect to something in your life right now?\"","Close: \"What do you want to carry with you from what you wrote today?\""],
-    emotions:  ["Before selecting: \"Don't overthink it — just go with your gut feeling right now.\"","They picked an emotion. Ask: \"When did you first notice feeling this way today?\"","Go deeper: \"Where do you feel that emotion in your body?\"","Explore: \"Has this feeling been visiting you often lately?\"","Coping: \"Of the strategies shown, which one feels most doable for you?\"","Close: \"What would it feel like to give yourself permission to feel this without judgment?\""]
-  };
-
-  function updatePrompts(activityType, step) {
-    const prompts = THERAPIST_PROMPTS[activityType] || THERAPIST_PROMPTS.quiz;
-    const currentEl = document.getElementById('current-prompt');
-    const queueEl   = document.getElementById('prompt-queue');
-    if (!currentEl || !queueEl) return;
-    const idx = Math.min(step || 0, prompts.length - 1);
-    currentEl.textContent = prompts[idx];
-    const upcoming = prompts.slice(idx + 1, idx + 3);
-    queueEl.innerHTML = upcoming.length
-      ? '<p class="upcoming-label">Coming up:</p>' + upcoming.map(p => `<div class="upcoming-prompt">${p}</div>`).join('')
-      : '';
-  }
-
-  function addResponseToPanel(response) {
-    const list = document.getElementById('responses-list-live');
-    if (!list) return;
-    let data = response.response_data;
-    if (typeof data === 'string') { try { data = JSON.parse(data); } catch(e) {} }
-    if (data?.type === 'xp_update') return;
-    let label = '', content = '';
-    if (data?.emotion) {
-      label = 'Emotion Check-in';
-      content = `<span style="font-size:22px">${data.icon || ''}</span> <strong>${data.emotion}</strong>`;
-    } else if (data?.correct !== undefined) {
-      const ok = data.correct;
-      label = ok ? 'Quiz — Correct' : 'Quiz — Incorrect';
-      content = `<div style="font-size:12px;color:#7B7899;margin-bottom:5px;">${data.question || ''}</div>
-        <span style="background:${ok?'#edfbf0':'#fff0eb'};color:${ok?'#1E6B2E':'#9E3A1E'};padding:3px 10px;border-radius:4px;font-weight:600;font-size:13px;">${ok?'✓':'✗'} ${data.answer || ''}</span>`;
-    } else if (data?.completed === true && data?.cycles !== undefined) {
-      label = 'Breathing Exercise';
-      content = `✅ Completed ${data.cycles} cycles`;
-    } else if (data?.response !== undefined) {
-      label = 'Journal Response';
-      const excerpt = data.response.length > 120 ? data.response.slice(0, 120) + '…' : data.response;
-      content = `<div style="font-size:11px;color:#7B7899;margin-bottom:4px;font-style:italic;">${(data.prompt||'').slice(0,80)}</div>${excerpt}`;
-    } else { return; }
-    const div = document.createElement('div');
-    div.className = 'response-item';
-    div.innerHTML = `<div class="response-step">${label}</div><div class="response-content">${content}</div>`;
-    list.appendChild(div);
-  }
-
-  async function endSession(skipConfirm = false) {
-    if (!activeSession) return;
-    if (!skipConfirm && !confirm('End this session? A summary will be saved.')) return;
-    await db.from('sessions').update({ status: 'completed' }).eq('id', activeSession.id);
-    const { data: responses } = await db.from('session_responses').select('*').eq('session_id', activeSession.id).order('created_at', { ascending: true });
-    const mins = Math.floor(sessionSeconds / 60);
-    const secs = sessionSeconds % 60;
-    const duration = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
-    if (sessionListener) sessionListener.unsubscribe();
-    if (sessionTimerInterval) clearInterval(sessionTimerInterval);
-    closeSessionPanel();
-    activeSession = null;
-    if (currentClient) { loadActivities(); loadClientStats(); loadSessionHistory(); }
-  }
-
-  function closeSessionPanel() {
-    const panel = document.getElementById('session-panel');
-    if (panel) { panel.classList.remove('open'); setTimeout(() => panel.remove(), 300); }
+    if (error) {
+      document.getElementById('session-status-text').textContent = 'Error creating session. Try again.';
+      btn.disabled = false;
+      btn.textContent = 'Retry';
+    } else {
+      document.getElementById('session-code-display').textContent = code;
+      document.getElementById('session-status-text').textContent  = 'Share this code with your client to start';
+      btn.textContent = 'Created ✓';
+      loadSessionHistory();
+      loadClientStats();
+    }
   }
 
   /* ─────────────────────────────────────────
@@ -2080,64 +1815,8 @@
     if (!iso) return '—';
     return new Date(iso).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
   }
-
-  /* ─────────────────────────────────────────
-     PAST CLIENTS
-  ───────────────────────────────────────── */
-  async function renderPastClients() {
-    const { data: { user } } = await db.auth.getUser();
-    const { data: clients } = await db.from('clients').select('*, activities(id,done)').eq('user_id', user.id).eq('archived', true).order('archived_at', { ascending: false }).then(r => r).catch(() => ({ data: [] }));
-    const section = document.getElementById('past-clients-section');
-    const grid    = document.getElementById('past-client-grid');
-    if (!clients?.length) { section.style.display = 'none'; return; }
-    section.style.display = '';
-    grid.innerHTML = clients.map(c => {
-      const archivedStr = c.archived_at ? formatDate(c.archived_at) : '';
-      return `<div class="past-client-row">
-        <div class="past-client-av">${c.avatar || '🌿'}</div>
-        <div>
-          <div class="past-client-name">${c.name}</div>
-          <div class="past-client-meta">Client since ${formatDate(c.created_at)}${archivedStr ? ' · Archived ' + archivedStr : ''}</div>
-        </div>
-        <button onclick="restoreClient('${c.id}')" style="font-size:11px;font-weight:500;color:var(--hunter-green);background:var(--green-light);border:0.5px solid var(--border-strong);border-radius:4px;padding:5px 12px;cursor:pointer;margin-left:auto;">Restore</button>
-        <button onclick="deleteClient('${c.id}')" style="font-size:11px;font-weight:500;color:#c0392b;background:none;border:0.5px solid #e8c4c4;border-radius:4px;padding:5px 12px;cursor:pointer;margin-left:6px;">Delete</button>
-      </div>`;
-    }).join('');
-  }
-
-  async function archiveClient(id, name) {
-    if (!confirm(`Archive ${name || 'this client'}? Their records will be preserved in Past Clients.`)) return;
-    await db.from('clients').update({ archived: true, archived_at: new Date().toISOString() }).eq('id', id);
-    renderClientGrid();
-  }
-
-  async function restoreClient(id) {
-    await db.from('clients').update({ archived: false, archived_at: null }).eq('id', id);
-    renderClientGrid();
-  }
-
-  async function deleteClient(id) {
-    if (!confirm('Permanently delete this client and all their data? This cannot be undone.')) return;
-    await db.from('session_summaries').delete().eq('client_id', id);
-    await db.from('session_responses').delete().eq('client_id', id);
-    await db.from('sessions').delete().eq('client_id', id);
-    const { data: acts } = await db.from('activities').select('id').eq('client_id', id);
-    if (acts?.length) await db.from('scores').delete().in('activity_id', acts.map(a => a.id));
-    await db.from('activities').delete().eq('client_id', id);
-    await db.from('clients').delete().eq('id', id);
-    renderClientGrid();
-  }
-
-  /* ─────────────────────────────────────────
-     KEYBOARD SHORTCUTS
-  ───────────────────────────────────────── */
-  document.getElementById('si-pass')?.addEventListener('keydown', e => { if (e.key === 'Enter') doSignIn(); });
-  document.getElementById('cl-name')?.addEventListener('keydown', e => { if (e.key === 'Enter') saveClient(); });
-  document.getElementById('ls-name')?.addEventListener('keydown', e => { if (e.key === 'Enter') saveLesson(); });
-  document.getElementById('score-input')?.addEventListener('keydown', e => { if (e.key === 'Enter') saveScore(); });
-  document.getElementById('note-textarea')?.addEventListener('keydown', e => { if (e.key === 'Enter' && e.metaKey) saveNote(); });
-  document.getElementById('hw-title')?.addEventListener('keydown', e => { if (e.key === 'Enter') saveHomework(); });
   </script>
 
+  <script src="src/clinical/app.js"></script>
 </body>
 </html>
