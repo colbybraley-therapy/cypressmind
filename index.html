@@ -8,7 +8,7 @@
   <link rel="stylesheet" href="styles/globals.css" />
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,700;1,400&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
@@ -17,757 +17,642 @@
       --royal-blue: #4169E1;
       --purple: #6B3FA0;
       --green-dark: #2A4A2F;
+      --green-mid: #4A7C52;
       --green-light: #F0F5F0;
-      --off-white: #F8FAF9; /* Brand guide: Off-White */
+      --green-faint: #F8FBF8;
+      --off-white: #F8FAF9;
       --ink: #1A2E1A;
       --slate: #4B5563;
+      --slate-light: #6B7280;
       --border: #E2E8E2;
+      --border-strong: #C8D8C8;
       --serif: 'Playfair Display', Georgia, serif;
       --sans: 'DM Sans', system-ui, sans-serif;
+      --mono: 'DM Mono', monospace;
+      --shadow-sm: 0 1px 3px rgba(26,46,26,0.06), 0 1px 2px rgba(26,46,26,0.04);
+      --shadow-md: 0 4px 12px rgba(26,46,26,0.08), 0 2px 4px rgba(26,46,26,0.05);
+      --shadow-lg: 0 12px 32px rgba(26,46,26,0.10), 0 4px 8px rgba(26,46,26,0.06);
     }
 
-    * { box-sizing: border-box; }
-    body { font-family: var(--sans); background: var(--off-white); color: var(--ink); margin: 0; max-width: none; padding: 0; }
-    .page { padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: var(--sans); background: var(--off-white); color: var(--ink); }
+
+    /* ── PAGE SYSTEM ── */
+    .page { display: none; }
+    .page.active { display: block; }
+    @keyframes fadeSlideIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    .animate-in { animation: fadeSlideIn 0.4s cubic-bezier(0.4,0,0.2,1) both; }
+    .stagger-1 { animation-delay: 0.05s; }
+    .stagger-2 { animation-delay: 0.10s; }
+    .stagger-3 { animation-delay: 0.15s; }
+    .stagger-4 { animation-delay: 0.20s; }
+    .stagger-5 { animation-delay: 0.25s; }
+    .stagger-6 { animation-delay: 0.30s; }
 
     /* ── LANDING NAV ── */
     .landing-nav {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 100px;
-      padding: 0 48px;
-      background: #fff;
-      border-bottom: 0.5px solid var(--border);
-      position: sticky;
-      top: 0;
-      z-index: 100;
-    }
-    .landing-logo {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      text-decoration: none;
-      cursor: default;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 84px; padding: 0 48px;
+      background: #fff; border-bottom: 0.5px solid var(--border);
+      position: sticky; top: 0; z-index: 100;
     }
     .nav-right { display: flex; align-items: center; gap: 12px; }
     .nav-ghost-btn {
-      font-family: var(--sans);
-      font-size: 13px;
-      font-weight: 500;
-      color: var(--hunter-green);
-      background: var(--green-light);
-      border: 0.5px solid var(--hunter-green);
-      padding: 8px 20px;
-      border-radius: 4px;
-      cursor: pointer;
-      letter-spacing: 0.02em;
-      transition: background 0.15s;
+      font-family: var(--sans); font-size: 13px; font-weight: 500;
+      color: var(--hunter-green); background: var(--green-light);
+      border: 0.5px solid var(--hunter-green); padding: 8px 20px;
+      border-radius: 4px; cursor: pointer; letter-spacing: 0.02em; transition: background 0.15s;
     }
     .nav-ghost-btn:hover { background: #dceadc; }
     .signin-wrap { position: relative; }
     .nav-signin-btn {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      font-family: var(--sans);
-      font-size: 13px;
-      font-weight: 400;
-      color: var(--slate);
-      background: none;
-      border: 0.5px solid var(--border);
-      padding: 8px 16px;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: border-color 0.15s;
+      display: flex; align-items: center; gap: 6px;
+      font-family: var(--sans); font-size: 13px; font-weight: 400;
+      color: var(--slate); background: none; border: 0.5px solid var(--border);
+      padding: 8px 16px; border-radius: 4px; cursor: pointer; transition: border-color 0.15s;
     }
     .nav-signin-btn:hover { border-color: #aaa; }
     .signin-panel {
-      display: none;
-      position: absolute;
-      right: 0;
-      top: calc(100% + 10px);
-      background: #fff;
-      border: 0.5px solid var(--border);
-      border-radius: 6px;
-      padding: 24px;
-      width: 300px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.08);
-      z-index: 200;
+      display: none; position: absolute; right: 0; top: calc(100% + 10px);
+      background: #fff; border: 0.5px solid var(--border); border-radius: 6px;
+      padding: 24px; width: 300px; box-shadow: var(--shadow-lg); z-index: 200;
     }
     .signin-panel.open { display: block; }
-    .signin-panel-title {
-      font-family: var(--serif);
-      font-size: 17px;
-      font-weight: 500;
-      color: var(--ink);
-      margin: 0 0 16px;
-    }
+    .signin-panel-title { font-family: var(--serif); font-size: 17px; font-weight: 500; color: var(--ink); margin: 0 0 16px; }
 
-    /* ── STORY / FEATURES SECTION ── */
-    .story-section {
-      background: #fff;
-      padding: 80px 0;
-      border-top: 0.5px solid var(--border);
-    }
-    .section-inner {
-      max-width: 1120px;
-      margin: 0 auto;
-      padding: 0 20px;
-    }
-    @media (min-width: 640px) {
-      .section-inner { padding: 0 48px; }
-    }
-    .section-label {
-      font-size: 10px;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--hunter-green);
-      font-weight: 500;
-      margin-bottom: 40px;
-    }
-    .story-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 0;
-      border: 0.5px solid var(--border);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-    .story-card { border-bottom: 0.5px solid var(--border); }
-    .story-card:last-child { border-bottom: none; }
-    @media (min-width: 640px) {
-      .story-grid { grid-template-columns: repeat(2, 1fr); }
-      .story-card:nth-child(3),
-      .story-card:nth-child(4) { border-bottom: none; }
-      .story-card:nth-child(1),
-      .story-card:nth-child(2) { border-bottom: 0.5px solid var(--border); }
-      .story-card:last-child { border-bottom: none; }
-    }
-    .story-card {
-      padding: 36px 32px;
-      border-right: 0.5px solid var(--border);
-      background: var(--off-white);
-    }
-    .story-card:last-child { border-right: none; }
-    .story-icon {
-      font-size: 18px;
-      margin-bottom: 16px;
-      width: 40px;
-      height: 40px;
-      background: var(--green-light);
-      border-radius: 6px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-    .story-card h3 {
-      font-family: var(--serif);
-      font-size: 17px;
-      font-weight: 500;
-      color: var(--ink);
-      margin: 0 0 10px;
-    }
-    .story-card p {
-      font-size: 14px;
-      color: var(--slate);
-      line-height: 1.7;
-      margin: 0;
-    }
+    /* ── STORY SECTION ── */
+    .story-section { background: #fff; padding: 80px 0; border-top: 0.5px solid var(--border); }
+    .section-inner { max-width: 1120px; margin: 0 auto; padding: 0 48px; }
+    .section-label { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--hunter-green); font-weight: 500; margin-bottom: 40px; }
+    .story-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0; border: 0.5px solid var(--border); border-radius: 8px; overflow: hidden; }
+    .story-card { padding: 36px 32px; border-bottom: 0.5px solid var(--border); border-right: 0.5px solid var(--border); background: var(--off-white); }
+    .story-card:nth-child(2n) { border-right: none; }
+    .story-card:nth-last-child(-n+2) { border-bottom: none; }
+    .story-icon { font-size: 18px; margin-bottom: 16px; width: 40px; height: 40px; background: var(--green-light); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+    .story-card h3 { font-family: var(--serif); font-size: 17px; font-weight: 500; color: var(--ink); margin: 0 0 10px; }
+    .story-card p { font-size: 14px; color: var(--slate); line-height: 1.7; margin: 0; }
 
     /* ── SHOWCASE SECTION ── */
-    .showcase-section {
-      padding: 80px 0;
-      background: var(--off-white);
-      border-top: 0.5px solid var(--border);
-    }
-    .showcase-title {
-      font-family: var(--serif);
-      font-size: 32px;
-      font-weight: 500;
-      color: var(--ink);
-      margin: 0 0 48px;
-    }
-    .showcase-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 14px;
-    }
-    @media (max-width: 640px) {
-      .showcase-grid { grid-template-columns: repeat(2, 1fr); }
-    }
-    .showcase-card {
-      position: relative;
-      border-radius: 16px;
-      overflow: hidden;
-      cursor: pointer;
-      aspect-ratio: 3 / 4;
-      border: 0.5px solid rgba(0,0,0,0.08);
-      transition: transform 0.2s, box-shadow 0.2s;
-      background: #fff;
-    }
-    .showcase-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 12px 32px rgba(53,94,59,0.13);
-    }
-    .showcase-card img {
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      object-position: center center;
-      display: block;
-    }
-    .showcase-card-overlay {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to bottom, rgba(0,0,0,0) 35%, rgba(0,0,0,0.72) 100%);
-    }
-    .showcase-card-content {
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
-      padding: 1rem 1rem 1.2rem;
-      color: #fff;
-    }
-    .showcase-name {
-      font-family: var(--serif);
-      font-size: 17px;
-      font-weight: 500;
-      margin-bottom: 3px;
-      color: #fff;
-    }
-    .showcase-desc {
-      font-size: 11px;
-      color: #fff;
-      opacity: 0.78;
-      font-style: italic;
-      line-height: 1.5;
-      margin-bottom: 10px;
-    }
-    .showcase-traits {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 4px;
-      margin-top: 10px;
-    }
-    .showcase-trait-pill {
-      font-size: 10px;
-      font-weight: 500;
-      padding: 2px 9px;
-      border-radius: 20px;
-      background: rgba(255,255,255,0.18);
-      color: #fff;
-      backdrop-filter: blur(4px);
-      border: 0.5px solid rgba(255,255,255,0.28);
-    }
+    .showcase-section { padding: 80px 0; background: var(--off-white); border-top: 0.5px solid var(--border); }
+    .showcase-title { font-family: var(--serif); font-size: 32px; font-weight: 500; color: var(--ink); margin: 0 0 48px; }
+    .showcase-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+    .showcase-card { position: relative; border-radius: 16px; overflow: hidden; cursor: pointer; aspect-ratio: 3/4; border: 0.5px solid rgba(0,0,0,0.08); transition: transform 0.2s, box-shadow 0.2s; background: #fff; }
+    .showcase-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+    .showcase-card img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center center; display: block; }
+    .showcase-card-overlay { position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0) 35%, rgba(0,0,0,0.72) 100%); }
+    .showcase-card-content { position: absolute; bottom: 0; left: 0; right: 0; padding: 1rem 1rem 1.2rem; color: #fff; }
+    .showcase-name { font-family: var(--serif); font-size: 17px; font-weight: 500; margin-bottom: 3px; color: #fff; }
+    .showcase-desc { font-size: 11px; color: rgba(255,255,255,0.78); font-style: italic; line-height: 1.5; margin-bottom: 10px; }
+    .showcase-traits { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 10px; }
+    .showcase-trait-pill { font-size: 10px; font-weight: 500; padding: 2px 9px; border-radius: 20px; background: rgba(255,255,255,0.18); color: #fff; backdrop-filter: blur(4px); border: 0.5px solid rgba(255,255,255,0.28); }
 
     /* ── CHARACTER DRAWER ── */
-    .char-drawer-backdrop {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.35);
-      z-index: 200;
-      backdrop-filter: blur(2px);
-    }
+    .char-drawer-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.35); z-index: 200; backdrop-filter: blur(2px); }
     .char-drawer-backdrop.open { display: block; }
-
-    .char-drawer {
-      position: fixed;
-      top: 0; right: 0; bottom: 0;
-      width: 380px;
-      max-width: 92vw;
-      background: #fff;
-      z-index: 201;
-      display: flex;
-      flex-direction: column;
-      transform: translateX(100%);
-      transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
-      overflow-y: auto;
-    }
+    .char-drawer { position: fixed; top: 0; right: 0; bottom: 0; width: 380px; max-width: 92vw; background: #fff; z-index: 201; display: flex; flex-direction: column; transform: translateX(100%); transition: transform 0.32s cubic-bezier(0.4,0,0.2,1); overflow-y: auto; }
     .char-drawer.open { transform: translateX(0); }
-
-    .drawer-hero {
-      padding: 1.5rem 1.5rem 1rem;
-      border-bottom: 0.5px solid rgba(0,0,0,0.08);
-    }
-    .drawer-close {
-      display: flex;
-      justify-content: flex-end;
-      margin-bottom: 1rem;
-    }
-    .drawer-close button {
-      background: none;
-      border: 0.5px solid rgba(0,0,0,0.12);
-      border-radius: 8px;
-      padding: 4px 10px;
-      font-size: 18px;
-      color: #aaa;
-      cursor: pointer;
-      line-height: 1;
-    }
+    .drawer-hero { padding: 1.5rem 1.5rem 1rem; border-bottom: 0.5px solid rgba(0,0,0,0.08); }
+    .drawer-close { display: flex; justify-content: flex-end; margin-bottom: 1rem; }
+    .drawer-close button { background: none; border: 0.5px solid rgba(0,0,0,0.12); border-radius: 8px; padding: 4px 10px; font-size: 18px; color: #aaa; cursor: pointer; line-height: 1; }
     .drawer-close button:hover { background: #f5f4f0; }
-
-    .drawer-icon {
-      width: 52px; height: 52px;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 24px;
-      margin-bottom: 0.75rem;
-    }
-    .drawer-name {
-      font-family: var(--serif);
-      font-size: 22px;
-      font-weight: 500;
-      color: #1a1a1a;
-      margin-bottom: 3px;
-    }
+    .drawer-icon { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; margin-bottom: 0.75rem; }
+    .drawer-name { font-family: var(--serif); font-size: 22px; font-weight: 500; color: #1a1a1a; margin-bottom: 3px; }
     .drawer-vibe { font-size: 13px; color: #999; font-style: italic; margin-bottom: 0.75rem; }
     .drawer-theme-pills { display: flex; flex-wrap: wrap; gap: 5px; }
-    .drawer-theme-pill {
-      font-size: 11px;
-      font-weight: 500;
-      padding: 3px 11px;
-      border-radius: 20px;
-    }
-
+    .drawer-theme-pill { font-size: 11px; font-weight: 500; padding: 3px 11px; border-radius: 20px; }
     .drawer-body { padding: 1.1rem 1.5rem; border-bottom: 0.5px solid rgba(0,0,0,0.08); }
-    .drawer-section-label {
-      font-size: 10px;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #ccc;
-      margin-bottom: 6px;
-    }
-    .drawer-section-text {
-      font-size: 14px;
-      color: #2a2a2a;
-      line-height: 1.65;
-      margin-bottom: 1rem;
-    }
+    .drawer-section-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: #ccc; margin-bottom: 6px; }
+    .drawer-section-text { font-size: 14px; color: #2a2a2a; line-height: 1.65; margin-bottom: 1rem; }
     .drawer-section-text:last-child { margin-bottom: 0; }
+    .drawer-copy { padding: 1.1rem 1.5rem; background: #fafaf8; }
+    .drawer-copy-label { font-size: 10px; font-weight: 500; text-transform: uppercase; letter-spacing: 0.08em; color: #185FA5; margin-bottom: 7px; }
+    .drawer-copy-text { font-size: 14px; color: #2a2a2a; line-height: 1.75; }
 
-    .drawer-copy {
-      padding: 1.1rem 1.5rem;
-      background: #fafaf8;
-    }
-    .drawer-copy-label {
-      font-size: 10px;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: #185FA5;
-      margin-bottom: 7px;
-    }
-    .drawer-copy-text {
-      font-size: 14px;
-      color: #2a2a2a;
-      line-height: 1.75;
-    }
-
-    /* ── CTA BLOCK ── */
-    .landing-cta-block {
-      background: var(--ink);
-      padding: 80px 48px;
-      text-align: center;
-    }
-    .landing-cta-block h2 {
-      font-family: var(--serif);
-      font-size: 34px;
-      font-weight: 500;
-      color: #fff;
-      margin: 0 0 12px;
-    }
-    .landing-cta-block p {
-      font-size: 16px;
-      color: rgba(255,255,255,0.65);
-      margin: 0 0 32px;
-    }
-    .hero-cta {
-      background: var(--hunter-green);
-      color: #fff;
-      font-family: var(--sans);
-      font-size: 14px;
-      font-weight: 500;
-      padding: 14px 32px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      letter-spacing: 0.03em;
-      transition: background 0.15s;
-    }
+    /* ── CTA / FOOTER ── */
+    .landing-cta-block { background: var(--ink); padding: 80px 48px; text-align: center; }
+    .landing-cta-block h2 { font-family: var(--serif); font-size: 34px; font-weight: 500; color: #fff; margin: 0 0 12px; }
+    .landing-cta-block p { font-size: 16px; color: rgba(255,255,255,0.65); margin: 0 0 32px; }
+    .hero-cta { background: var(--hunter-green); color: #fff; font-family: var(--sans); font-size: 14px; font-weight: 500; padding: 14px 32px; border: none; border-radius: 4px; cursor: pointer; letter-spacing: 0.03em; transition: background 0.15s; }
     .hero-cta:hover { background: var(--green-dark); }
-
-    /* ── FOOTER ── */
-    .landing-footer {
-      background: var(--ink);
-      border-top: 0.5px solid rgba(255,255,255,0.1);
-      padding: 20px 48px;
-      font-size: 12px;
-      color: rgba(255,255,255,0.4);
-      letter-spacing: 0.04em;
-      text-align: center;
-    }
+    .landing-footer { background: var(--ink); border-top: 0.5px solid rgba(255,255,255,0.1); padding: 20px 48px; font-size: 12px; color: rgba(255,255,255,0.4); letter-spacing: 0.04em; text-align: center; }
 
     /* ── SHARED FORM STYLES ── */
-    .page { display: none; }
-    .page.active { display: block; }
-
     .center { text-align: center; padding: 48px 24px 24px; }
-    .eyebrow {
-      font-size: 10px;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      color: var(--hunter-green);
-      font-weight: 500;
-      margin-bottom: 12px;
-    }
-    .center h1 {
-      font-family: var(--serif);
-      font-size: 28px;
-      font-weight: 500;
-      color: var(--ink);
-      margin: 0 0 8px;
-    }
+    .eyebrow { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--hunter-green); font-weight: 500; margin-bottom: 12px; }
+    .center h1 { font-family: var(--serif); font-size: 28px; font-weight: 500; color: var(--ink); margin: 0 0 8px; }
     .sub { font-size: 14px; color: var(--slate); margin: 0; }
-
-    .card {
-      background: #fff;
-      border: 0.5px solid var(--border);
-      border-radius: 8px;
-      padding: 32px;
-      max-width: 400px;
-      margin: 0 auto 48px;
-    }
-
+    .card { background: #fff; border: 0.5px solid var(--border); border-radius: 8px; padding: 32px; max-width: 400px; margin: 0 auto 48px; }
     .field { margin-bottom: 16px; }
-    .field label {
-      display: block;
-      font-size: 11px;
-      font-weight: 500;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--slate);
-      margin-bottom: 6px;
-    }
-    .field input, .field select {
-      width: 100%;
-      padding: 10px 12px;
-      border: 0.5px solid var(--border);
-      border-radius: 4px;
-      font-family: var(--sans);
-      font-size: 14px;
-      color: var(--ink);
-      background: var(--off-white);
-      outline: none;
-      transition: border-color 0.15s;
-    }
-    .field input:focus { border-color: var(--hunter-green); background: #fff; }
-
+    .field label { display: block; font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--slate); margin-bottom: 6px; }
+    .field input, .field select { width: 100%; padding: 10px 12px; border: 0.5px solid var(--border); border-radius: 4px; font-family: var(--sans); font-size: 14px; color: var(--ink); background: var(--off-white); outline: none; transition: border-color 0.15s; }
+    .field input:focus, .field select:focus { border-color: var(--hunter-green); background: #fff; }
     .err { font-size: 12px; color: #c0392b; margin-bottom: 12px; min-height: 18px; }
-
-    .btn-primary {
-      width: 100%;
-      background: var(--hunter-green);
-      color: #fff;
-      font-family: var(--sans);
-      font-size: 14px;
-      font-weight: 500;
-      padding: 11px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      letter-spacing: 0.02em;
-      transition: background 0.15s;
-    }
+    .btn-primary { width: 100%; background: var(--hunter-green); color: #fff; font-family: var(--sans); font-size: 14px; font-weight: 500; padding: 11px; border: none; border-radius: 4px; cursor: pointer; letter-spacing: 0.02em; transition: background 0.15s; }
     .btn-primary:hover { background: var(--green-dark); }
-
-    .or-divider {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      margin: 16px 0;
-      font-size: 12px;
-      color: #aaa;
-    }
-    .or-divider::before, .or-divider::after {
-      content: '';
-      flex: 1;
-      height: 0.5px;
-      background: var(--border);
-    }
-
-    .btn-google {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      background: #fff;
-      border: 0.5px solid var(--border);
-      border-radius: 4px;
-      padding: 10px;
-      font-family: var(--sans);
-      font-size: 13px;
-      color: var(--ink);
-      cursor: pointer;
-      transition: border-color 0.15s, background 0.15s;
-    }
+    .or-divider { display: flex; align-items: center; gap: 12px; margin: 16px 0; font-size: 12px; color: #aaa; }
+    .or-divider::before, .or-divider::after { content: ''; flex: 1; height: 0.5px; background: var(--border); }
+    .btn-google { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; background: #fff; border: 0.5px solid var(--border); border-radius: 4px; padding: 10px; font-family: var(--sans); font-size: 13px; color: var(--ink); cursor: pointer; transition: border-color 0.15s, background 0.15s; }
     .btn-google:hover { border-color: #aaa; background: var(--off-white); }
-
     .link-row { font-size: 13px; color: var(--slate); margin-top: 16px; text-align: center; }
     .link-row a { color: var(--hunter-green); text-decoration: none; font-weight: 500; }
 
     /* ── APP TOPBAR ── */
-    .topbar {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 16px 40px;
-      background: #fff;
-      border-bottom: 0.5px solid var(--border);
-      position: sticky;
-      top: 0;
-      z-index: 50;
-    }
-    .user-chip {
-      font-family: var(--serif);
-      font-size: 16px;
-      font-weight: 500;
-      color: var(--ink);
-    }
-    .user-sub {
-      font-size: 11px;
-      color: var(--slate);
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      margin-top: 2px;
-    }
-
-    .add-btn {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      background: var(--hunter-green);
-      color: #fff;
-      font-family: var(--sans);
-      font-size: 12px;
-      font-weight: 500;
-      padding: 8px 16px;
-      border: none;
-      border-radius: 4px;
-      cursor: pointer;
-      letter-spacing: 0.02em;
-      transition: background 0.15s;
-    }
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding: 0 40px; height: 64px; background: #fff; border-bottom: 0.5px solid var(--border); position: sticky; top: 0; z-index: 50; }
+    .user-chip { font-family: var(--serif); font-size: 16px; font-weight: 500; color: var(--ink); }
+    .user-sub { font-size: 11px; color: var(--slate); letter-spacing: 0.06em; text-transform: uppercase; margin-top: 2px; }
+    .add-btn { display: flex; align-items: center; gap: 6px; background: var(--hunter-green); color: #fff; font-family: var(--sans); font-size: 12px; font-weight: 500; padding: 8px 16px; border: none; border-radius: 4px; cursor: pointer; letter-spacing: 0.02em; transition: background 0.15s; }
     .add-btn:hover { background: var(--green-dark); }
-
-    .btn-outline {
-      font-family: var(--sans);
-      font-size: 12px;
-      color: var(--slate);
-      background: none;
-      border: 0.5px solid var(--border);
-      padding: 8px 16px;
-      border-radius: 4px;
-      cursor: pointer;
-      transition: border-color 0.15s;
-    }
+    .btn-outline { font-family: var(--sans); font-size: 12px; color: var(--slate); background: none; border: 0.5px solid var(--border); padding: 8px 16px; border-radius: 4px; cursor: pointer; transition: border-color 0.15s; }
     .btn-outline:hover { border-color: #aaa; }
 
-    /* ── CLIENT GRID ── */
-    #pg-app { padding: 40px; min-height: 100vh; }
+    /* ── CLIENT GRID (Roster page) ── */
+    #pg-app { min-height: 100vh; }
     #pg-app .section-label { margin-bottom: 20px; }
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 1px;
-      background: var(--border);
-      border: 0.5px solid var(--border);
-      border-radius: 8px;
-      overflow: hidden;
-    }
-
-    /* ── CLIENT PROFILE ── */
-    #pg-client { padding: 40px; min-height: 100vh; }
-    .back-btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      font-family: var(--sans);
-      font-size: 12px;
-      font-weight: 500;
-      color: var(--slate);
-      background: none;
-      border: 0.5px solid var(--border);
-      padding: 7px 14px;
-      border-radius: 4px;
-      cursor: pointer;
-      letter-spacing: 0.03em;
-      margin-bottom: 32px;
-      transition: border-color 0.15s;
-      text-transform: uppercase;
-    }
-    .back-btn:hover { border-color: #aaa; color: var(--ink); }
-
-    .profile-head {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      margin-bottom: 32px;
-      padding-bottom: 32px;
-      border-bottom: 0.5px solid var(--border);
-    }
-    .profile-av {
-      width: 56px;
-      height: 56px;
-      border-radius: 6px;
-      border: 0.5px solid var(--border);
-      font-size: 28px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: var(--off-white);
-    }
-    .profile-name {
-      font-family: var(--serif);
-      font-size: 24px;
-      font-weight: 500;
-      color: var(--ink);
-    }
-    .profile-since {
-      font-size: 12px;
-      color: var(--slate);
-      margin-top: 4px;
-      letter-spacing: 0.04em;
-    }
-
-    .stats-row {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 1px;
-      background: var(--border);
-      border: 0.5px solid var(--border);
-      border-radius: 8px;
-      overflow: hidden;
-      margin-bottom: 40px;
-      max-width: 480px;
-    }
-    .stat-card {
-      background: #fff;
-      padding: 20px 24px;
-      text-align: center;
-    }
-    .stat-val {
-      font-family: var(--serif);
-      font-size: 28px;
-      font-weight: 500;
-      color: var(--ink);
-    }
-    .stat-lbl {
-      font-size: 10px;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--slate);
-      margin-top: 4px;
-    }
-
-    .lesson-list { display: flex; flex-direction: column; gap: 1px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1px; background: var(--border); border: 0.5px solid var(--border); border-radius: 8px; overflow: hidden; }
 
     /* ── MODAL ── */
-    .overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(26,46,26,0.45);
-      z-index: 300;
-      align-items: center;
-      justify-content: center;
-    }
+    .overlay { display: none; position: fixed; inset: 0; background: rgba(26,46,26,0.45); z-index: 300; align-items: center; justify-content: center; }
     .overlay.open { display: flex; }
-    .modal {
+    .modal { background: #fff; border: 0.5px solid var(--border); border-radius: 8px; padding: 32px; width: 380px; max-width: 95vw; }
+    .modal-title { font-family: var(--serif); font-size: 18px; font-weight: 500; color: var(--ink); margin: 0 0 24px; }
+    .modal-row { display: flex; gap: 8px; margin-top: 24px; justify-content: flex-end; }
+    .btn-cancel { font-family: var(--sans); font-size: 13px; color: var(--slate); background: none; border: 0.5px solid var(--border); padding: 9px 20px; border-radius: 4px; cursor: pointer; }
+    .btn-save { font-family: var(--sans); font-size: 13px; font-weight: 500; color: #fff; background: var(--hunter-green); border: none; padding: 9px 20px; border-radius: 4px; cursor: pointer; transition: background 0.15s; }
+    .btn-save:hover { background: var(--green-dark); }
+    .field-sublabel { font-size: 11px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--slate); margin: 16px 0 8px; }
+    .av-picker { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 8px; }
+    .activity-type-picker { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+
+    /* ═══════════════════════════════════════════════════════
+       CLIENT PROFILE — FULL REDESIGN
+    ═══════════════════════════════════════════════════════ */
+    #pg-client {
+      min-height: 100vh;
+      background: var(--off-white);
+    }
+
+    /* ── Client Hero Banner ── */
+    .client-hero {
       background: #fff;
-      border: 0.5px solid var(--border);
-      border-radius: 8px;
-      padding: 32px;
-      width: 380px;
-      max-width: 95vw;
+      border-bottom: 0.5px solid var(--border);
+      padding: 32px 40px 0;
     }
-    .modal-title {
-      font-family: var(--serif);
-      font-size: 18px;
-      font-weight: 500;
-      color: var(--ink);
-      margin: 0 0 24px;
-    }
-    .modal-row {
+    .client-hero-top {
       display: flex;
-      gap: 8px;
-      margin-top: 24px;
-      justify-content: flex-end;
+      align-items: flex-start;
+      gap: 20px;
+      margin-bottom: 28px;
     }
-    .btn-cancel {
-      font-family: var(--sans);
-      font-size: 13px;
-      color: var(--slate);
-      background: none;
-      border: 0.5px solid var(--border);
-      padding: 9px 20px;
-      border-radius: 4px;
-      cursor: pointer;
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-family: var(--sans); font-size: 11px; font-weight: 500;
+      color: var(--slate-light); background: none; border: 0.5px solid var(--border);
+      padding: 6px 12px; border-radius: 4px; cursor: pointer;
+      letter-spacing: 0.06em; text-transform: uppercase;
+      transition: border-color 0.15s, color 0.15s;
+      flex-shrink: 0; margin-top: 4px;
     }
-    .btn-save {
-      font-family: var(--sans);
-      font-size: 13px;
-      font-weight: 500;
-      color: #fff;
-      background: var(--hunter-green);
-      border: none;
-      padding: 9px 20px;
-      border-radius: 4px;
-      cursor: pointer;
+    .back-btn:hover { border-color: var(--border-strong); color: var(--ink); }
+
+    .client-identity { flex: 1; }
+    .client-av-wrap {
+      display: flex; align-items: center; gap: 16px; margin-bottom: 6px;
+    }
+    .client-av {
+      width: 52px; height: 52px; border-radius: 8px;
+      font-size: 26px; display: flex; align-items: center; justify-content: center;
+      background: var(--green-light); border: 0.5px solid var(--border);
+      flex-shrink: 0;
+    }
+    .client-name-block { }
+    .client-name {
+      font-family: var(--serif); font-size: 26px; font-weight: 500; color: var(--ink); line-height: 1.1;
+    }
+    .client-meta {
+      font-size: 12px; color: var(--slate-light); margin-top: 4px;
+      letter-spacing: 0.04em;
+    }
+    .client-character-pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--green-light); border: 0.5px solid var(--border-strong);
+      border-radius: 20px; padding: 4px 12px;
+      font-size: 12px; color: var(--hunter-green); font-weight: 500;
+    }
+
+    /* ── Stat Strip ── */
+    .stat-strip {
+      display: flex;
+      gap: 0;
+      border-top: 0.5px solid var(--border);
+      margin: 0 -40px;
+    }
+    .strip-stat {
+      flex: 1;
+      padding: 16px 24px;
+      border-right: 0.5px solid var(--border);
+      position: relative;
+    }
+    .strip-stat:last-child { border-right: none; }
+    .strip-val {
+      font-family: var(--serif); font-size: 26px; font-weight: 500; color: var(--ink);
+      display: flex; align-items: baseline; gap: 4px;
+    }
+    .strip-val-unit { font-size: 12px; font-family: var(--sans); color: var(--slate-light); font-weight: 400; }
+    .strip-lbl { font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--slate-light); margin-top: 3px; }
+    .strip-trend {
+      position: absolute; top: 14px; right: 16px;
+      font-size: 10px; font-weight: 600; padding: 2px 7px; border-radius: 10px;
+    }
+    .strip-trend.up { background: #E8F5E9; color: #2E7D32; }
+    .strip-trend.neutral { background: var(--green-light); color: var(--slate-light); }
+
+    /* ── XP Progress Bar ── */
+    .xp-progress-wrap {
+      padding: 12px 40px;
+      background: var(--green-faint);
+      border-bottom: 0.5px solid var(--border);
+      display: flex; align-items: center; gap: 16px;
+    }
+    .xp-level-badge {
+      font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
+      color: var(--hunter-green); font-weight: 600; white-space: nowrap;
+      font-family: var(--mono);
+    }
+    .xp-bar-outer {
+      flex: 1; height: 6px; background: var(--border); border-radius: 99px; overflow: hidden;
+    }
+    .xp-bar-inner {
+      height: 100%;
+      background: linear-gradient(90deg, var(--hunter-green) 0%, var(--royal-blue) 60%, var(--purple) 100%);
+      border-radius: 99px;
+      transition: width 1s cubic-bezier(0.4,0,0.2,1);
+    }
+    .xp-count { font-size: 11px; color: var(--slate-light); font-family: var(--mono); white-space: nowrap; }
+
+    /* ── Main Layout ── */
+    .client-body {
+      display: grid;
+      grid-template-columns: 1fr 340px;
+      gap: 0;
+      min-height: calc(100vh - 300px);
+    }
+
+    .client-main {
+      padding: 32px 40px;
+      border-right: 0.5px solid var(--border);
+    }
+
+    .client-sidebar {
+      padding: 28px 24px;
+      background: #fff;
+    }
+
+    /* ── Section headers ── */
+    .section-head {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 16px;
+    }
+    .section-head-title {
+      font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--slate-light); font-weight: 600;
+    }
+    .section-action {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 11px; font-weight: 500; color: var(--hunter-green);
+      background: var(--green-light); border: 0.5px solid var(--border-strong);
+      padding: 5px 12px; border-radius: 4px; cursor: pointer;
       transition: background 0.15s;
     }
-    .btn-save:hover { background: var(--green-dark); }
+    .section-action:hover { background: #dceadc; }
+    .section-action svg { flex-shrink: 0; }
 
-    .field-sublabel {
-      font-size: 11px;
-      font-weight: 500;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--slate);
-      margin: 16px 0 8px;
+    /* ── Activity Cards ── */
+    .activity-item {
+      display: flex; align-items: center; gap: 14px;
+      background: #fff; border: 0.5px solid var(--border); border-radius: 8px;
+      padding: 14px 16px; margin-bottom: 8px;
+      cursor: pointer;
+      transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+      position: relative; overflow: hidden;
     }
-    .av-picker {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-      margin-bottom: 8px;
+    .activity-item::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; border-radius: 8px 0 0 8px;
+      background: var(--border);
+    }
+    .activity-item.quiz::before { background: var(--purple); }
+    .activity-item.breathing::before { background: var(--royal-blue); }
+    .activity-item.journal::before { background: var(--hunter-green); }
+    .activity-item.emotions::before { background: #E67E22; }
+    .activity-item.homework::before { background: #8B5E3C; }
+    .activity-item:hover { border-color: var(--border-strong); box-shadow: var(--shadow-sm); transform: translateY(-1px); }
+    .activity-item.done { opacity: 0.6; }
+    .activity-icon {
+      width: 38px; height: 38px; border-radius: 8px;
+      background: var(--green-light); font-size: 18px;
+      display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+    }
+    .activity-info { flex: 1; min-width: 0; }
+    .activity-name { font-size: 14px; font-weight: 500; color: var(--ink); margin-bottom: 2px; }
+    .activity-meta { font-size: 11px; color: var(--slate-light); }
+    .activity-status {
+      flex-shrink: 0; font-size: 10px; font-weight: 600; letter-spacing: 0.06em;
+      text-transform: uppercase; padding: 3px 9px; border-radius: 10px;
+    }
+    .activity-status.pending { background: #FFF8E1; color: #B45309; }
+    .activity-status.done { background: #E8F5E9; color: #2E7D32; }
+    .activity-status.homework { background: #F3E8FF; color: var(--purple); }
+
+    .activity-score {
+      font-family: var(--mono); font-size: 13px; font-weight: 500;
+      color: var(--hunter-green); background: var(--green-light);
+      padding: 2px 8px; border-radius: 4px; margin-left: 6px;
     }
 
-    .activity-type-picker {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-bottom: 8px;
+    /* ── Homework Panel ── */
+    .homework-item {
+      display: flex; align-items: flex-start; gap: 12px;
+      background: #fff; border: 0.5px solid var(--border); border-radius: 8px;
+      padding: 14px 16px; margin-bottom: 8px;
+      position: relative; overflow: hidden;
+    }
+    .homework-item::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; border-radius: 8px 0 0 8px; background: #8B5E3C; }
+    .hw-check {
+      width: 20px; height: 20px; border-radius: 4px;
+      border: 1.5px solid var(--border-strong); flex-shrink: 0; margin-top: 1px;
+      display: flex; align-items: center; justify-content: center; cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    .hw-check.checked { background: var(--hunter-green); border-color: var(--hunter-green); }
+    .hw-check.checked::after { content: '✓'; font-size: 11px; color: #fff; font-weight: 700; }
+    .hw-text { flex: 1; }
+    .hw-title { font-size: 13px; font-weight: 500; color: var(--ink); margin-bottom: 2px; }
+    .hw-due { font-size: 11px; color: var(--slate-light); }
+
+    /* ── Progress Chart ── */
+    .progress-chart-wrap {
+      background: #fff; border: 0.5px solid var(--border); border-radius: 8px;
+      padding: 20px; margin-bottom: 24px;
+    }
+    .chart-canvas {
+      width: 100%; height: 80px;
+      display: flex; align-items: flex-end; gap: 6px;
+    }
+    .chart-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .chart-bar {
+      width: 100%; border-radius: 3px 3px 0 0;
+      background: linear-gradient(to top, var(--hunter-green), var(--green-mid));
+      min-height: 4px;
+      transition: height 0.6s cubic-bezier(0.4,0,0.2,1);
+      position: relative;
+    }
+    .chart-bar.empty { background: var(--border); }
+    .chart-label { font-size: 9px; color: var(--slate-light); letter-spacing: 0.04em; text-align: center; }
+
+    /* ── Notes Panel ── */
+    .note-item {
+      padding: 12px 14px;
+      background: var(--green-faint); border: 0.5px solid var(--border);
+      border-radius: 6px; margin-bottom: 8px;
+      position: relative; overflow: hidden;
+    }
+    .note-item::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 2px; background: var(--hunter-green); }
+    .note-text { font-size: 13px; color: var(--ink); line-height: 1.6; margin-bottom: 4px; }
+    .note-date { font-size: 10px; color: var(--slate-light); font-family: var(--mono); }
+    .note-input-wrap { margin-top: 12px; }
+    .note-input {
+      width: 100%; padding: 10px 12px; border: 0.5px solid var(--border);
+      border-radius: 6px; font-family: var(--sans); font-size: 13px;
+      color: var(--ink); background: #fff; resize: none; outline: none;
+      line-height: 1.5; transition: border-color 0.15s;
+      min-height: 72px;
+    }
+    .note-input:focus { border-color: var(--hunter-green); }
+    .note-save-btn {
+      width: 100%; margin-top: 8px; background: var(--ink); color: #fff;
+      font-family: var(--sans); font-size: 12px; font-weight: 500;
+      padding: 8px; border: none; border-radius: 4px; cursor: pointer;
+      letter-spacing: 0.02em; transition: background 0.15s;
+    }
+    .note-save-btn:hover { background: var(--green-dark); }
+
+    /* ── Session History ── */
+    .session-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 10px 0; border-bottom: 0.5px solid var(--border);
+    }
+    .session-row:last-child { border-bottom: none; }
+    .session-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--hunter-green); flex-shrink: 0; }
+    .session-info { flex: 1; }
+    .session-date { font-size: 12px; font-weight: 500; color: var(--ink); }
+    .session-summary { font-size: 11px; color: var(--slate-light); margin-top: 1px; }
+    .session-xp { font-family: var(--mono); font-size: 11px; color: var(--hunter-green); }
+
+    /* ── Empty States ── */
+    .empty-state {
+      text-align: center; padding: 32px 16px;
+      color: var(--slate-light); font-size: 13px; line-height: 1.6;
+    }
+    .empty-state .empty-icon { font-size: 28px; margin-bottom: 8px; opacity: 0.5; }
+
+    /* ── Response Viewer ── */
+    .response-item {
+      background: #fff; border: 0.5px solid var(--border); border-radius: 6px;
+      padding: 12px 14px; margin-bottom: 8px;
+    }
+    .response-label { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--slate-light); margin-bottom: 6px; }
+    .response-text { font-size: 13px; color: var(--ink); line-height: 1.6; }
+    .response-correct { color: #2E7D32; font-weight: 600; font-size: 11px; }
+    .response-wrong { color: #C62828; font-weight: 600; font-size: 11px; }
+
+    /* ── Tab Navigation ── */
+    .tabs {
+      display: flex; gap: 0;
+      border-bottom: 0.5px solid var(--border);
+      margin-bottom: 24px;
+    }
+    .tab {
+      padding: 10px 20px; font-size: 12px; font-weight: 500;
+      color: var(--slate-light); cursor: pointer; border-bottom: 2px solid transparent;
+      letter-spacing: 0.04em; transition: color 0.15s, border-color 0.15s;
+    }
+    .tab:hover { color: var(--ink); }
+    .tab.active { color: var(--hunter-green); border-bottom-color: var(--hunter-green); }
+
+    /* ── Start Session Button ── */
+    .session-start-btn {
+      display: flex; align-items: center; gap: 8px;
+      background: var(--hunter-green); color: #fff;
+      font-family: var(--sans); font-size: 13px; font-weight: 500;
+      padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer;
+      letter-spacing: 0.02em; transition: background 0.15s, transform 0.15s;
+      box-shadow: var(--shadow-sm);
+    }
+    .session-start-btn:hover { background: var(--green-dark); transform: translateY(-1px); }
+    .session-start-btn .pulse-dot {
+      width: 8px; height: 8px; border-radius: 50%; background: #6EE7B7;
+      animation: pulse-dot 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse-dot { 0%,100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } }
+
+    /* ── Pill badges ── */
+    .pill {
+      display: inline-block; font-size: 10px; font-weight: 600;
+      padding: 2px 9px; border-radius: 10px; letter-spacing: 0.04em;
+    }
+    .pill-green { background: #E8F5E9; color: #2E7D32; }
+    .pill-amber { background: #FFF8E1; color: #B45309; }
+    .pill-blue { background: #E3F2FD; color: #1565C0; }
+    .pill-purple { background: #F3E8FF; color: var(--purple); }
+
+    /* ── Sidebar Divider ── */
+    .sidebar-divider { border: none; border-top: 0.5px solid var(--border); margin: 20px 0; }
+
+    /* ── Character display in sidebar ── */
+    .char-display {
+      background: var(--green-faint); border: 0.5px solid var(--border);
+      border-radius: 8px; padding: 16px;
+      display: flex; align-items: center; gap: 12px; margin-bottom: 16px;
+    }
+    .char-img-wrap {
+      width: 48px; height: 64px; border-radius: 6px; overflow: hidden;
+      flex-shrink: 0; border: 0.5px solid var(--border);
+    }
+    .char-img-wrap img { width: 100%; height: 100%; object-fit: cover; object-position: top center; }
+    .char-img-wrap.placeholder { background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 22px; }
+    .char-name { font-family: var(--serif); font-size: 15px; font-weight: 500; color: var(--ink); }
+    .char-archetype { font-size: 11px; color: var(--slate-light); font-style: italic; margin-top: 2px; }
+
+    /* ── Activity type selector ── */
+    .activity-type-btn {
+      display: flex; align-items: center; gap: 12px;
+      padding: 12px 14px; border: 0.5px solid var(--border); border-radius: 6px;
+      cursor: pointer; transition: border-color 0.15s, background 0.15s;
+      background: #fff;
+    }
+    .activity-type-btn:hover { border-color: var(--border-strong); background: var(--green-faint); }
+    .activity-type-btn.selected { border-color: var(--hunter-green); background: var(--green-light); }
+    .activity-type-btn .at-icon { font-size: 20px; width: 32px; text-align: center; }
+    .activity-type-btn .at-label { font-size: 13px; font-weight: 500; color: var(--ink); }
+    .activity-type-btn .at-sub { font-size: 11px; color: var(--slate-light); }
+
+    /* ── ROSTER REDESIGN ── */
+    #pg-app { min-height: 100vh; }
+
+    .roster-body { padding: 28px 40px 48px; background: var(--off-white); }
+
+    .roster-summary {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 28px;
+    }
+    .roster-stat {
+      background: #fff; border: 0.5px solid var(--border); border-radius: 8px; padding: 16px 20px;
+    }
+    .roster-stat-lbl { font-size: 11px; color: var(--slate-light); margin-bottom: 6px; }
+    .roster-stat-val { font-family: var(--serif); font-size: 26px; font-weight: 500; color: var(--ink); }
+    .roster-stat-sub { font-size: 10px; color: var(--slate-light); margin-top: 3px; }
+
+    .roster-section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .roster-section-title { font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--slate-light); font-weight: 500; }
+    .roster-filters { display: flex; gap: 6px; }
+    .roster-filter {
+      font-size: 11px; padding: 4px 12px; border-radius: 20px;
+      border: 0.5px solid var(--border); color: var(--slate-light);
+      cursor: pointer; background: #fff; transition: all 0.15s;
+    }
+    .roster-filter:hover { border-color: var(--border-strong); color: var(--ink); }
+    .roster-filter.active { background: var(--green-light); color: var(--hunter-green); border-color: var(--border-strong); }
+
+    .client-grid-new {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 28px;
     }
 
-    #score-history { margin-top: 16px; }
+    .client-card {
+      background: #fff; border: 0.5px solid var(--border); border-radius: 10px;
+      padding: 18px; cursor: pointer;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+    .client-card:hover { border-color: var(--border-strong); box-shadow: var(--shadow-sm); }
 
-    /* ── ROSTER LABEL ── */
-    #roster-label { padding: 0 40px; margin-top: 32px; }
+    .client-card-top { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 12px; }
+    .client-card-av {
+      width: 38px; height: 38px; border-radius: 8px; background: var(--green-light);
+      display: flex; align-items: center; justify-content: center; font-size: 22px;
+      border: 0.5px solid var(--border); flex-shrink: 0;
+    }
+    .client-card-status { width: 8px; height: 8px; border-radius: 50%; margin-top: 3px; }
+    .client-card-status.active { background: #4A7C52; }
+    .client-card-status.idle { background: var(--border-strong); }
+    .client-card-status.overdue { background: #B45309; }
+
+    .client-card-name {
+      font-family: var(--serif); font-size: 15px; font-weight: 500; color: var(--ink); margin-bottom: 2px;
+    }
+    .client-card-since { font-size: 10px; color: var(--slate-light); margin-bottom: 10px; }
+
+    .client-char-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: var(--green-light); border: 0.5px solid var(--border-strong);
+      border-radius: 20px; padding: 3px 9px; font-size: 10px; color: var(--hunter-green);
+      margin-bottom: 10px;
+    }
+    .client-no-char { font-size: 10px; color: var(--slate-light); font-style: italic; margin-bottom: 10px; }
+
+    .client-mini-stats {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      border: 0.5px solid var(--border); border-radius: 6px; overflow: hidden;
+      margin-bottom: 10px;
+    }
+    .client-mini-stat {
+      padding: 7px 8px; text-align: center;
+      border-right: 0.5px solid var(--border); background: var(--off-white);
+    }
+    .client-mini-stat:last-child { border-right: none; }
+    .client-mini-val { font-size: 14px; font-weight: 500; color: var(--ink); }
+    .client-mini-lbl { font-size: 9px; color: var(--slate-light); letter-spacing: 0.04em; margin-top: 1px; }
+
+    .client-last-session { font-size: 10px; color: var(--slate-light); display: flex; align-items: center; gap: 5px; }
+    .client-last-session.overdue { color: #B45309; }
+    .last-session-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--hunter-green); flex-shrink: 0; }
+    .last-session-dot.overdue { background: #B45309; }
+
+    .client-card-footer {
+      display: flex; gap: 6px; margin-top: 12px; padding-top: 12px;
+      border-top: 0.5px solid var(--border);
+    }
+    .client-foot-btn {
+      flex: 1; text-align: center; font-size: 10px; font-weight: 500;
+      color: var(--slate); background: var(--off-white); border: 0.5px solid var(--border);
+      border-radius: 4px; padding: 6px 0; cursor: pointer; transition: all 0.15s;
+      font-family: var(--sans);
+    }
+    .client-foot-btn:hover { border-color: var(--border-strong); color: var(--ink); }
+    .client-foot-btn.primary { background: var(--hunter-green); color: #fff; border-color: var(--hunter-green); }
+    .client-foot-btn.primary:hover { background: var(--green-dark); }
+
+    .past-clients-section { margin-top: 4px; }
+    .past-client-row {
+      display: flex; align-items: center; gap: 12px;
+      padding: 10px 14px; background: #fff; border: 0.5px solid var(--border);
+      border-radius: 8px; margin-bottom: 6px; opacity: 0.65;
+    }
+    .past-client-av {
+      width: 30px; height: 30px; border-radius: 6px; background: var(--off-white);
+      display: flex; align-items: center; justify-content: center; font-size: 16px;
+      border: 0.5px solid var(--border); flex-shrink: 0;
+    }
+    .past-client-name { flex: 1; font-size: 13px; font-weight: 500; color: var(--ink); }
+    .past-client-meta { font-size: 11px; color: var(--slate-light); }
   </style>
 </head>
 <body>
 
-  <!-- ── Landing Page ── -->
+  <!-- ══════════════════════════════════════════
+       LANDING PAGE
+  ══════════════════════════════════════════ -->
   <div id="pg-landing" class="page active">
 
     <nav class="landing-nav">
-      <div class="landing-logo" style="display:flex;align-items:center;gap:10px;">
-        <img src="https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/ui-elements/Cypress%20Mind%20Logo.png" alt="Cypress Mind" style="height:88px;width:auto;" />
+      <div style="display:flex;align-items:center;gap:10px;">
+        <img src="https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/ui-elements/Cypress%20Mind%20Logo.png" alt="Cypress Mind" style="height:72px;width:auto;" />
       </div>
       <div class="nav-right">
         <button class="nav-ghost-btn" onclick="toggleSignIn()">Sign In</button>
@@ -797,157 +682,71 @@
       <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between">
         <div class="md:w-1/2 space-y-6">
           <p style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:#355E3B;font-weight:500;">Growing Together</p>
-          <h1 class="text-5xl md:text-6xl font-serif text-[#1A2E1A] leading-tight">
+          <h1 class="text-5xl md:text-6xl text-[#1A2E1A] leading-tight" style="font-family:'Playfair Display',serif;">
             Bridging the Gap Between Clinical Insight and Client Engagement.
           </h1>
           <p class="text-lg text-slate-600 max-w-lg">
-            A sophisticated, avatar-assisted clinical interface designed to help
-            children and adolescents externalize, navigate, and process complex
-            emotional landscapes.
+            A sophisticated, avatar-assisted clinical interface designed to help children and adolescents externalize, navigate, and process complex emotional landscapes.
           </p>
           <div class="flex space-x-4 pt-4">
-            <button class="bg-[#355E3B] text-white px-8 py-3 rounded-md hover:bg-[#2A4A2F] transition-colors shadow-sm" style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;letter-spacing:0.03em;" onclick="toggleSignIn()">
-              Sign In
-            </button>
-            <button class="border border-[#355E3B] text-[#355E3B] px-8 py-3 rounded-md hover:bg-[#F0F5F0] transition-colors" style="font-family:'DM Sans',sans-serif;font-size:13px;" onclick="toggleSignIn()">
-              Explore Framework
-            </button>
+            <button class="bg-[#355E3B] text-white px-8 py-3 rounded-md hover:bg-[#2A4A2F] transition-colors shadow-sm" style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;letter-spacing:0.03em;" onclick="toggleSignIn()">Sign In</button>
+            <button class="border border-[#355E3B] text-[#355E3B] px-8 py-3 rounded-md hover:bg-[#F0F5F0] transition-colors" style="font-family:'DM Sans',sans-serif;font-size:13px;" onclick="toggleSignIn()">Explore Framework</button>
           </div>
         </div>
         <div class="md:w-5/12 mt-12 md:mt-0">
           <div class="aspect-video bg-gradient-to-br from-[#355E3B] to-[#4B0082] rounded-lg shadow-xl flex items-center justify-center opacity-90">
-            <span class="text-white font-serif italic text-xl">Clinical Dashboard Preview</span>
+            <span class="text-white italic text-xl" style="font-family:'Playfair Display',serif;">Clinical Dashboard Preview</span>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Why it works -->
     <div class="story-section">
       <div class="section-inner">
-      <p class="section-label">Evidence-Based Clinical Integration</p>
-      <div class="story-grid">
-        <div class="story-card">
-          <div class="story-icon">🪞</div>
-          <h3>Externalization &amp; Identity</h3>
-          <p>Shift the therapeutic focus from the client's immediate distress to their Avatar. This "externalized proxy" bypasses adolescent defensive blocks and lowers resistance to self-disclosure.</p>
+        <p class="section-label">Evidence-Based Clinical Integration</p>
+        <div class="story-grid">
+          <div class="story-card"><div class="story-icon">🪞</div><h3>Externalization &amp; Identity</h3><p>Shift the therapeutic focus from the client's immediate distress to their Avatar. This "externalized proxy" bypasses adolescent defensive blocks and lowers resistance to self-disclosure.</p></div>
+          <div class="story-card"><div class="story-icon">🗺️</div><h3>Actionable Emotional Mapping</h3><p>Clients navigate Emotional Landscapes tailored to your treatment plan — whether CBT, ACT, or narrative-focused — providing you with qualitative data on their defensive strategies and boundary setting.</p></div>
+          <div class="story-card"><div class="story-icon">🌿</div><h3>Tangible Growth Markers</h3><p>Move beyond subjective reporting. Track progress through session-linked avatar evolution and Botanical Badges, giving clients a visual, concrete representation of their internal work.</p></div>
+          <div class="story-card"><div class="story-icon">🔗</div><h3>Continuity of Care</h3><p>Keep the therapeutic alliance strong between sessions. Our platform encourages consistent engagement, ensuring your client maintains momentum and stays connected to their goals.</p></div>
         </div>
-        <div class="story-card">
-          <div class="story-icon">🗺️</div>
-          <h3>Actionable Emotional Mapping</h3>
-          <p>Clients navigate Emotional Landscapes tailored to your treatment plan — whether CBT, ACT, or narrative-focused — providing you with qualitative data on their defensive strategies and boundary setting.</p>
-        </div>
-        <div class="story-card">
-          <div class="story-icon">🌿</div>
-          <h3>Tangible Growth Markers</h3>
-          <p>Move beyond subjective reporting. Track progress through session-linked avatar evolution and Botanical Badges, giving clients a visual, concrete representation of their internal work.</p>
-        </div>
-        <div class="story-card">
-          <div class="story-icon">🔗</div>
-          <h3>Continuity of Care</h3>
-          <p>Keep the therapeutic alliance strong between sessions. Our platform encourages consistent engagement, ensuring your client maintains momentum and stays connected to their goals on their own schedule.</p>
-        </div>
-      </div>
       </div>
     </div>
 
-    <!-- Activities -->
     <div class="showcase-section">
       <div class="section-inner">
         <p class="section-label">Characters</p>
         <h2 class="showcase-title">Eight characters, each built around a therapeutic archetype</h2>
-        <p style="font-size:14px;color:var(--ink-light);margin-bottom:1.75rem;max-width:520px;line-height:1.65;">
-          Clients choose a character that resonates with how they see themselves — or who they want to become. Each one maps directly to a clinical focus area.
-        </p>
+        <p style="font-size:14px;color:var(--slate);margin-bottom:1.75rem;max-width:520px;line-height:1.65;">Clients choose a character that resonates with how they see themselves — or who they want to become. Each one maps directly to a clinical focus area.</p>
         <div class="showcase-grid">
-          <div class="showcase-card" onclick="openCharDrawer('scout')">
-            <img src="https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters/The%20Scout.png" alt="The Scout">
-            <div class="showcase-card-overlay"></div>
-            <div class="showcase-card-content">
-              <div class="showcase-name">The Scout</div>
-              <div class="showcase-desc">Proactive, light, observant</div>
-              <div class="showcase-traits">
-                <span class="showcase-trait-pill">Curious</span>
-                <span class="showcase-trait-pill">Perceptive</span>
-                <span class="showcase-trait-pill">Brave</span>
-              </div>
-            </div>
-          </div>
-          <div class="showcase-card" onclick="openCharDrawer('voyager')">
-            <img src="https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters/The%20Voyager.png" alt="The Voyager" style="object-position: 75% center;">
-            <div class="showcase-card-overlay"></div>
-            <div class="showcase-card-content">
-              <div class="showcase-name">The Voyager</div>
-              <div class="showcase-desc">Purposeful, dynamic, ready</div>
-              <div class="showcase-traits">
-                <span class="showcase-trait-pill">Driven</span>
-                <span class="showcase-trait-pill">Resilient</span>
-                <span class="showcase-trait-pill">Forward</span>
-              </div>
-            </div>
-          </div>
-          <div class="showcase-card" onclick="openCharDrawer('warden')">
-            <img src="https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters/The%20Warden.png" alt="The Warden">
-            <div class="showcase-card-overlay"></div>
-            <div class="showcase-card-content">
-              <div class="showcase-name">The Warden</div>
-              <div class="showcase-desc">Protective, structured, solid</div>
-              <div class="showcase-traits">
-                <span class="showcase-trait-pill">Steadfast</span>
-                <span class="showcase-trait-pill">Protective</span>
-                <span class="showcase-trait-pill">Clear</span>
-              </div>
-            </div>
-          </div>
-          <div class="showcase-card" onclick="openCharDrawer('gardener')">
-            <img src="https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters/The%20Gardener.png" alt="The Gardener">
-            <div class="showcase-card-overlay"></div>
-            <div class="showcase-card-content">
-              <div class="showcase-name">The Gardener</div>
-              <div class="showcase-desc">Nurturing, kind, patient</div>
-              <div class="showcase-traits">
-                <span class="showcase-trait-pill">Compassionate</span>
-                <span class="showcase-trait-pill">Gentle</span>
-                <span class="showcase-trait-pill">Patient</span>
-              </div>
-            </div>
-          </div>
+          <div class="showcase-card" onclick="openCharDrawer('scout')"><img src="https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters/The%20Scout.png" alt="The Scout"><div class="showcase-card-overlay"></div><div class="showcase-card-content"><div class="showcase-name">The Scout</div><div class="showcase-desc">Proactive, light, observant</div><div class="showcase-traits"><span class="showcase-trait-pill">Curious</span><span class="showcase-trait-pill">Perceptive</span><span class="showcase-trait-pill">Brave</span></div></div></div>
+          <div class="showcase-card" onclick="openCharDrawer('voyager')"><img src="https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters/The%20Voyager.png" alt="The Voyager" style="object-position:75% center;"><div class="showcase-card-overlay"></div><div class="showcase-card-content"><div class="showcase-name">The Voyager</div><div class="showcase-desc">Purposeful, dynamic, ready</div><div class="showcase-traits"><span class="showcase-trait-pill">Driven</span><span class="showcase-trait-pill">Resilient</span><span class="showcase-trait-pill">Forward</span></div></div></div>
+          <div class="showcase-card" onclick="openCharDrawer('warden')"><img src="https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters/The%20Warden.png" alt="The Warden"><div class="showcase-card-overlay"></div><div class="showcase-card-content"><div class="showcase-name">The Warden</div><div class="showcase-desc">Protective, structured, solid</div><div class="showcase-traits"><span class="showcase-trait-pill">Steadfast</span><span class="showcase-trait-pill">Protective</span><span class="showcase-trait-pill">Clear</span></div></div></div>
+          <div class="showcase-card" onclick="openCharDrawer('gardener')"><img src="https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters/The%20Gardener.png" alt="The Gardener"><div class="showcase-card-overlay"></div><div class="showcase-card-content"><div class="showcase-name">The Gardener</div><div class="showcase-desc">Nurturing, kind, patient</div><div class="showcase-traits"><span class="showcase-trait-pill">Compassionate</span><span class="showcase-trait-pill">Gentle</span><span class="showcase-trait-pill">Patient</span></div></div></div>
         </div>
-        <div style="margin-top:1.5rem;">
-          <a href="characters.html" style="display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:500;color:var(--hunter-green);text-decoration:none;border-bottom:1px solid var(--hunter-green);padding-bottom:1px;">
-            View full character roster →
-          </a>
-        </div>
+        <div style="margin-top:1.5rem;"><a href="characters.html" style="display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:500;color:var(--hunter-green);text-decoration:none;border-bottom:1px solid var(--hunter-green);padding-bottom:1px;">View full character roster →</a></div>
       </div>
     </div>
 
-    <!-- CTA -->
     <div class="landing-cta-block">
       <h2>Ready to bring your practice into the digital age?</h2>
       <p>Join clinicians using Cypress Mind to keep clients engaged and progress visible.</p>
       <button class="hero-cta" onclick="toggleSignIn()">Sign in</button>
     </div>
-
     <div class="landing-footer">Cypress Mind &nbsp;·&nbsp; Growing Together</div>
   </div>
 
-  <!-- ── Invite Only ── -->
+  <!-- ══════════════════════════════════════════
+       INVITE ONLY
+  ══════════════════════════════════════════ -->
   <div id="pg-signup" class="page">
-    <div class="center">
-      <p class="eyebrow">Cypress Mind</p>
-      <h1>Private Beta</h1>
-      <p class="sub">Cypress Mind is currently invite only.</p>
-    </div>
-    <div class="card" style="text-align:center;">
-      <p style="font-size:14px;color:var(--color-text-secondary,#4B5563);line-height:1.7;margin-bottom:20px;">
-        We're not accepting new sign-ups at this time.<br>
-        If you've been invited, please sign in below.
-      </p>
-      <button class="btn-primary" onclick="showPage('pg-landing');setTimeout(toggleSignIn,80)">Sign in</button>
-    </div>
+    <div class="center"><p class="eyebrow">Cypress Mind</p><h1>Private Beta</h1><p class="sub">Cypress Mind is currently invite only.</p></div>
+    <div class="card" style="text-align:center;"><p style="font-size:14px;color:var(--slate);line-height:1.7;margin-bottom:20px;">We're not accepting new sign-ups at this time.<br>If you've been invited, please sign in below.</p><button class="btn-primary" onclick="showPage('pg-landing');setTimeout(toggleSignIn,80)">Sign in</button></div>
   </div>
 
-  <!-- ── Client Roster ── -->
+  <!-- ══════════════════════════════════════════
+       CLIENT ROSTER
+  ══════════════════════════════════════════ -->
   <div id="pg-app" class="page">
     <div class="topbar">
       <div>
@@ -962,11 +761,45 @@
         <button class="btn-outline" onclick="doSignOut()">Sign out</button>
       </div>
     </div>
-    <p class="section-label" id="roster-label">Clients</p>
-    <div class="grid" id="client-grid"></div>
-
-    <p class="section-label" id="past-clients-label" style="display:none;margin-top:32px;">Past Clients</p>
-    <div class="grid" id="past-client-grid" style="display:none;"></div>
+    <div class="roster-body">
+      <div class="roster-summary">
+        <div class="roster-stat">
+          <div class="roster-stat-lbl">Active clients</div>
+          <div class="roster-stat-val" id="rs-active">—</div>
+          <div class="roster-stat-sub" id="rs-active-sub"></div>
+        </div>
+        <div class="roster-stat">
+          <div class="roster-stat-lbl">Sessions this month</div>
+          <div class="roster-stat-val" id="rs-sessions">—</div>
+          <div class="roster-stat-sub" id="rs-sessions-sub"></div>
+        </div>
+        <div class="roster-stat">
+          <div class="roster-stat-lbl">Avg. completion rate</div>
+          <div class="roster-stat-val" id="rs-completion">—</div>
+          <div class="roster-stat-sub">Activities completed</div>
+        </div>
+        <div class="roster-stat">
+          <div class="roster-stat-lbl">Pending activities</div>
+          <div class="roster-stat-val" id="rs-pending">—</div>
+          <div class="roster-stat-sub">Across all clients</div>
+        </div>
+      </div>
+      <div class="roster-section-head">
+        <span class="roster-section-title">Active clients</span>
+        <div class="roster-filters">
+          <span class="roster-filter active" onclick="filterClients('all', this)">All</span>
+          <span class="roster-filter" onclick="filterClients('recent', this)">Seen this week</span>
+          <span class="roster-filter" onclick="filterClients('pending', this)">Has pending</span>
+        </div>
+      </div>
+      <div class="client-grid-new" id="client-grid"></div>
+      <div id="past-clients-section" style="display:none;">
+        <div class="roster-section-head" style="margin-top:8px;">
+          <span class="roster-section-title">Past clients</span>
+        </div>
+        <div id="past-client-grid"></div>
+      </div>
+    </div>
 
     <!-- Add Client Modal -->
     <div class="overlay" id="add-client-overlay" onclick="closeBg(event,'add-client-overlay')">
@@ -983,45 +816,221 @@
     </div>
   </div>
 
-  <!-- ── Client Profile ── -->
+  <!-- ══════════════════════════════════════════
+       CLIENT PROFILE — REDESIGNED
+  ══════════════════════════════════════════ -->
   <div id="pg-client" class="page">
-    <button class="back-btn" onclick="showApp()">
-      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><polyline points="9,2 4,7 9,12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      All clients
-    </button>
-    <div class="profile-head">
-      <div class="profile-av" id="cp-av"></div>
-      <div>
-        <div class="profile-name" id="cp-name"></div>
-        <div class="profile-since" id="cp-since"></div>
+
+    <!-- Hero Banner -->
+    <div class="client-hero">
+      <div class="client-hero-top">
+        <button class="back-btn" onclick="showApp()">
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><polyline points="8,2 3,6 8,10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          All clients
+        </button>
+        <div class="client-identity">
+          <div class="client-av-wrap">
+            <div class="client-av" id="cp-av"></div>
+            <div class="client-name-block">
+              <div class="client-name" id="cp-name"></div>
+              <div class="client-meta" id="cp-since"></div>
+            </div>
+          </div>
+          <div id="cp-character-wrap" style="display:none;margin-top:8px;">
+            <span class="client-character-pill" id="cp-character-pill">✦ No character chosen yet</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-shrink:0;">
+          <button class="session-start-btn" onclick="openStartSession()">
+            <span class="pulse-dot"></span>
+            Start Session
+          </button>
+          <button class="btn-outline" onclick="openAddLesson()">+ Assign Activity</button>
+        </div>
+      </div>
+
+      <!-- Stat Strip -->
+      <div class="stat-strip">
+        <div class="strip-stat">
+          <div class="strip-val"><span id="st-total">0</span></div>
+          <div class="strip-lbl">Total Activities</div>
+        </div>
+        <div class="strip-stat">
+          <div class="strip-val"><span id="st-done">0</span></div>
+          <div class="strip-lbl">Completed</div>
+          <span class="strip-trend" id="st-done-trend" style="display:none"></span>
+        </div>
+        <div class="strip-stat">
+          <div class="strip-val"><span id="st-sessions">0</span></div>
+          <div class="strip-lbl">Sessions</div>
+        </div>
+        <div class="strip-stat">
+          <div class="strip-val"><span id="st-xp">—</span><span class="strip-val-unit" id="st-xp-unit"></span></div>
+          <div class="strip-lbl" id="st-level">XP Earned</div>
+        </div>
+        <div class="strip-stat">
+          <div class="strip-val"><span id="st-streak">0</span><span class="strip-val-unit">day</span></div>
+          <div class="strip-lbl">Streak</div>
+        </div>
       </div>
     </div>
-    <div class="stats-row">
-      <div class="stat-card"><div class="stat-val" id="st-total">0</div><div class="stat-lbl">Activities</div></div>
-      <div class="stat-card"><div class="stat-val" id="st-done">0</div><div class="stat-lbl">Completed</div></div>
-      <div class="stat-card"><div class="stat-val" id="st-xp">—</div><div class="stat-lbl" id="st-level">No sessions yet</div></div>
+
+    <!-- XP Progress Bar -->
+    <div class="xp-progress-wrap" id="xp-progress-wrap" style="display:none;">
+      <span class="xp-level-badge" id="xp-level-badge">Level 1</span>
+      <div class="xp-bar-outer">
+        <div class="xp-bar-inner" id="xp-bar-fill" style="width:0%"></div>
+      </div>
+      <span class="xp-count" id="xp-count-label">0 / 100 XP</span>
     </div>
-    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
-      <p class="section-label" style="margin-bottom:0;">Assigned Activities</p>
-      <button class="add-btn" onclick="openAddLesson()">
-        <svg width="12" height="12" viewBox="0 0 12 12" fill="none"><line x1="6" y1="1" x2="6" y2="11" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="1" y1="6" x2="11" y2="6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
-        Assign activity
-      </button>
+
+    <!-- Two-column body -->
+    <div class="client-body">
+
+      <!-- Main Column -->
+      <div class="client-main">
+
+        <!-- Tab Navigation -->
+        <div class="tabs">
+          <div class="tab active" onclick="switchTab('tab-activities', this)">Activities</div>
+          <div class="tab" onclick="switchTab('tab-homework', this)">Outside Work</div>
+          <div class="tab" onclick="switchTab('tab-responses', this)">Session Responses</div>
+          <div class="tab" onclick="switchTab('tab-history', this)">Session History</div>
+        </div>
+
+        <!-- Activities Tab -->
+        <div id="tab-activities" class="tab-panel">
+          <div class="section-head">
+            <span class="section-head-title">Assigned Activities</span>
+            <button class="section-action" onclick="openAddLesson()">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><line x1="5" y1="1" x2="5" y2="9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="1" y1="5" x2="9" y2="5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              Assign
+            </button>
+          </div>
+
+          <!-- Progress Chart -->
+          <div class="progress-chart-wrap" id="progress-chart-wrap" style="display:none;">
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+              <span style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:var(--slate-light);font-weight:600;">Completion History</span>
+              <span style="font-size:11px;color:var(--hunter-green);font-family:var(--mono);" id="completion-rate"></span>
+            </div>
+            <div class="chart-canvas" id="chart-canvas"></div>
+          </div>
+
+          <div class="lesson-list" id="lesson-list"></div>
+        </div>
+
+        <!-- Homework Tab -->
+        <div id="tab-homework" class="tab-panel" style="display:none;">
+          <div class="section-head">
+            <span class="section-head-title">Outside Work &amp; Homework</span>
+            <button class="section-action" onclick="openAddHomework()">
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><line x1="5" y1="1" x2="5" y2="9" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><line x1="1" y1="5" x2="9" y2="5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+              Add task
+            </button>
+          </div>
+          <div id="homework-list"></div>
+        </div>
+
+        <!-- Session Responses Tab -->
+        <div id="tab-responses" class="tab-panel" style="display:none;">
+          <div class="section-head">
+            <span class="section-head-title">Latest Session Responses</span>
+          </div>
+          <div id="responses-list"></div>
+        </div>
+
+        <!-- Session History Tab -->
+        <div id="tab-history" class="tab-panel" style="display:none;">
+          <div class="section-head">
+            <span class="section-head-title">Session History</span>
+          </div>
+          <div id="session-history-list"></div>
+        </div>
+
+      </div>
+
+      <!-- Sidebar -->
+      <div class="client-sidebar">
+
+        <!-- Character -->
+        <div style="margin-bottom:4px;">
+          <div class="section-head-title" style="margin-bottom:12px;">Character</div>
+          <div class="char-display" id="sidebar-char">
+            <div class="char-img-wrap placeholder" id="sidebar-char-img">🧭</div>
+            <div>
+              <div class="char-name" id="sidebar-char-name">Not chosen yet</div>
+              <div class="char-archetype" id="sidebar-char-type">Client hasn't selected a hero</div>
+            </div>
+          </div>
+        </div>
+
+        <hr class="sidebar-divider">
+
+        <!-- Notes -->
+        <div>
+          <div class="section-head">
+            <span class="section-head-title">Clinical Notes</span>
+          </div>
+          <div id="notes-list"></div>
+          <div class="note-input-wrap">
+            <textarea class="note-input" id="note-textarea" placeholder="Add a session note…" rows="3"></textarea>
+            <button class="note-save-btn" onclick="saveNote()">Save Note</button>
+          </div>
+        </div>
+
+        <hr class="sidebar-divider">
+
+        <!-- Quick stats -->
+        <div>
+          <div class="section-head-title" style="margin-bottom:12px;">Activity Breakdown</div>
+          <div id="activity-breakdown"></div>
+        </div>
+
+      </div>
     </div>
-    <div class="lesson-list" id="lesson-list"></div>
 
     <!-- Assign Activity Modal -->
     <div class="overlay" id="add-lesson-overlay" onclick="closeBg(event,'add-lesson-overlay')">
-      <div class="modal">
-        <p class="modal-title">Assign activity</p>
+      <div class="modal" style="width:420px;">
+        <p class="modal-title">Assign an activity</p>
         <div class="activity-type-picker" id="activity-picker"></div>
-        <div class="field" id="custom-name-field" style="display:none">
+        <div class="field" id="custom-name-field" style="display:none;">
           <label>Activity name</label>
           <input type="text" id="ls-name" placeholder="e.g. Module 1 — Introduction" maxlength="60" />
         </div>
         <div class="modal-row">
           <button class="btn-cancel" onclick="closeOverlay('add-lesson-overlay')">Cancel</button>
           <button class="btn-save" onclick="saveLesson()">Assign</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Homework Modal -->
+    <div class="overlay" id="add-homework-overlay" onclick="closeBg(event,'add-homework-overlay')">
+      <div class="modal">
+        <p class="modal-title">Assign outside work</p>
+        <div class="field"><label>Task description</label><input type="text" id="hw-title" placeholder="e.g. Practice box breathing 3× this week" maxlength="100" /></div>
+        <div class="field"><label>Due date (optional)</label><input type="date" id="hw-due" /></div>
+        <div class="modal-row">
+          <button class="btn-cancel" onclick="closeOverlay('add-homework-overlay')">Cancel</button>
+          <button class="btn-save" onclick="saveHomework()">Assign</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Start Session Modal -->
+    <div class="overlay" id="start-session-overlay" onclick="closeBg(event,'start-session-overlay')">
+      <div class="modal">
+        <p class="modal-title">Start a session</p>
+        <p style="font-size:13px;color:var(--slate);margin-bottom:20px;line-height:1.6;">This will generate a 6-digit session code for your client. Share it with them to begin.</p>
+        <div style="text-align:center;padding:20px;background:var(--green-faint);border-radius:8px;border:0.5px solid var(--border);margin-bottom:20px;">
+          <div id="session-code-display" style="font-family:var(--mono);font-size:36px;font-weight:500;color:var(--hunter-green);letter-spacing:8px;">——————</div>
+          <div style="font-size:11px;color:var(--slate-light);margin-top:6px;" id="session-status-text">Click "Create Session" to generate a code</div>
+        </div>
+        <div class="modal-row">
+          <button class="btn-cancel" onclick="closeOverlay('start-session-overlay')">Close</button>
+          <button class="btn-save" id="create-session-btn" onclick="createSession()">Create Session</button>
         </div>
       </div>
     </div>
@@ -1035,7 +1044,7 @@
           <button class="btn-cancel" onclick="closeOverlay('score-overlay')">Cancel</button>
           <button class="btn-save" onclick="saveScore()">Save</button>
         </div>
-        <div id="score-history"></div>
+        <div id="score-history" style="margin-top:16px;"></div>
       </div>
     </div>
   </div>
@@ -1062,69 +1071,969 @@
     </div>
   </div>
 
+  <!-- ══════════════════════════════════════════
+       JAVASCRIPT
+  ══════════════════════════════════════════ -->
   <script>
-  const charData = {
-    scout: {
-      icon:"🔭", bg:"#EAF3DE",
-      name:"The Scout", vibe:"Proactive, light, observant",
-      traits:"Curious · Perceptive · Brave",
-      connection:"Curiosity, seeking clarity, taking the first step.",
-      themes:[{label:"Clarity",bg:"#EAF3DE",text:"#27500A"},{label:"Growth",bg:"#C0DD97",text:"#173404"}],
-      copy:"They feel stuck or avoidant and are looking for a way in. They may be curious about their own patterns but unsure how to start exploring them. They respond well to incremental steps and can use The Scout as permission to move at their own pace while still moving forward."
-    },
-    voyager: {
-      icon:"⛵", bg:"#FAEEDA",
-      name:"The Voyager", vibe:"Purposeful, dynamic, ready",
-      traits:"Driven · Resilient · Forward",
-      connection:"Moving forward, goal setting, resilience.",
-      themes:[{label:"Resilience",bg:"#FAEEDA",text:"#633806"},{label:"Hope",bg:"#FAC775",text:"#412402"},{label:"Growth",bg:"#EF9F27",text:"#412402"}],
-      copy:"They are ready to make change but need structure and momentum to get there. They may have worked through a difficult period and are looking for a character that reflects their determination. The Voyager validates how far they have come while keeping the focus on what is possible next."
-    },
-    warden: {
-      icon:"🛡️", bg:"#E6F1FB",
-      name:"The Warden", vibe:"Protective, structured, solid",
-      traits:"Steadfast · Protective · Clear",
-      connection:"Boundary setting, safety, stability, strength.",
-      themes:[{label:"Boundaries",bg:"#E6F1FB",text:"#0C447C"},{label:"Grounding",bg:"#B5D4F4",text:"#042C53"}],
-      copy:"They have experienced situations where their limits were not respected, or they find it difficult to say no. They may feel unsafe in relationships or need support recognizing what is and is not okay. The Warden gives them a strong, protective identity to step into during play."
-    },
-    gardener: {
-      icon:"🌱", bg:"#EAF3DE",
-      name:"The Gardener", vibe:"Nurturing, kind, patient",
-      traits:"Compassionate · Gentle · Patient",
-      connection:"Self-compassion, long-term growth, care.",
-      themes:[{label:"Growth",bg:"#EAF3DE",text:"#27500A"},{label:"Grounding",bg:"#C0DD97",text:"#173404"}],
-      copy:"They are hard on themselves and struggle to recognize progress that feels slow or imperfect. They may carry shame or a harsh inner critic and need a character that models gentleness and patience. The Gardener can be a meaningful mirror for clients learning what it looks like to care for themselves over time."
+  /* ─────────────────────────────────────────
+     PAGE & AUTH SETUP  (unchanged from original)
+  ───────────────────────────────────────── */
+  const SUPABASE_URL = 'https://vfpxovpwwabisfjjqkpm.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_-cIPFr0xt1CfC8fwh0e_ew_Q6LIbcX5';
+  const { createClient } = supabase;
+  const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+  function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+  }
+
+  function toggleSignIn() {
+    document.getElementById('signin-panel').classList.toggle('open');
+  }
+
+  document.addEventListener('click', e => {
+    const wrap = document.getElementById('signin-wrap');
+    if (wrap && !wrap.contains(e.target)) {
+      document.getElementById('signin-panel')?.classList.remove('open');
     }
+  });
+
+  async function doSignIn() {
+    const email = document.getElementById('si-email').value.trim();
+    const pass  = document.getElementById('si-pass').value;
+    const err   = document.getElementById('si-err');
+    err.textContent = '';
+    const { error } = await db.auth.signInWithPassword({ email, password: pass });
+    if (error) { err.textContent = error.message; return; }
+    loadApp();
+  }
+
+  async function doSignInWithGoogle() {
+    await db.auth.signInWithOAuth({ provider: 'google' });
+  }
+
+  async function doSignOut() {
+    await db.auth.signOut();
+    showPage('pg-landing');
+  }
+
+  db.auth.onAuthStateChange((event, session) => {
+    if (event === 'SIGNED_IN' && session?.user && !currentUser) {
+      currentUser = session.user;
+      loadApp();
+    }
+    if (event === 'SIGNED_OUT') {
+      currentUser = null;
+      showPage('pg-landing');
+    }
+  });
+
+  db.auth.getSession().then(({ data: { session } }) => {
+    if (session?.user) {
+      currentUser = session.user;
+      loadApp();
+    }
+  });
+
+  /* ─────────────────────────────────────────
+     CHAR DRAWER DATA
+  ───────────────────────────────────────── */
+  const charData = {
+    scout:   { icon:"🔭", bg:"#EAF3DE", name:"The Scout",    vibe:"Proactive, light, observant",      traits:"Curious · Perceptive · Brave",        connection:"Curiosity, seeking clarity, taking the first step.",      themes:[{label:"Clarity",bg:"#EAF3DE",text:"#27500A"},{label:"Growth",bg:"#C0DD97",text:"#173404"}],     copy:"They feel stuck or avoidant and are looking for a way in. They may be curious about their own patterns but unsure how to start exploring them. They respond well to incremental steps and can use The Scout as permission to move at their own pace while still moving forward." },
+    voyager: { icon:"⛵", bg:"#FAEEDA", name:"The Voyager",  vibe:"Purposeful, dynamic, ready",        traits:"Driven · Resilient · Forward",         connection:"Moving forward, goal setting, resilience.",               themes:[{label:"Resilience",bg:"#FAEEDA",text:"#633806"},{label:"Hope",bg:"#FAC775",text:"#412402"}],     copy:"They are ready to make change but need structure and momentum to get there. They may have worked through a difficult period and are looking for a character that reflects their determination." },
+    warden:  { icon:"🛡️", bg:"#E6F1FB", name:"The Warden",   vibe:"Protective, structured, solid",     traits:"Steadfast · Protective · Clear",        connection:"Boundary setting, safety, stability, strength.",          themes:[{label:"Boundaries",bg:"#E6F1FB",text:"#0C447C"},{label:"Grounding",bg:"#B5D4F4",text:"#042C53"}], copy:"They have experienced situations where their limits were not respected, or they find it difficult to say no. They may feel unsafe in relationships or need support recognizing what is and is not okay." },
+    gardener:{ icon:"🌱", bg:"#EAF3DE", name:"The Gardener", vibe:"Nurturing, kind, patient",           traits:"Compassionate · Gentle · Patient",      connection:"Self-compassion, long-term growth, care.",                themes:[{label:"Growth",bg:"#EAF3DE",text:"#27500A"},{label:"Grounding",bg:"#C0DD97",text:"#173404"}],     copy:"They are hard on themselves and struggle to recognize progress that feels slow or imperfect. They may carry shame or a harsh inner critic and need a character that models gentleness and patience." },
   };
 
   function openCharDrawer(id) {
     const c = charData[id];
     if (!c) return;
-    document.getElementById('dr-icon').textContent      = c.icon;
+    document.getElementById('dr-icon').textContent = c.icon;
     document.getElementById('dr-icon').style.background = c.bg;
-    document.getElementById('dr-name').textContent      = c.name;
-    document.getElementById('dr-vibe').textContent      = c.vibe;
-    document.getElementById('dr-traits').textContent    = c.traits;
+    document.getElementById('dr-name').textContent = c.name;
+    document.getElementById('dr-vibe').textContent = c.vibe;
+    document.getElementById('dr-traits').textContent = c.traits;
     document.getElementById('dr-connection').textContent = c.connection;
-    document.getElementById('dr-copy').textContent      = c.copy;
+    document.getElementById('dr-copy').textContent = c.copy;
     document.getElementById('dr-theme-pills').innerHTML = c.themes.map(t =>
-      `<span class="drawer-theme-pill" style="background:${t.bg};color:${t.text}">${t.label}</span>`
-    ).join('');
+      `<span class="drawer-theme-pill" style="background:${t.bg};color:${t.text}">${t.label}</span>`).join('');
     document.getElementById('char-backdrop').classList.add('open');
     document.getElementById('char-drawer').classList.add('open');
     document.body.style.overflow = 'hidden';
   }
-
   function closeCharDrawer() {
     document.getElementById('char-backdrop').classList.remove('open');
     document.getElementById('char-drawer').classList.remove('open');
     document.body.style.overflow = '';
   }
-
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCharDrawer(); });
+
+  /* ─────────────────────────────────────────
+     APP LOAD
+  ───────────────────────────────────────── */
+  let currentUser = null;
+
+  async function loadApp() {
+    const { data: { user } } = await db.auth.getUser();
+    if (!user) return;
+    currentUser = user;
+    const name = user.user_metadata?.full_name || user.email.split('@')[0];
+    document.getElementById('tb-name').textContent = name;
+    showPage('pg-app');
+    await renderClientGrid();
+  }
+
+  /* ─────────────────────────────────────────
+     CLIENT GRID
+  ───────────────────────────────────────── */
+  const EMOJIS = ['🌿','🦋','🌊','🌸','🌙','⭐','🦊','🐺','🦅','🌺','🎋','🍃'];
+
+  let allClientsCache = [];
+  let activeFilter = 'all';
+
+  async function renderClientGrid() {
+    const { data: { user } } = await db.auth.getUser();
+    const { data: clients } = await db.from('clients').select('*, activities(id,done)').eq('user_id', user.id).neq('archived', true).order('created_at', { ascending: false });
+    allClientsCache = clients || [];
+    await renderRosterStats(clients || []);
+    renderFilteredClients(clients || []);
+    renderPastClients();
+  }
+
+  async function renderRosterStats(clients) {
+    const { data: { user } } = await db.auth.getUser();
+    const now = new Date();
+    const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
+
+    const { data: sessions } = await db.from('sessions').select('id').eq('therapist_id', user.id).gte('created_at', monthStart).then(r => r).catch(() => ({ data: [] }));
+
+    const allActivities = clients.flatMap(c => c.activities || []);
+    const active = clients.length;
+    const sessCount = sessions?.length || 0;
+    const total = allActivities.length;
+    const done = allActivities.filter(a => a.done).length;
+    const pending = total - done;
+    const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+    document.getElementById('rs-active').textContent = active;
+    document.getElementById('rs-sessions').textContent = sessCount;
+    document.getElementById('rs-completion').textContent = total > 0 ? pct + '%' : '—';
+    document.getElementById('rs-pending').textContent = pending;
+  }
+
+  function filterClients(filter, el) {
+    activeFilter = filter;
+    document.querySelectorAll('.roster-filter').forEach(b => b.classList.remove('active'));
+    if (el) el.classList.add('active');
+    renderFilteredClients(allClientsCache);
+  }
+
+  function renderFilteredClients(clients) {
+    const grid = document.getElementById('client-grid');
+    if (!clients.length) {
+      grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:48px;color:var(--slate-light);font-size:14px;">No clients yet. Add your first client above.</div>`;
+      return;
+    }
+    grid.innerHTML = clients.map(c => buildClientCard(c)).join('');
+  }
+
+  function buildClientCard(c) {
+    const sinceDate = formatDate(c.created_at);
+    const charId = c.last_character || null;
+    const charNames = { scout:'The Scout', voyager:'The Voyager', warden:'The Warden', gardener:'The Gardener', dreamer:'The Dreamer', weaver:'The Weaver', anchor:'The Anchor', sage:'The Sage' };
+    const charIcons = { scout:'🧭', voyager:'⛵', warden:'🛡️', gardener:'🌱', dreamer:'✨', weaver:'🪡', anchor:'⚓', sage:'📖' };
+    const charPill = charId
+      ? `<div class="client-char-pill">${charIcons[charId] || '✦'} ${charNames[charId] || 'Custom hero'}</div>`
+      : `<div class="client-no-char">No character chosen yet</div>`;
+
+    const acts = c.activities || [];
+    const total = acts.length;
+    const done = acts.filter(a => a.done).length;
+    const xp = c.xp || 0;
+    const pct = total > 0 ? Math.round((done/total)*100) + '%' : '—';
+
+    const lastSessionAgo = c.last_session_at ? daysSince(c.last_session_at) : null;
+    let sessionLine = '';
+    if (lastSessionAgo === null) {
+      sessionLine = `<div class="client-last-session"><div class="last-session-dot"></div>No sessions yet</div>`;
+    } else if (lastSessionAgo > 14) {
+      sessionLine = `<div class="client-last-session overdue"><div class="last-session-dot overdue"></div>No session in ${lastSessionAgo} days</div>`;
+    } else {
+      sessionLine = `<div class="client-last-session"><div class="last-session-dot"></div>Last session ${formatDate(c.last_session_at)}</div>`;
+    }
+
+    const statusClass = lastSessionAgo === null ? 'idle' : lastSessionAgo <= 7 ? 'active' : lastSessionAgo > 14 ? 'overdue' : 'idle';
+
+    return `<div class="client-card" onclick="openClient('${c.id}')">
+      <div class="client-card-top">
+        <div class="client-card-av">${c.avatar || '🌿'}</div>
+        <div class="client-card-status ${statusClass}"></div>
+      </div>
+      <div class="client-card-name">${c.name}</div>
+      <div class="client-card-since">Since ${sinceDate}</div>
+      ${charPill}
+      <div class="client-mini-stats">
+        <div class="client-mini-stat"><div class="client-mini-val">${total}</div><div class="client-mini-lbl">Activities</div></div>
+        <div class="client-mini-stat"><div class="client-mini-val">${pct}</div><div class="client-mini-lbl">Done</div></div>
+        <div class="client-mini-stat"><div class="client-mini-val">${xp}</div><div class="client-mini-lbl">XP</div></div>
+      </div>
+      ${sessionLine}
+      <div class="client-card-footer">
+        <button class="client-foot-btn" onclick="event.stopPropagation();archiveClient('${c.id}','${c.name.replace(/'/g,"\\'")}')">Archive</button>
+        <button class="client-foot-btn primary" onclick="event.stopPropagation();openClient('${c.id}')">View profile</button>
+      </div>
+    </div>`;
+  }
+
+  function daysSince(iso) {
+    if (!iso) return null;
+    return Math.floor((Date.now() - new Date(iso).getTime()) / (1000 * 60 * 60 * 24));
+  }
+
+  /* ─────────────────────────────────────────
+     ADD CLIENT
+  ───────────────────────────────────────── */
+  let selectedAvatar = EMOJIS[0];
+
+  function openAddClient() {
+    selectedAvatar = EMOJIS[0];
+    document.getElementById('cl-name').value = '';
+    const picker = document.getElementById('av-picker');
+    picker.innerHTML = EMOJIS.map(e =>
+      `<button onclick="pickAv('${e}',this)" style="font-size:22px;width:40px;height:40px;border-radius:6px;border:1.5px solid ${e===selectedAvatar?'var(--hunter-green)':'var(--border)'};background:${e===selectedAvatar?'var(--green-light)':'#fff'};cursor:pointer;transition:all 0.15s;">${e}</button>`
+    ).join('');
+    openOverlay('add-client-overlay');
+  }
+  function pickAv(emoji, btn) {
+    selectedAvatar = emoji;
+    document.querySelectorAll('#av-picker button').forEach(b => { b.style.border='1.5px solid var(--border)'; b.style.background='#fff'; });
+    btn.style.border = '1.5px solid var(--hunter-green)';
+    btn.style.background = 'var(--green-light)';
+  }
+  async function saveClient() {
+    const name = document.getElementById('cl-name').value.trim();
+    if (!name) return;
+    const { data: { user } } = await db.auth.getUser();
+    await db.from('clients').insert({ name, avatar: selectedAvatar, user_id: user.id, color_index: 0 });
+    closeOverlay('add-client-overlay');
+    await renderClientGrid();
+  }
+
+  /* ─────────────────────────────────────────
+     CLIENT PROFILE
+  ───────────────────────────────────────── */
+  let currentClient = null;
+  let currentNotes   = [];
+  let currentHomework = [];
+
+  const CHAR_IMAGES = {
+    scout:    'https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters/The%20Scout.png',
+    voyager:  'https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters/The%20Voyager.png',
+    warden:   'https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters/The%20Warden.png',
+    gardener: 'https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters/The%20Gardener.png',
+    dreamer:  'https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters/The%20Dreamer.png',
+    weaver:   'https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters/The%20Weaver.png',
+    anchor:   'https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters/The%20Anchor.png',
+    sage:     'https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters/The%20Sage.png',
+  };
+
+  const CHAR_TAGS = {
+    scout:'Curious & Brave', voyager:'Driven & Resilient', warden:'Steadfast & Protective',
+    gardener:'Compassionate & Patient', dreamer:'Visionary & Hopeful', weaver:'Creative & Empathic',
+    anchor:'Grounded & Steady', sage:'Wise & Reflective',
+  };
+
+  const ACTIVITY_META = {
+    quiz:      { icon:'🧠', label:'Coping Skills Quiz',      color:'purple' },
+    breathing: { icon:'🌬️', label:'Breathing Garden',        color:'teal'   },
+    journal:   { icon:'📓', label:'Reflection Journal',      color:'green'  },
+    emotions:  { icon:'🎭', label:'Emotion Explorer',        color:'amber'  },
+    custom:    { icon:'✏️', label:'Custom Activity',         color:'slate'  },
+  };
+
+  async function openClient(id) {
+    const { data: client } = await db.from('clients').select('*').eq('id', id).single();
+    if (!client) return;
+    currentClient = client;
+
+    document.getElementById('cp-av').textContent   = client.avatar || '🌿';
+    document.getElementById('cp-name').textContent = client.name;
+    document.getElementById('cp-since').textContent = `Client since ${formatDate(client.created_at)}`;
+
+    showPage('pg-client');
+    switchTabByName('tab-activities');
+    await Promise.all([loadClientStats(), loadActivities(), loadCharacter(), loadNotes(), loadHomework(), loadResponses(), loadSessionHistory()]);
+  }
+
+  async function loadClientStats() {
+    if (!currentClient) return;
+
+    const { data: activities } = await db.from('activities').select('*').eq('client_id', currentClient.id);
+    const { data: sessions }   = await db.from('sessions').select('*').eq('client_id', currentClient.id);
+    const { data: xpData }     = await db.from('session_responses').select('response_data').eq('client_id', currentClient.id).eq('step_index', -2).order('created_at', { ascending: false }).limit(1).maybeSingle();
+
+    const total    = activities?.length || 0;
+    const done     = activities?.filter(a => a.done)?.length || 0;
+    const sessCount = sessions?.length || 0;
+
+    let xp = 0, level = 1;
+    let rd = xpData?.response_data;
+    if (typeof rd === 'string') { try { rd = JSON.parse(rd); } catch(e) {} }
+    if (rd?.xp !== undefined) { xp = rd.xp; level = rd.level || 1; }
+
+    const levelNames = ['Explorer','Adventurer','Trailblazer','Champion','Luminary','Sage'];
+    const levelName  = levelNames[Math.min(level - 1, 5)];
+
+    document.getElementById('st-total').textContent    = total;
+    document.getElementById('st-done').textContent     = done;
+    document.getElementById('st-sessions').textContent  = sessCount;
+
+    if (rd?.xp !== undefined) {
+      document.getElementById('st-xp').textContent      = xp;
+      document.getElementById('st-xp-unit').textContent = 'XP';
+      document.getElementById('st-level').textContent   = `Level ${level} – ${levelName}`;
+
+      // XP progress bar
+      const wrap = document.getElementById('xp-progress-wrap');
+      wrap.style.display = 'flex';
+      document.getElementById('xp-level-badge').textContent = `Level ${level} — ${levelName}`;
+      document.getElementById('xp-count-label').textContent = `${xp} / 100 XP`;
+      setTimeout(() => { document.getElementById('xp-bar-fill').style.width = Math.min(xp, 100) + '%'; }, 100);
+    } else {
+      document.getElementById('st-xp').textContent    = '—';
+      document.getElementById('st-level').textContent = 'No sessions yet';
+    }
+
+    // Streak (simple: sessions in last 7 days)
+    const recentDays = new Set((sessions || []).map(s => s.created_at?.slice(0,10)));
+    let streak = 0;
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(); d.setDate(d.getDate() - i);
+      if (recentDays.has(d.toISOString().slice(0,10))) streak++;
+      else break;
+    }
+    document.getElementById('st-streak').textContent = streak;
+
+    // Done trend
+    if (total > 0) {
+      const pct = Math.round((done / total) * 100);
+      const trendEl = document.getElementById('st-done-trend');
+      trendEl.style.display = '';
+      trendEl.textContent = pct + '%';
+      trendEl.className = 'strip-trend ' + (pct >= 50 ? 'up' : 'neutral');
+    }
+
+    // Activity breakdown
+    const byType = {};
+    (activities || []).forEach(a => {
+      byType[a.activity_type] = (byType[a.activity_type] || 0) + 1;
+    });
+    const breakdownEl = document.getElementById('activity-breakdown');
+    breakdownEl.innerHTML = Object.entries(byType).map(([type, count]) => {
+      const m = ACTIVITY_META[type] || ACTIVITY_META.custom;
+      return `<div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;">
+        <span style="font-size:16px;">${m.icon}</span>
+        <span style="flex:1;font-size:12px;color:var(--ink);">${m.label}</span>
+        <span style="font-family:var(--mono);font-size:12px;color:var(--slate-light);">${count}</span>
+      </div>`;
+    }).join('') || '<div style="font-size:12px;color:var(--slate-light);">No activities yet.</div>';
+
+    // Chart
+    renderProgressChart(activities || []);
+  }
+
+  function renderProgressChart(activities) {
+    if (!activities.length) return;
+    const wrap = document.getElementById('progress-chart-wrap');
+    wrap.style.display = 'block';
+
+    // Group by week (last 6 weeks)
+    const weeks = [];
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(); d.setDate(d.getDate() - (i * 7));
+      weeks.push({ label: ['6w','5w','4w','3w','2w','1w'][5-i], start: new Date(d - 7*24*60*60*1000), end: d, done: 0, total: 0 });
+    }
+    activities.forEach(a => {
+      const d = new Date(a.created_at);
+      weeks.forEach(w => { if (d >= w.start && d < w.end) { w.total++; if (a.done) w.done++; } });
+    });
+
+    const maxH = 60;
+    const done  = activities.filter(a=>a.done).length;
+    const total = activities.length;
+    document.getElementById('completion-rate').textContent = `${done}/${total} completed (${Math.round((done/total)*100)}%)`;
+
+    document.getElementById('chart-canvas').innerHTML = weeks.map(w => {
+      const h = w.total > 0 ? Math.round((w.done / w.total) * maxH) : 0;
+      return `<div class="chart-bar-wrap">
+        <div class="chart-bar ${h === 0 ? 'empty' : ''}" style="height:${Math.max(h,4)}px;" title="${w.done}/${w.total} done"></div>
+        <div class="chart-label">${w.label}</div>
+      </div>`;
+    }).join('');
+  }
+
+  async function loadCharacter() {
+    const { data } = await db.from('session_responses').select('response_data').eq('client_id', currentClient.id).eq('step_index', -1).order('created_at', { ascending: false }).limit(1).maybeSingle();
+    let charData2 = data?.response_data;
+    if (typeof charData2 === 'string') { try { charData2 = JSON.parse(charData2); } catch(e) {} }
+
+    const charId   = charData2?.character;
+    const charName = charData2?.name || (charId ? 'The ' + charId.charAt(0).toUpperCase() + charId.slice(1) : null);
+
+    const wrap = document.getElementById('cp-character-wrap');
+    const pill = document.getElementById('cp-character-pill');
+
+    if (charId) {
+      wrap.style.display = 'block';
+      const dispName = charId === 'custom' && charData2?.name ? charData2.name : charName;
+      pill.innerHTML = `<span style="font-size:14px;">${charId === 'custom' ? '✦' : '🧭'}</span> ${dispName || 'Hero chosen'}`;
+
+      // Sidebar
+      const imgWrap = document.getElementById('sidebar-char-img');
+      if (CHAR_IMAGES[charId]) {
+        imgWrap.innerHTML = `<img src="${CHAR_IMAGES[charId]}" alt="${charName}" />`;
+        imgWrap.className = 'char-img-wrap';
+      } else {
+        imgWrap.innerHTML = '🎭';
+        imgWrap.className = 'char-img-wrap placeholder';
+      }
+      document.getElementById('sidebar-char-name').textContent = dispName || 'Custom Hero';
+      document.getElementById('sidebar-char-type').textContent = CHAR_TAGS[charId] || (charData2?.traits?.join(', ') || 'Custom archetype');
+    } else {
+      wrap.style.display = 'block';
+      pill.innerHTML = `✦ No character chosen yet`;
+    }
+  }
+
+  /* ─────────────────────────────────────────
+     ACTIVITIES
+  ───────────────────────────────────────── */
+  async function loadActivities() {
+    const { data: activities } = await db.from('activities').select('*').eq('client_id', currentClient.id).order('created_at', { ascending: false });
+    const list = document.getElementById('lesson-list');
+    if (!activities?.length) {
+      list.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div>No activities assigned yet.</div>`;
+      return;
+    }
+    list.innerHTML = activities.map(a => {
+      const m = ACTIVITY_META[a.activity_type] || ACTIVITY_META.custom;
+      const statusClass = a.done ? 'done' : 'pending';
+      const statusText  = a.done ? 'Completed' : 'Pending';
+      return `<div class="activity-item ${a.activity_type} ${a.done ? 'done' : ''}">
+        <div class="activity-icon">${m.icon}</div>
+        <div class="activity-info">
+          <div class="activity-name">${a.name || m.label}</div>
+          <div class="activity-meta">Assigned ${formatDate(a.created_at)}${a.done ? ' · Completed' : ''}</div>
+        </div>
+        ${a.score !== null && a.score !== undefined ? `<span class="activity-score">${a.score}%</span>` : ''}
+        <span class="activity-status ${statusClass}">${statusText}</span>
+        ${!a.done ? `<button onclick="toggleDone('${a.id}', event)" style="margin-left:4px;background:none;border:0.5px solid var(--border);border-radius:4px;padding:4px 8px;font-size:11px;cursor:pointer;color:var(--slate-light);">Mark done</button>` : ''}
+      </div>`;
+    }).join('');
+  }
+
+  async function toggleDone(actId, e) {
+    e.stopPropagation();
+    await db.from('activities').update({ done: true }).eq('id', actId);
+    loadActivities();
+    loadClientStats();
+  }
+
+  /* ─────────────────────────────────────────
+     ASSIGN ACTIVITY MODAL
+  ───────────────────────────────────────── */
+  let selectedActivityType = null;
+
+  const ACTIVITY_TYPES = [
+    { type:'quiz',      icon:'🧠', label:'Coping Skills Quiz',   sub:'Test knowledge with guided questions' },
+    { type:'breathing', icon:'🌬️', label:'Breathing Garden',     sub:'Guided breathwork exercises' },
+    { type:'journal',   icon:'📓', label:'Reflection Journal',   sub:'Prompted journaling for self-discovery' },
+    { type:'emotions',  icon:'🎭', label:'Emotion Explorer',     sub:'Name feelings and find coping tools' },
+    { type:'custom',    icon:'✏️', label:'Custom Activity',      sub:'Add your own activity' },
+  ];
+
+  function openAddLesson() {
+    selectedActivityType = null;
+    document.getElementById('custom-name-field').style.display = 'none';
+    const picker = document.getElementById('activity-picker');
+    picker.innerHTML = ACTIVITY_TYPES.map(at => `
+      <div class="activity-type-btn" id="atbtn-${at.type}" onclick="selectActivityType('${at.type}')">
+        <span class="at-icon">${at.icon}</span>
+        <div>
+          <div class="at-label">${at.label}</div>
+          <div class="at-sub">${at.sub}</div>
+        </div>
+      </div>`).join('');
+    openOverlay('add-lesson-overlay');
+  }
+
+  function selectActivityType(type) {
+    selectedActivityType = type;
+    document.querySelectorAll('.activity-type-btn').forEach(b => b.classList.remove('selected'));
+    document.getElementById('atbtn-' + type)?.classList.add('selected');
+    const customField = document.getElementById('custom-name-field');
+    customField.style.display = type === 'custom' ? 'block' : 'none';
+  }
+
+  async function saveLesson() {
+    if (!selectedActivityType || !currentClient) return;
+    const m = ACTIVITY_META[selectedActivityType] || ACTIVITY_META.custom;
+    const customName = document.getElementById('ls-name')?.value.trim();
+    const name = selectedActivityType === 'custom' && customName ? customName : m.label;
+    await db.from('activities').insert({ client_id: currentClient.id, activity_type: selectedActivityType, name, done: false });
+    closeOverlay('add-lesson-overlay');
+    loadActivities();
+    loadClientStats();
+  }
+
+  /* ─────────────────────────────────────────
+     HOMEWORK
+  ───────────────────────────────────────── */
+  async function loadHomework() {
+    // Load from therapist_notes table with type='homework', or fallback to localStorage
+    const stored = JSON.parse(localStorage.getItem('hw_' + currentClient.id) || '[]');
+    currentHomework = stored;
+    renderHomework();
+  }
+
+  function renderHomework() {
+    const list = document.getElementById('homework-list');
+    if (!currentHomework.length) {
+      list.innerHTML = `<div class="empty-state"><div class="empty-icon">📚</div>No outside work assigned yet.<br>Assign tasks for your client to complete between sessions.</div>`;
+      return;
+    }
+    list.innerHTML = currentHomework.map((hw, i) => `
+      <div class="homework-item">
+        <div class="hw-check ${hw.done ? 'checked' : ''}" onclick="toggleHW(${i})"></div>
+        <div class="hw-text">
+          <div class="hw-title" style="${hw.done ? 'text-decoration:line-through;opacity:0.5;' : ''}">${hw.title}</div>
+          ${hw.due ? `<div class="hw-due">Due ${hw.due}</div>` : ''}
+        </div>
+        <button onclick="deleteHW(${i})" style="background:none;border:none;color:var(--slate-light);cursor:pointer;font-size:14px;padding:2px 6px;border-radius:3px;" title="Remove">×</button>
+      </div>`).join('');
+  }
+
+  function toggleHW(i) {
+    currentHomework[i].done = !currentHomework[i].done;
+    localStorage.setItem('hw_' + currentClient.id, JSON.stringify(currentHomework));
+    renderHomework();
+  }
+
+  function deleteHW(i) {
+    currentHomework.splice(i, 1);
+    localStorage.setItem('hw_' + currentClient.id, JSON.stringify(currentHomework));
+    renderHomework();
+  }
+
+  function openAddHomework() {
+    document.getElementById('hw-title').value = '';
+    document.getElementById('hw-due').value   = '';
+    openOverlay('add-homework-overlay');
+  }
+
+  function saveHomework() {
+    const title = document.getElementById('hw-title').value.trim();
+    const due   = document.getElementById('hw-due').value;
+    if (!title) return;
+    currentHomework.push({ title, due, done: false });
+    localStorage.setItem('hw_' + currentClient.id, JSON.stringify(currentHomework));
+    closeOverlay('add-homework-overlay');
+    renderHomework();
+  }
+
+  /* ─────────────────────────────────────────
+     NOTES
+  ───────────────────────────────────────── */
+  async function loadNotes() {
+    const stored = JSON.parse(localStorage.getItem('notes_' + currentClient.id) || '[]');
+    currentNotes = stored;
+    renderNotes();
+  }
+
+  function renderNotes() {
+    const list = document.getElementById('notes-list');
+    if (!currentNotes.length) {
+      list.innerHTML = `<div style="font-size:12px;color:var(--slate-light);margin-bottom:12px;line-height:1.5;">No notes yet. Add observations from this session.</div>`;
+      return;
+    }
+    list.innerHTML = currentNotes.slice().reverse().map(n => `
+      <div class="note-item">
+        <div class="note-text">${n.text}</div>
+        <div class="note-date">${n.date}</div>
+      </div>`).join('');
+  }
+
+  function saveNote() {
+    const txt = document.getElementById('note-textarea').value.trim();
+    if (!txt) return;
+    currentNotes.push({ text: txt, date: new Date().toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' }) });
+    localStorage.setItem('notes_' + currentClient.id, JSON.stringify(currentNotes));
+    document.getElementById('note-textarea').value = '';
+    renderNotes();
+  }
+
+  /* ─────────────────────────────────────────
+     SESSION RESPONSES
+  ───────────────────────────────────────── */
+  async function loadResponses() {
+    const { data } = await db.from('session_responses').select('*').eq('client_id', currentClient.id).not('step_index', 'in', '(-1,-2)').order('created_at', { ascending: false }).limit(20);
+    const list = document.getElementById('responses-list');
+    if (!data?.length) {
+      list.innerHTML = `<div class="empty-state"><div class="empty-icon">💬</div>No session responses yet.</div>`;
+      return;
+    }
+
+    list.innerHTML = data.map(r => {
+      let rd = r.response_data;
+      if (typeof rd === 'string') { try { rd = JSON.parse(rd); } catch(e) {} }
+
+      let content = '';
+      if (rd?.question) {
+        content = `<div class="response-label">Quiz Question</div>
+          <div class="response-text">${rd.question}</div>
+          <div class="response-text" style="margin-top:6px;"><strong>Answer:</strong> ${rd.answer || '—'} 
+            <span class="${rd.correct ? 'response-correct' : 'response-wrong'}">${rd.correct ? '✓ Correct' : '✗ Incorrect'}</span>
+          </div>`;
+      } else if (rd?.prompt) {
+        content = `<div class="response-label">Journal Entry</div>
+          <div class="response-text" style="font-style:italic;color:var(--slate);">"${rd.prompt}"</div>
+          <div class="response-text" style="margin-top:6px;">${rd.response || '—'}</div>`;
+      } else if (rd?.emotion) {
+        content = `<div class="response-label">Emotion Check-in</div>
+          <div class="response-text">${rd.icon || ''} Reported feeling: <strong>${rd.emotion}</strong></div>`;
+      } else if (rd?.technique) {
+        content = `<div class="response-label">Breathing Exercise</div>
+          <div class="response-text">Completed ${rd.cycles || 0} cycle(s) · ${rd.completed ? '✓ Finished' : 'Partial'}</div>`;
+      } else {
+        content = `<div class="response-label">Session Data</div><div class="response-text">${JSON.stringify(rd)}</div>`;
+      }
+
+      return `<div class="response-item">
+        ${content}
+        <div style="font-size:10px;color:var(--slate-light);font-family:var(--mono);margin-top:6px;">${formatDate(r.created_at)}</div>
+      </div>`;
+    }).join('');
+  }
+
+  /* ─────────────────────────────────────────
+     SESSION HISTORY
+  ───────────────────────────────────────── */
+  async function loadSessionHistory() {
+    const { data: sessions } = await db.from('sessions').select('*').eq('client_id', currentClient.id).order('created_at', { ascending: false });
+    const list = document.getElementById('session-history-list');
+    if (!sessions?.length) {
+      list.innerHTML = `<div class="empty-state"><div class="empty-icon">📅</div>No sessions recorded yet.</div>`;
+      return;
+    }
+
+    list.innerHTML = sessions.map(s => {
+      const status = s.status === 'completed' ? '<span class="pill pill-green">Completed</span>' : s.status === 'active' ? '<span class="pill pill-blue">Active</span>' : '<span class="pill pill-amber">Waiting</span>';
+      return `<div class="session-row">
+        <div class="session-dot"></div>
+        <div class="session-info">
+          <div class="session-date">${formatDate(s.created_at)}</div>
+          <div class="session-summary">Code: <span style="font-family:var(--mono)">${s.code || '——'}</span></div>
+        </div>
+        ${status}
+      </div>`;
+    }).join('');
+  }
+
+  /* ─────────────────────────────────────────
+     START SESSION (full live panel)
+  ───────────────────────────────────────── */
+  let activeSession = null;
+  let sessionListener = null;
+  let sessionTimerInterval = null;
+  let sessionSeconds = 0;
+
+  function generateCode() {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    let code = '';
+    for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+    return code;
+  }
+
+  async function openStartSession() {
+    if (!currentClient) return;
+    const code = generateCode();
+    const { data: session, error } = await db.from('sessions').insert({
+      code,
+      therapist_id: currentUser?.id,
+      client_id: currentClient.id,
+      activity_type: 'emotions',
+      status: 'waiting'
+    }).select().single();
+    if (error) { alert('Could not create session. Please try again.'); return; }
+    activeSession = session;
+    showSessionPanel(code, currentClient.name, 'emotions', '🎭', session.id);
+    loadSessionHistory();
+    loadClientStats();
+  }
+
+  async function createSession() { await openStartSession(); }
+
+  function showSessionPanel(code, clientName, activityType, activityIcon, sessionId) {
+    const existing = document.getElementById('session-panel');
+    if (existing) existing.remove();
+    const panel = document.createElement('div');
+    panel.id = 'session-panel';
+    panel.innerHTML = `
+      <div class="session-panel-inner">
+        <div class="session-panel-header">
+          <div class="session-panel-title"><span>${activityIcon}</span><span>Live Session — ${clientName}</span></div>
+          <button class="session-close-btn" onclick="endSession()">End Session</button>
+        </div>
+        <div class="session-code-block" id="session-code-block">
+          <p class="session-code-label">Share this code with your client</p>
+          <div class="session-code">${code}</div>
+          <p class="session-code-sub">Have your client visit the link below and enter this code</p>
+          <a class="session-client-url" href="${window.location.origin}/adventure" target="_blank">${window.location.origin}/adventure</a>
+          <div class="session-status waiting" id="session-status">⏳ Waiting for client to join...</div>
+        </div>
+        <div class="session-live" id="session-live" style="display:none">
+          <div class="session-status connected" id="session-status-live">✅ Client connected — session in progress</div>
+          <div class="session-timer" id="session-timer">0:00</div>
+          <div class="prompt-panel" id="prompt-panel">
+            <p class="prompt-panel-label">💬 Therapist Prompts</p>
+            <div class="current-prompt" id="current-prompt">Waiting for client to begin activity...</div>
+            <div class="prompt-queue" id="prompt-queue"></div>
+          </div>
+          <div class="session-responses" id="session-responses">
+            <p class="responses-label">📋 Client Responses</p>
+            <div id="responses-list-live"></div>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(panel);
+    requestAnimationFrame(() => panel.classList.add('open'));
+    listenForSession(sessionId);
+    startSessionTimer();
+  }
+
+  function listenForSession(sessionId) {
+    if (sessionListener) sessionListener.unsubscribe();
+    sessionListener = db.channel('session-' + sessionId)
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'sessions', filter: `id=eq.${sessionId}` }, payload => {
+        const s = payload.new;
+        if (s.status === 'active') { showClientConnected(); updatePrompts(s.activity_type, s.client_step); }
+        if (s.status === 'client_disconnected') {
+          const el = document.getElementById('session-status-live');
+          if (el) { el.textContent = '⚠️ Client closed their window — ending session…'; el.className = 'session-status waiting'; }
+          setTimeout(() => endSession(true), 1500);
+        }
+        if (s.client_step !== undefined) updatePrompts(s.activity_type, s.client_step);
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'session_responses', filter: `session_id=eq.${sessionId}` }, payload => {
+        addResponseToPanel(payload.new);
+      })
+      .subscribe();
+  }
+
+  function showClientConnected() {
+    document.getElementById('session-code-block').style.display = 'none';
+    document.getElementById('session-live').style.display = 'block';
+  }
+
+  function startSessionTimer() {
+    sessionSeconds = 0;
+    if (sessionTimerInterval) clearInterval(sessionTimerInterval);
+    sessionTimerInterval = setInterval(() => {
+      sessionSeconds++;
+      const m = Math.floor(sessionSeconds / 60);
+      const s = sessionSeconds % 60;
+      const el = document.getElementById('session-timer');
+      if (el) el.textContent = m + ':' + String(s).padStart(2, '0');
+    }, 1000);
+  }
+
+  const THERAPIST_PROMPTS = {
+    quiz:      ["Before we start — ask: \"How are you feeling about testing your knowledge today?\"","They just answered a question. Ask: \"What made you choose that answer?\"","Check in: \"Is any of this bringing up things you've experienced yourself?\"","Encourage: \"You're doing great. What's feeling most familiar to you so far?\"","Reflect: \"Which question felt hardest? Why do you think that is?\"","Wrap up: \"What's one thing from this quiz you want to remember this week?\""],
+    breathing: ["Before starting: \"Where do you feel stress most in your body right now?\"","They're beginning to breathe. Gently say: \"Just follow the circle — no pressure.\"","Mid-exercise: \"Notice anything shifting? Even a tiny bit of calm counts.\"","Check in: \"Is this pace comfortable, or would you like to try a different technique?\"","Finishing up: \"What did you notice in your body during that exercise?\"","Close: \"When could you use this technique on your own this week?\""],
+    journal:   ["Before writing: \"There are no wrong answers here — just honest ones.\"","They're writing. Give them space. When ready: \"Want to share anything you wrote?\"","Follow up: \"What felt surprising or hard to write?\"","Go deeper: \"If you could say one more thing about that, what would it be?\"","Connect: \"How does what you wrote connect to something in your life right now?\"","Close: \"What do you want to carry with you from what you wrote today?\""],
+    emotions:  ["Before selecting: \"Don't overthink it — just go with your gut feeling right now.\"","They picked an emotion. Ask: \"When did you first notice feeling this way today?\"","Go deeper: \"Where do you feel that emotion in your body?\"","Explore: \"Has this feeling been visiting you often lately?\"","Coping: \"Of the strategies shown, which one feels most doable for you?\"","Close: \"What would it feel like to give yourself permission to feel this without judgment?\""]
+  };
+
+  function updatePrompts(activityType, step) {
+    const prompts = THERAPIST_PROMPTS[activityType] || THERAPIST_PROMPTS.quiz;
+    const currentEl = document.getElementById('current-prompt');
+    const queueEl   = document.getElementById('prompt-queue');
+    if (!currentEl || !queueEl) return;
+    const idx = Math.min(step || 0, prompts.length - 1);
+    currentEl.textContent = prompts[idx];
+    const upcoming = prompts.slice(idx + 1, idx + 3);
+    queueEl.innerHTML = upcoming.length
+      ? '<p class="upcoming-label">Coming up:</p>' + upcoming.map(p => `<div class="upcoming-prompt">${p}</div>`).join('')
+      : '';
+  }
+
+  function addResponseToPanel(response) {
+    const list = document.getElementById('responses-list-live');
+    if (!list) return;
+    let data = response.response_data;
+    if (typeof data === 'string') { try { data = JSON.parse(data); } catch(e) {} }
+    if (data?.type === 'xp_update') return;
+    let label = '', content = '';
+    if (data?.emotion) {
+      label = 'Emotion Check-in';
+      content = `<span style="font-size:22px">${data.icon || ''}</span> <strong>${data.emotion}</strong>`;
+    } else if (data?.correct !== undefined) {
+      const ok = data.correct;
+      label = ok ? 'Quiz — Correct' : 'Quiz — Incorrect';
+      content = `<div style="font-size:12px;color:#7B7899;margin-bottom:5px;">${data.question || ''}</div>
+        <span style="background:${ok?'#edfbf0':'#fff0eb'};color:${ok?'#1E6B2E':'#9E3A1E'};padding:3px 10px;border-radius:4px;font-weight:600;font-size:13px;">${ok?'✓':'✗'} ${data.answer || ''}</span>`;
+    } else if (data?.completed === true && data?.cycles !== undefined) {
+      label = 'Breathing Exercise';
+      content = `✅ Completed ${data.cycles} cycles`;
+    } else if (data?.response !== undefined) {
+      label = 'Journal Response';
+      const excerpt = data.response.length > 120 ? data.response.slice(0, 120) + '…' : data.response;
+      content = `<div style="font-size:11px;color:#7B7899;margin-bottom:4px;font-style:italic;">${(data.prompt||'').slice(0,80)}</div>${excerpt}`;
+    } else { return; }
+    const div = document.createElement('div');
+    div.className = 'response-item';
+    div.innerHTML = `<div class="response-step">${label}</div><div class="response-content">${content}</div>`;
+    list.appendChild(div);
+  }
+
+  async function endSession(skipConfirm = false) {
+    if (!activeSession) return;
+    if (!skipConfirm && !confirm('End this session? A summary will be saved.')) return;
+    await db.from('sessions').update({ status: 'completed' }).eq('id', activeSession.id);
+    const { data: responses } = await db.from('session_responses').select('*').eq('session_id', activeSession.id).order('created_at', { ascending: true });
+    const mins = Math.floor(sessionSeconds / 60);
+    const secs = sessionSeconds % 60;
+    const duration = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
+    if (sessionListener) sessionListener.unsubscribe();
+    if (sessionTimerInterval) clearInterval(sessionTimerInterval);
+    closeSessionPanel();
+    activeSession = null;
+    if (currentClient) { loadActivities(); loadClientStats(); loadSessionHistory(); }
+  }
+
+  function closeSessionPanel() {
+    const panel = document.getElementById('session-panel');
+    if (panel) { panel.classList.remove('open'); setTimeout(() => panel.remove(), 300); }
+  }
+
+  /* ─────────────────────────────────────────
+     SCORE MODAL (legacy support)
+  ───────────────────────────────────────── */
+  let scoreActivityId = null;
+  function openScoreModal(actId, actName) {
+    scoreActivityId = actId;
+    document.getElementById('score-modal-title').textContent = 'Log score — ' + actName;
+    document.getElementById('score-input').value = '';
+    document.getElementById('score-history').innerHTML = '';
+    openOverlay('score-overlay');
+  }
+  async function saveScore() {
+    if (!scoreActivityId) return;
+    const score = parseInt(document.getElementById('score-input').value);
+    if (isNaN(score)) return;
+    await db.from('activities').update({ score }).eq('id', scoreActivityId);
+    closeOverlay('score-overlay');
+    loadActivities();
+  }
+
+  /* ─────────────────────────────────────────
+     TABS
+  ───────────────────────────────────────── */
+  function switchTab(panelId, tabEl) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    const panel = document.getElementById(panelId);
+    if (panel) panel.style.display = 'block';
+    if (tabEl) tabEl.classList.add('active');
+  }
+  function switchTabByName(panelId) {
+    document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    const panel = document.getElementById(panelId);
+    if (panel) panel.style.display = 'block';
+    const idx = ['tab-activities','tab-homework','tab-responses','tab-history'].indexOf(panelId);
+    const tabs = document.querySelectorAll('.tab');
+    if (tabs[idx]) tabs[idx].classList.add('active');
+  }
+
+  /* ─────────────────────────────────────────
+     OVERLAY HELPERS
+  ───────────────────────────────────────── */
+  function openOverlay(id)  { document.getElementById(id).classList.add('open'); }
+  function closeOverlay(id) { document.getElementById(id).classList.remove('open'); }
+  function closeBg(e, id)   { if (e.target.id === id) closeOverlay(id); }
+
+  function showApp() {
+    showPage('pg-app');
+    renderClientGrid();
+  }
+
+  /* ─────────────────────────────────────────
+     UTILS
+  ───────────────────────────────────────── */
+  function formatDate(iso) {
+    if (!iso) return '—';
+    return new Date(iso).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+  }
+
+  /* ─────────────────────────────────────────
+     PAST CLIENTS
+  ───────────────────────────────────────── */
+  async function renderPastClients() {
+    const { data: { user } } = await db.auth.getUser();
+    const { data: clients } = await db.from('clients').select('*, activities(id,done)').eq('user_id', user.id).eq('archived', true).order('archived_at', { ascending: false }).then(r => r).catch(() => ({ data: [] }));
+    const section = document.getElementById('past-clients-section');
+    const grid    = document.getElementById('past-client-grid');
+    if (!clients?.length) { section.style.display = 'none'; return; }
+    section.style.display = '';
+    grid.innerHTML = clients.map(c => {
+      const archivedStr = c.archived_at ? formatDate(c.archived_at) : '';
+      return `<div class="past-client-row">
+        <div class="past-client-av">${c.avatar || '🌿'}</div>
+        <div>
+          <div class="past-client-name">${c.name}</div>
+          <div class="past-client-meta">Client since ${formatDate(c.created_at)}${archivedStr ? ' · Archived ' + archivedStr : ''}</div>
+        </div>
+        <button onclick="restoreClient('${c.id}')" style="font-size:11px;font-weight:500;color:var(--hunter-green);background:var(--green-light);border:0.5px solid var(--border-strong);border-radius:4px;padding:5px 12px;cursor:pointer;margin-left:auto;">Restore</button>
+        <button onclick="deleteClient('${c.id}')" style="font-size:11px;font-weight:500;color:#c0392b;background:none;border:0.5px solid #e8c4c4;border-radius:4px;padding:5px 12px;cursor:pointer;margin-left:6px;">Delete</button>
+      </div>`;
+    }).join('');
+  }
+
+  async function archiveClient(id, name) {
+    if (!confirm(`Archive ${name || 'this client'}? Their records will be preserved in Past Clients.`)) return;
+    await db.from('clients').update({ archived: true, archived_at: new Date().toISOString() }).eq('id', id);
+    renderClientGrid();
+  }
+
+  async function restoreClient(id) {
+    await db.from('clients').update({ archived: false, archived_at: null }).eq('id', id);
+    renderClientGrid();
+  }
+
+  async function deleteClient(id) {
+    if (!confirm('Permanently delete this client and all their data? This cannot be undone.')) return;
+    await db.from('session_summaries').delete().eq('client_id', id);
+    await db.from('session_responses').delete().eq('client_id', id);
+    await db.from('sessions').delete().eq('client_id', id);
+    const { data: acts } = await db.from('activities').select('id').eq('client_id', id);
+    if (acts?.length) await db.from('scores').delete().in('activity_id', acts.map(a => a.id));
+    await db.from('activities').delete().eq('client_id', id);
+    await db.from('clients').delete().eq('id', id);
+    renderClientGrid();
+  }
+
+  /* ─────────────────────────────────────────
+     KEYBOARD SHORTCUTS
+  ───────────────────────────────────────── */
+  document.getElementById('si-pass')?.addEventListener('keydown', e => { if (e.key === 'Enter') doSignIn(); });
+  document.getElementById('cl-name')?.addEventListener('keydown', e => { if (e.key === 'Enter') saveClient(); });
+  document.getElementById('ls-name')?.addEventListener('keydown', e => { if (e.key === 'Enter') saveLesson(); });
+  document.getElementById('score-input')?.addEventListener('keydown', e => { if (e.key === 'Enter') saveScore(); });
+  document.getElementById('note-textarea')?.addEventListener('keydown', e => { if (e.key === 'Enter' && e.metaKey) saveNote(); });
+  document.getElementById('hw-title')?.addEventListener('keydown', e => { if (e.key === 'Enter') saveHomework(); });
   </script>
 
-  <script src="src/clinical/app.js"></script>
 </body>
 </html>
