@@ -1265,7 +1265,11 @@
 
     return `<div class="client-card" onclick="openClient('${c.id}')">
       <div class="client-card-top">
-        <div class="client-card-av">${c.avatar || '🌿'}</div>
+        <div class="client-card-av" style="${c.last_character ? 'padding:0;overflow:hidden;' : ''}">${
+          c.last_character && CHAR_IMAGES[c.last_character]
+            ? `<img src="${CHAR_IMAGES[c.last_character]}" style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;">`
+            : (c.avatar || '🌿')
+        }</div>
         <div class="client-card-status ${statusClass}"></div>
       </div>
       <div class="client-card-name">${c.name}</div>
@@ -1355,7 +1359,17 @@
     if (!client) return;
     currentClient = client;
 
-    document.getElementById('cp-av').textContent   = client.avatar || '🌿';
+    const cpAv = document.getElementById('cp-av');
+    const charImg = CHAR_IMAGES[client.last_character];
+    if (charImg) {
+      cpAv.textContent = '';
+      cpAv.style.cssText = 'padding:0;overflow:hidden;';
+      cpAv.innerHTML = `<img src="${charImg}" style="width:100%;height:100%;object-fit:cover;object-position:top center;display:block;">`;
+    } else {
+      cpAv.innerHTML = '';
+      cpAv.style.cssText = '';
+      cpAv.textContent = client.avatar || '🌿';
+    }
     document.getElementById('cp-name').textContent = client.name;
     document.getElementById('cp-since').textContent = `Client since ${formatDate(client.created_at)}`;
 
