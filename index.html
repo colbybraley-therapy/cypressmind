@@ -726,7 +726,7 @@
     .pilot-note { margin-top: 40px; padding: 16px 24px; text-align: center; font-size: 13px; color: var(--slate-light); font-style: italic; }
 
     /* Pricing */
-    .pricing-section { background: var(--paper); border-top: 0.5px solid var(--border); border-bottom: 0.5px solid var(--border); }
+    .pricing-section { background: var(--paper); border-top: 0.5px solid var(--border); border-bottom: 0.5px solid var(--border); padding: 110px 0; }
     .pricing-grid { margin-top: 64px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
     .price-card { background: var(--off-white); border: 0.5px solid var(--border-strong); border-radius: 10px; padding: 36px 28px; display: flex; flex-direction: column; position: relative; transition: all .2s; }
     .price-card.featured { border: 1px solid var(--hunter-green); background: linear-gradient(180deg, var(--paper) 0%, var(--green-mist) 100%); transform: scale(1.02); box-shadow: 0 16px 48px rgba(53,94,59,0.1); }
@@ -749,7 +749,7 @@
     .price-card.featured .price-cta:hover { background: var(--green-dark); border-color: var(--green-dark); }
 
     /* FAQ */
-    .faq-section { background: var(--off-white); }
+    .faq-section { background: var(--off-white); padding: 110px 0; }
     .faq-grid { margin-top: 56px; max-width: 820px; margin-left: auto; margin-right: auto; }
     .faq-item { border-bottom: 0.5px solid var(--border); padding: 4px 0; }
     .faq-q { width: 100%; padding: 24px 0; background: none; border: none; text-align: left; cursor: pointer; display: flex; align-items: center; justify-content: space-between; gap: 24px; font-family: var(--serif); font-size: 19px; font-weight: 500; color: var(--ink); transition: color .15s; }
@@ -762,13 +762,33 @@
     @media (max-width: 1100px) {
       .pricing-grid { grid-template-columns: repeat(2, 1fr); max-width: 720px; margin-left: auto; margin-right: auto; }
       .price-card.featured { transform: none; }
+      .showcase-grid { grid-template-columns: repeat(2, 1fr); }
     }
     @media (max-width: 900px) {
       .sales-section { padding: 72px 0; }
-      .steps, .sales-features-grid, .testimonials-grid, .pricing-grid { grid-template-columns: 1fr; }
+      .pricing-section, .faq-section { padding: 72px 0; }
+      .steps, .sales-features-grid, .testimonials-grid { grid-template-columns: 1fr; }
+      .pricing-grid { grid-template-columns: repeat(2, 1fr); }
       .steps::before { display: none; }
       .price-card.featured { transform: none; }
       .sales-features-grid { gap: 0.5px; }
+      .landing-features-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 768px) {
+      .nav-links-landing { display: none; }
+      .section-inner { padding: 0 20px; }
+      .landing-hero { flex-direction: column; padding: 56px 20px 72px; gap: 0; }
+      .landing-hero-left { flex: none; width: 100%; }
+      .landing-hero-sub { max-width: none; }
+      .landing-hero-visual { display: none; }
+      .landing-hero-meta { gap: 16px; }
+      .showcase-grid { grid-template-columns: repeat(2, 1fr); }
+      .pricing-grid { grid-template-columns: 1fr; max-width: 480px; margin-left: auto; margin-right: auto; }
+      .pricing-section, .faq-section, .sales-section { padding: 60px 0; }
+      .faq-q { font-size: 17px; padding: 20px 0; }
+      .landing-cta-block { padding: 80px 20px; }
+      .landing-footer { flex-direction: column; gap: 10px; text-align: center; padding: 24px 20px; }
+      .testimonials-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
