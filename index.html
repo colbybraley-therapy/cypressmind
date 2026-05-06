@@ -52,26 +52,25 @@
     /* ── LANDING NAV ── */
     .landing-nav {
       display: flex; align-items: center; justify-content: space-between;
-      height: 84px; padding: 0 48px;
-      background: #fff; border-bottom: 0.5px solid var(--border);
+      height: 68px; padding: 0 32px;
+      background: rgba(248, 250, 249, 0.85);
+      backdrop-filter: saturate(180%) blur(14px);
+      -webkit-backdrop-filter: saturate(180%) blur(14px);
+      border-bottom: 0.5px solid var(--border);
       position: sticky; top: 0; z-index: 100;
     }
+    .nav-links-landing { display: flex; gap: 28px; align-items: center; font-size: 14px; }
+    .nav-links-landing a { text-decoration: none; color: var(--slate); font-family: var(--sans); transition: color 0.15s; }
+    .nav-links-landing a:hover { color: var(--hunter-green); }
     .nav-right { display: flex; align-items: center; gap: 12px; }
-    .nav-ghost-btn {
-      font-family: var(--sans); font-size: 13px; font-weight: 500;
-      color: var(--hunter-green); background: var(--green-light);
-      border: 0.5px solid var(--hunter-green); padding: 8px 20px;
-      border-radius: 4px; cursor: pointer; letter-spacing: 0.02em; transition: background 0.15s;
-    }
-    .nav-ghost-btn:hover { background: #dceadc; }
     .signin-wrap { position: relative; }
     .nav-signin-btn {
       display: flex; align-items: center; gap: 6px;
-      font-family: var(--sans); font-size: 13px; font-weight: 400;
-      color: var(--slate); background: none; border: 0.5px solid var(--border);
-      padding: 8px 16px; border-radius: 4px; cursor: pointer; transition: border-color 0.15s;
+      font-family: var(--sans); font-size: 14px; font-weight: 500;
+      color: #fff; background: var(--hunter-green); border: none;
+      padding: 9px 20px; border-radius: 4px; cursor: pointer; letter-spacing: 0.02em; transition: background 0.15s;
     }
-    .nav-signin-btn:hover { border-color: #aaa; }
+    .nav-signin-btn:hover { background: var(--green-dark); }
     .signin-panel {
       display: none; position: absolute; right: 0; top: calc(100% + 10px);
       background: #fff; border: 0.5px solid var(--border); border-radius: 6px;
@@ -80,21 +79,56 @@
     .signin-panel.open { display: block; }
     .signin-panel-title { font-family: var(--serif); font-size: 17px; font-weight: 500; color: var(--ink); margin: 0 0 16px; }
 
-    /* ── STORY SECTION ── */
-    .story-section { background: #fff; padding: 80px 0; border-top: 0.5px solid var(--border); }
-    .section-inner { max-width: 1120px; margin: 0 auto; padding: 0 48px; }
-    .section-label { font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--hunter-green); font-weight: 500; margin-bottom: 40px; }
-    .story-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0; border: 0.5px solid var(--border); border-radius: 8px; overflow: hidden; }
-    .story-card { padding: 36px 32px; border-bottom: 0.5px solid var(--border); border-right: 0.5px solid var(--border); background: var(--off-white); }
-    .story-card:nth-child(2n) { border-right: none; }
-    .story-card:nth-last-child(-n+2) { border-bottom: none; }
-    .story-icon { font-size: 18px; margin-bottom: 16px; width: 40px; height: 40px; background: var(--green-light); border-radius: 6px; display: flex; align-items: center; justify-content: center; }
-    .story-card h3 { font-family: var(--serif); font-size: 17px; font-weight: 500; color: var(--ink); margin: 0 0 10px; }
-    .story-card p { font-size: 14px; color: var(--slate); line-height: 1.7; margin: 0; }
+    /* ── LANDING HERO ── */
+    .landing-hero-wrap { background: var(--off-white); position: relative; overflow: hidden; }
+    .landing-hero { max-width: 1180px; margin: 0 auto; padding: 96px 32px 120px; display: flex; align-items: center; justify-content: space-between; gap: 56px; }
+    .landing-hero-left { flex: 0 1 540px; }
+    .landing-hero-eyebrow { font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--hunter-green); font-weight: 500; margin-bottom: 24px; }
+    .landing-hero-h1 { font-family: var(--serif); font-size: clamp(36px, 4.5vw, 58px); font-weight: 500; color: var(--ink); line-height: 1.15; letter-spacing: -0.01em; margin-bottom: 24px; }
+    .landing-hero-h1 em { font-style: italic; color: var(--hunter-green); font-weight: 400; }
+    .landing-hero-sub { font-size: 18px; color: var(--slate); line-height: 1.6; max-width: 500px; margin-bottom: 40px; font-weight: 300; }
+    .landing-hero-actions { display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+    .landing-hero-btn-primary {
+      display: inline-flex; align-items: center; gap: 10px;
+      padding: 14px 28px; background: var(--hunter-green); color: #fff;
+      border-radius: 4px; font-weight: 500; font-size: 14px; letter-spacing: 0.02em;
+      border: 1px solid var(--hunter-green); cursor: pointer;
+      font-family: var(--sans); transition: all 0.2s;
+    }
+    .landing-hero-btn-primary:hover { background: var(--green-dark); border-color: var(--green-dark); transform: translateY(-1px); box-shadow: 0 8px 24px rgba(53,94,59,0.18); }
+    .landing-hero-btn-primary svg { transition: transform 0.2s; }
+    .landing-hero-btn-primary:hover svg { transform: translateX(3px); }
+    .landing-hero-btn-secondary {
+      display: inline-flex; align-items: center; text-decoration: none;
+      padding: 14px 28px; background: transparent; color: var(--ink);
+      border-radius: 4px; font-weight: 500; font-size: 14px;
+      border: 1px solid var(--border-strong); cursor: pointer;
+      font-family: var(--sans); transition: all 0.15s;
+    }
+    .landing-hero-btn-secondary:hover { border-color: var(--hunter-green); color: var(--hunter-green); }
+    .landing-hero-meta { display: flex; gap: 24px; align-items: center; margin-top: 48px; padding-top: 28px; border-top: 0.5px solid var(--border); font-size: 13px; color: var(--slate-light); flex-wrap: wrap; }
+    .landing-hero-meta-item { display: flex; align-items: center; gap: 8px; }
+    .landing-hero-meta-dot { width: 4px; height: 4px; background: var(--hunter-green); border-radius: 50%; flex-shrink: 0; }
+    .landing-hero-visual { flex: 0 0 42%; aspect-ratio: 16 / 11; background: linear-gradient(135deg, var(--hunter-green) 0%, #4B0082 100%); border-radius: 8px; box-shadow: 0 16px 48px rgba(26,46,26,0.14); display: flex; align-items: center; justify-content: center; overflow: hidden; opacity: 0.92; }
+    .landing-hero-visual span { font-family: var(--serif); font-size: 18px; font-style: italic; color: rgba(248,250,249,0.82); }
+
+    /* ── LANDING FEATURES ── */
+    .landing-features { background: #fff; padding: 110px 0; border-top: 0.5px solid var(--border); }
+    .section-inner { max-width: 1180px; margin: 0 auto; padding: 0 32px; }
+    .landing-section-eyebrow { font-size: 12px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--hunter-green); font-weight: 500; margin-bottom: 18px; }
+    .landing-section-title { font-family: var(--serif); font-size: clamp(30px, 4vw, 44px); font-weight: 500; color: var(--ink); letter-spacing: -0.01em; line-height: 1.15; margin-bottom: 20px; max-width: 680px; }
+    .landing-section-title em { font-style: italic; color: var(--hunter-green); font-weight: 400; }
+    .landing-section-lead { font-size: 17px; color: var(--slate); line-height: 1.6; max-width: 600px; font-weight: 300; margin-bottom: 64px; }
+    .landing-features-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--border); border: 0.5px solid var(--border); }
+    .landing-feature { background: var(--off-white); padding: 44px 36px; transition: background 0.25s; }
+    .landing-feature:hover { background: var(--green-faint); }
+    .landing-feature-icon { width: 44px; height: 44px; margin-bottom: 24px; color: var(--hunter-green); }
+    .landing-feature h3 { font-family: var(--serif); font-size: 20px; font-weight: 500; color: var(--ink); margin: 0 0 10px; }
+    .landing-feature p { font-size: 14px; color: var(--slate); line-height: 1.65; margin: 0; }
 
     /* ── SHOWCASE SECTION ── */
-    .showcase-section { padding: 80px 0; background: var(--off-white); border-top: 0.5px solid var(--border); }
-    .showcase-title { font-family: var(--serif); font-size: 32px; font-weight: 500; color: var(--ink); margin: 0 0 48px; }
+    .showcase-section { padding: 110px 0; background: var(--off-white); border-top: 0.5px solid var(--border); }
+    .showcase-title { font-family: var(--serif); font-size: clamp(30px, 4vw, 44px); font-weight: 500; color: var(--ink); margin: 0 0 20px; letter-spacing: -0.01em; line-height: 1.15; }
     .showcase-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
     .showcase-card { position: relative; border-radius: 16px; overflow: hidden; cursor: pointer; aspect-ratio: 3/4; border: 0.5px solid rgba(0,0,0,0.08); transition: transform 0.2s, box-shadow 0.2s; background: #fff; }
     .showcase-card:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
@@ -129,12 +163,17 @@
     .drawer-copy-text { font-size: 14px; color: #2a2a2a; line-height: 1.75; }
 
     /* ── CTA / FOOTER ── */
-    .landing-cta-block { background: var(--ink); padding: 80px 48px; text-align: center; }
-    .landing-cta-block h2 { font-family: var(--serif); font-size: 34px; font-weight: 500; color: #fff; margin: 0 0 12px; }
-    .landing-cta-block p { font-size: 16px; color: rgba(255,255,255,0.65); margin: 0 0 32px; }
-    .hero-cta { background: var(--hunter-green); color: #fff; font-family: var(--sans); font-size: 14px; font-weight: 500; padding: 14px 32px; border: none; border-radius: 4px; cursor: pointer; letter-spacing: 0.03em; transition: background 0.15s; }
-    .hero-cta:hover { background: var(--green-dark); }
-    .landing-footer { background: var(--ink); border-top: 0.5px solid rgba(255,255,255,0.1); padding: 20px 48px; font-size: 12px; color: rgba(255,255,255,0.4); letter-spacing: 0.04em; text-align: center; }
+    .landing-cta-block { background: var(--green-dark); padding: 110px 32px; text-align: center; position: relative; overflow: hidden; }
+    .landing-cta-block::before { content: ''; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 800px; height: 800px; background: radial-gradient(circle, rgba(65,105,225,0.15) 0%, rgba(107,63,160,0.08) 40%, transparent 70%); pointer-events: none; }
+    .landing-cta-inner { position: relative; z-index: 1; max-width: 680px; margin: 0 auto; }
+    .landing-cta-block h2 { font-family: var(--serif); font-size: clamp(32px, 5vw, 52px); font-weight: 500; color: #fff; margin: 0 0 20px; letter-spacing: -0.01em; line-height: 1.15; }
+    .landing-cta-block h2 em { font-style: italic; opacity: 0.85; font-weight: 400; }
+    .landing-cta-block p { font-size: 17px; color: rgba(255,255,255,0.72); margin: 0 0 36px; font-weight: 300; }
+    .hero-cta { display: inline-flex; align-items: center; gap: 10px; background: var(--off-white); color: var(--green-dark); font-family: var(--sans); font-size: 15px; font-weight: 500; padding: 15px 32px; border: 1px solid var(--off-white); border-radius: 4px; cursor: pointer; letter-spacing: 0.02em; transition: all 0.15s; }
+    .hero-cta:hover { background: var(--green-light); border-color: var(--green-light); box-shadow: 0 8px 24px rgba(0,0,0,0.2); }
+    .landing-footer { background: var(--off-white); border-top: 0.5px solid var(--border); padding: 28px 32px; font-size: 13px; color: var(--slate-light); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
+    .landing-footer a { color: inherit; text-decoration: none; border-bottom: 1px solid var(--border-strong); padding-bottom: 1px; }
+    .landing-footer a:hover { color: var(--hunter-green); border-color: var(--hunter-green); }
 
     /* ── SHARED FORM STYLES ── */
     .center { text-align: center; padding: 48px 24px 24px; }
@@ -651,14 +690,17 @@
   <div id="pg-landing" class="page active">
 
     <nav class="landing-nav">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <img src="https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/ui-elements/Cypress%20Mind%20Logo.png" alt="Cypress Mind" style="height:72px;width:auto;" />
+      <div style="display:flex;align-items:center;">
+        <img src="https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/ui-elements/Cypress%20Mind%20Logo.png" alt="Cypress Mind" style="height:52px;width:auto;" />
+      </div>
+      <div class="nav-links-landing">
+        <a href="sales.html">For Therapists</a>
+        <a href="characters.html">Characters</a>
       </div>
       <div class="nav-right">
-        <button class="nav-ghost-btn" onclick="toggleSignIn()">Sign In</button>
         <div class="signin-wrap" id="signin-wrap">
           <button class="nav-signin-btn" id="signin-nav-btn" onclick="toggleSignIn()">
-            Therapist Sign In
+            Sign In
             <svg width="10" height="10" viewBox="0 0 10 10" fill="none"><polyline points="2,3 5,7 8,3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
           <div class="signin-panel" id="signin-panel">
@@ -678,46 +720,86 @@
     </nav>
 
     <!-- Hero -->
-    <section class="bg-[#F8FAF9] py-20 px-6 md:px-12">
-      <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between">
-        <div class="md:w-1/2 space-y-6">
-          <p style="font-size:10px;letter-spacing:0.15em;text-transform:uppercase;color:#355E3B;font-weight:500;">Growing Together</p>
-          <h1 class="text-5xl md:text-6xl text-[#1A2E1A] leading-tight" style="font-family:'Playfair Display',serif;">
-            Bridging the Gap Between Clinical Insight and Client Engagement.
-          </h1>
-          <p class="text-lg text-slate-600 max-w-lg">
-            A sophisticated, avatar-assisted clinical interface designed to help children and adolescents externalize, navigate, and process complex emotional landscapes.
-          </p>
-          <div class="flex space-x-4 pt-4">
-            <button class="bg-[#355E3B] text-white px-8 py-3 rounded-md hover:bg-[#2A4A2F] transition-colors shadow-sm" style="font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;letter-spacing:0.03em;" onclick="toggleSignIn()">Sign In</button>
-            <a href="sales.html" class="border border-[#355E3B] text-[#355E3B] px-8 py-3 rounded-md hover:bg-[#F0F5F0] transition-colors" style="font-family:'DM Sans',sans-serif;font-size:13px;display:inline-block;">Learn More</a>
+    <div class="landing-hero-wrap">
+      <div class="landing-hero">
+        <div class="landing-hero-left">
+          <p class="landing-hero-eyebrow">Growing Together</p>
+          <h1 class="landing-hero-h1">Clinical insight meets <em>client engagement</em>.</h1>
+          <p class="landing-hero-sub">A character-driven platform designed to help children and adolescents externalize and navigate complex emotional landscapes — giving you structured insight from every session.</p>
+          <div class="landing-hero-actions">
+            <button class="landing-hero-btn-primary" onclick="toggleSignIn()">
+              Sign In
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <a href="sales.html" class="landing-hero-btn-secondary">Learn More</a>
+          </div>
+          <div class="landing-hero-meta">
+            <span class="landing-hero-meta-item"><span class="landing-hero-meta-dot"></span> Invite-only beta</span>
+            <span class="landing-hero-meta-item"><span class="landing-hero-meta-dot"></span> Ages 6–17</span>
+            <span class="landing-hero-meta-item"><span class="landing-hero-meta-dot"></span> HIPAA-aligned</span>
           </div>
         </div>
-        <div class="md:w-5/12 mt-12 md:mt-0">
-          <div class="aspect-video bg-gradient-to-br from-[#355E3B] to-[#4B0082] rounded-lg shadow-xl flex items-center justify-center opacity-90">
-            <span class="text-white italic text-xl" style="font-family:'Playfair Display',serif;">Clinical Dashboard Preview</span>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <div class="story-section">
-      <div class="section-inner">
-        <p class="section-label">Evidence-Based Clinical Integration</p>
-        <div class="story-grid">
-          <div class="story-card"><div class="story-icon">🪞</div><h3>Externalization &amp; Identity</h3><p>Shift the therapeutic focus from the client's immediate distress to their Avatar. This "externalized proxy" bypasses adolescent defensive blocks and lowers resistance to self-disclosure.</p></div>
-          <div class="story-card"><div class="story-icon">🗺️</div><h3>Actionable Emotional Mapping</h3><p>Clients navigate Emotional Landscapes tailored to your treatment plan — whether CBT, ACT, or narrative-focused — providing you with qualitative data on their defensive strategies and boundary setting.</p></div>
-          <div class="story-card"><div class="story-icon">🌿</div><h3>Tangible Growth Markers</h3><p>Move beyond subjective reporting. Track progress through session-linked avatar evolution and Botanical Badges, giving clients a visual, concrete representation of their internal work.</p></div>
-          <div class="story-card"><div class="story-icon">🔗</div><h3>Continuity of Care</h3><p>Keep the therapeutic alliance strong between sessions. Our platform encourages consistent engagement, ensuring your client maintains momentum and stays connected to their goals.</p></div>
+        <div class="landing-hero-visual">
+          <span>Clinical Dashboard Preview</span>
         </div>
       </div>
     </div>
 
+    <!-- Features -->
+    <div class="landing-features">
+      <div class="section-inner">
+        <p class="landing-section-eyebrow">Evidence-based clinical integration</p>
+        <h2 class="landing-section-title">Designed for the work — not just the <em>workflow</em>.</h2>
+        <p class="landing-section-lead">Built around the choices, language, and patterns that actually move therapeutic work forward.</p>
+        <div class="landing-features-grid">
+          <div class="landing-feature">
+            <svg class="landing-feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <circle cx="9" cy="7" r="4"/>
+              <path d="M3 21 C 3 17, 5 14, 9 14 C 13 14, 15 17, 15 21" stroke-linecap="round"/>
+              <path d="M16 11 L19 11 M16 14 L21 14 M16 17 L20 17" stroke-linecap="round"/>
+            </svg>
+            <h3>Externalization &amp; Identity</h3>
+            <p>Shift therapeutic focus to the client's character. This externalized proxy bypasses adolescent defensive blocks and lowers resistance to self-disclosure.</p>
+          </div>
+          <div class="landing-feature">
+            <svg class="landing-feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M4 19 L4 5 M4 19 L20 19" stroke-linecap="round"/>
+              <path d="M7 15 L11 11 L14 14 L19 8" stroke-linecap="round" stroke-linejoin="round"/>
+              <circle cx="7" cy="15" r="1.5" fill="currentColor"/>
+              <circle cx="11" cy="11" r="1.5" fill="currentColor"/>
+              <circle cx="14" cy="14" r="1.5" fill="currentColor"/>
+              <circle cx="19" cy="8" r="1.5" fill="currentColor"/>
+            </svg>
+            <h3>Actionable Emotional Mapping</h3>
+            <p>Clients navigate scenarios tailored to your treatment plan — CBT, ACT, or narrative-focused — giving you qualitative data on their patterns and boundary-setting.</p>
+          </div>
+          <div class="landing-feature">
+            <svg class="landing-feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M12 21 L12 12 M12 12 C 9 12, 6 9, 7 5 C 10 6, 12 9, 12 12 M12 12 C 15 12, 18 9, 17 5 C 14 6, 12 9, 12 12" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M5 21 L19 21" stroke-linecap="round"/>
+            </svg>
+            <h3>Tangible Growth Markers</h3>
+            <p>Move beyond subjective reporting. Track progress through session-linked character evolution, giving clients a concrete representation of their internal work.</p>
+          </div>
+          <div class="landing-feature">
+            <svg class="landing-feature-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <rect x="3" y="5" width="18" height="14" rx="2"/>
+              <path d="M3 9 L21 9"/>
+              <path d="M7 13 L11 13 M7 16 L13 16" stroke-linecap="round"/>
+            </svg>
+            <h3>Continuity of Care</h3>
+            <p>Session summaries capture choices, language, and themes in a structured format — ready to inform your next note and keep momentum strong between sessions.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Characters -->
     <div class="showcase-section">
       <div class="section-inner">
-        <p class="section-label">Characters</p>
-        <h2 class="showcase-title">Eight characters, each built around a therapeutic archetype</h2>
-        <p style="font-size:14px;color:var(--slate);margin-bottom:1.75rem;max-width:520px;line-height:1.65;">Clients choose a character that resonates with how they see themselves — or who they want to become. Each one maps directly to a clinical focus area.</p>
+        <p class="landing-section-eyebrow">Characters</p>
+        <h2 class="showcase-title">Eight characters, each built around a therapeutic <em>archetype</em>.</h2>
+        <p class="landing-section-lead" style="margin-bottom:2.5rem;">Clients choose a character that resonates with how they see themselves — or who they want to become. Each maps directly to a clinical focus area.</p>
         <div class="showcase-grid">
           <div class="showcase-card" onclick="openCharDrawer('scout')"><img src="https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters/The%20Scout.png" alt="The Scout"><div class="showcase-card-overlay"></div><div class="showcase-card-content"><div class="showcase-name">The Scout</div><div class="showcase-desc">Proactive, light, observant</div><div class="showcase-traits"><span class="showcase-trait-pill">Curious</span><span class="showcase-trait-pill">Perceptive</span><span class="showcase-trait-pill">Brave</span></div></div></div>
           <div class="showcase-card" onclick="openCharDrawer('voyager')"><img src="https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters/The%20Voyager.png" alt="The Voyager" style="object-position:75% center;"><div class="showcase-card-overlay"></div><div class="showcase-card-content"><div class="showcase-name">The Voyager</div><div class="showcase-desc">Purposeful, dynamic, ready</div><div class="showcase-traits"><span class="showcase-trait-pill">Driven</span><span class="showcase-trait-pill">Resilient</span><span class="showcase-trait-pill">Forward</span></div></div></div>
@@ -729,14 +811,23 @@
     </div>
 
     <div class="landing-cta-block">
-      <h2>Ready to bring your practice into the digital age?</h2>
-      <p>Join clinicians using Cypress Mind to keep clients engaged and progress visible.</p>
-      <div style="display:flex;gap:16px;justify-content:center;align-items:center;flex-wrap:wrap;">
-        <button class="hero-cta" onclick="toggleSignIn()">Sign in</button>
-        <a href="sales.html" style="font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:rgba(255,255,255,0.78);border-bottom:1px solid rgba(255,255,255,0.35);padding-bottom:2px;text-decoration:none;">Learn More →</a>
+      <div class="landing-cta-inner">
+        <p class="landing-section-eyebrow" style="color:rgba(248,250,249,0.65);display:block;margin-bottom:18px;">Growing Together</p>
+        <h2>Bring Cypress Mind into <em>your next session</em>.</h2>
+        <p>Join clinicians using Cypress Mind to keep clients engaged and progress visible.</p>
+        <div style="display:flex;gap:16px;justify-content:center;align-items:center;flex-wrap:wrap;">
+          <button class="hero-cta" onclick="toggleSignIn()">
+            Sign in
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <a href="sales.html" style="font-family:'DM Sans',sans-serif;font-size:14px;font-weight:500;color:rgba(248,250,249,0.72);border-bottom:1px solid rgba(248,250,249,0.35);padding-bottom:2px;text-decoration:none;">Learn More →</a>
+        </div>
       </div>
     </div>
-    <div class="landing-footer">Cypress Mind &nbsp;·&nbsp; Growing Together &nbsp;·&nbsp; <a href="sales.html" style="color:inherit;text-decoration:none;border-bottom:1px solid rgba(255,255,255,0.25);padding-bottom:1px;">For Therapists</a></div>
+    <footer class="landing-footer">
+      <span>Cypress Mind &nbsp;·&nbsp; Growing Together</span>
+      <span>© 2026 Autumn Blaze LLC &nbsp;·&nbsp; Fort Worth, TX &nbsp;·&nbsp; <a href="sales.html">For Therapists</a></span>
+    </footer>
   </div>
 
   <!-- ══════════════════════════════════════════
