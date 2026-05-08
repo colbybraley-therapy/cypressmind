@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Willowmere â Cypress Mind</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Crimson+Pro:ital,wght@0,300;0,400;0,500;1,300;1,400&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --gold:#c9a84c;--gold-light:#e8c96a;
+    --green-deep:#1a3d0a;--green-mid:#355E3B;
+    --cream:#f5edd8;--ink:#1a1208;
+  }
+  html,body{width:100%;height:100%;background:#0e1f06;font-family:'Crimson Pro',Georgia,serif;overflow:hidden;}
+
+  /* ——— LOADING ——— */
+  #loading{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0e1f06;transition:opacity .8s ease;}
+  #loading.fade-out{opacity:0;pointer-events:none;}
+  #loading-bg{position:absolute;inset:0;background:url('../assets/landscapes/Willowmere/Loading Image.png') center/cover no-repeat;opacity:.55;}
+  #loading-content{position:relative;z-index:2;text-align:center;}
+  #loading h1{font-family:'Cinzel',serif;font-size:clamp(2rem,5vw,3.5rem);font-weight:600;color:var(--cream);letter-spacing:.08em;text-shadow:0 2px 20px rgba(0,0,0,.8);margin-bottom:.35rem;}
+  #loading p{font-family:'Crimson Pro',serif;font-style:italic;font-size:1.2rem;color:rgba(245,237,216,.7);letter-spacing:.04em;margin-bottom:2.5rem;}
+  #loading-status{font-size:.85rem;color:rgba(245,237,216,.45);font-style:italic;margin-top:.75rem;}
+  .loading-bar{width:220px;height:3px;background:rgba(255,255,255,.15);border-radius:2px;margin:0 auto;overflow:hidden;}
+  .loading-bar-fill{height:100%;width:0%;background:var(--gold);border-radius:2px;animation:loadfill 1.8s ease forwards .3s;}
+  @keyframes loadfill{to{width:100%}}
+
+  /* ——— GAME ——— */
+  #game{width:100%;height:100%;position:relative;opacity:0;transition:opacity .8s ease;display:flex;flex-direction:column;}
+  #game.visible{opacity:1;}
+
+  /* ——— MAP ——— */
+  #map-view{position:absolute;inset:0;display:flex;flex-direction:column;}
+  #map-container{flex:1;position:relative;overflow:hidden;}
+  #map-img{width:100%;height:100%;object-fit:cover;object-position:center;display:block;}
+  #hud{position:absolute;top:0;left:0;right:0;padding:14px 18px;display:flex;justify-content:space-between;align-items:center;background:linear-gradient(rgba(0,0,0,.5),transparent);pointer-events:none;z-index:5;}
+  #hud-title{font-family:'Cinzel',serif;font-size:1.1rem;font-weight:500;color:var(--cream);letter-spacing:.06em;text-shadow:0 1px 6px rgba(0,0,0,.8);}
+  #progress-row{display:flex;gap:7px;align-items:center;}
+  .pdot{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.22);border:1px solid rgba(255,255,255,.15);transition:all .5s ease;}
+  .pdot.done{background:var(--gold);border-color:var(--gold-light);box-shadow:0 0 5px var(--gold);}
+
+  /* Character token */
+  #char-token{position:absolute;width:40px;height:40px;transform:translate(-50%,-50%);transition:left .6s cubic-bezier(.34,1.3,.64,1),top .6s cubic-bezier(.34,1.3,.64,1);z-index:6;pointer-events:none;}
+  #char-token-inner{width:100%;height:100%;border-radius:50%;background:var(--green-mid);border:3px solid var(--cream);box-shadow:0 3px 12px rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;font-size:18px;}
+
+  /* NPC hotspots */
+  .npc-spot{position:absolute;transform:translate(-50%,-50%);cursor:pointer;z-index:7;}
+  .npc-spot.visited{opacity:.35;pointer-events:none;}
+  .npc-pulse{width:46px;height:46px;border-radius:50%;background:rgba(201,168,76,.18);border:2px solid rgba(201,168,76,.5);display:flex;align-items:center;justify-content:center;position:relative;transition:transform .15s ease;}
+  .npc-spot:not(.visited):hover .npc-pulse{transform:scale(1.12);}
+  .npc-pulse::before{content:'';position:absolute;inset:-6px;border-radius:50%;border:2px solid rgba(201,168,76,.25);animation:pulse-ring 2.4s ease-in-out infinite;}
+  @keyframes pulse-ring{0%,100%{transform:scale(1);opacity:.5;}50%{transform:scale(1.18);opacity:.1;}}
+  .npc-emoji{font-size:18px;position:relative;z-index:2;}
+  .npc-label{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:4px;font-family:'Crimson Pro',serif;font-size:.75rem;font-style:italic;color:var(--cream);white-space:nowrap;text-shadow:0 1px 4px rgba(0,0,0,.9);pointer-events:none;}
+  #map-hint{position:absolute;bottom:14px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.55);color:var(--cream);font-family:'Crimson Pro',serif;font-style:italic;font-size:.9rem;padding:5px 18px;border-radius:20px;border:1px solid rgba(201,168,76,.2);pointer-events:none;white-space:nowrap;transition:opacity .3s;z-index:5;}
+
+  /* ——— SCENE ——— */
+  #scene-view{position:absolute;inset:0;display:none;opacity:0;transition:opacity .5s ease;flex-direction:column;}
+  #scene-view.visible{opacity:1;}
+  #scene-bg{position:absolute;inset:0;background-size:cover;background-position:center;}
+  #scene-vignette{position:absolute;inset:0;background:radial-gradient(ellipse at center,transparent 45%,rgba(0,0,0,.45) 100%);}
+  #back-btn{position:absolute;top:14px;left:14px;z-index:20;background:rgba(0,0,0,.5);border:1px solid rgba(201,168,76,.3);color:var(--cream);font-family:'Crimson Pro',serif;font-style:italic;font-size:.9rem;padding:5px 14px;border-radius:20px;cursor:pointer;transition:background .15s;}
+  #back-btn:hover{background:rgba(0,0,0,.7);}
+  #scene-title-badge{position:absolute;top:14px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.5);border:1px solid rgba(201,168,76,.3);color:var(--cream);font-family:'Cinzel',serif;font-size:.8rem;letter-spacing:.07em;padding:5px 16px;border-radius:20px;z-index:20;white-space:nowrap;}
+
+  /* Option C: Portrait + Speech bubble */
+  #dialog{position:absolute;bottom:0;left:0;right:0;padding:16px;display:flex;align-items:flex-end;gap:14px;z-index:20;transform:translateY(24px);opacity:0;transition:transform .45s cubic-bezier(.34,1.2,.64,1),opacity .45s ease;}
+  #dialog.show{transform:translateY(0);opacity:1;}
+  #portrait-frame{width:100px;height:132px;flex-shrink:0;border-radius:10px;border:2px solid rgba(201,168,76,.55);overflow:hidden;box-shadow:0 6px 24px rgba(0,0,0,.6);background:rgba(0,0,0,.3);}
+  #portrait-img{width:100%;height:100%;object-fit:cover;object-position:top center;}
+  #bubble-col{flex:1;min-width:0;}
+  #npc-name-tag{font-family:'Cinzel',serif;font-size:.8rem;font-weight:500;letter-spacing:.06em;color:var(--gold-light);text-shadow:0 1px 6px rgba(0,0,0,.8);margin-bottom:6px;padding-left:2px;}
+  #speech-bubble{background:rgba(245,237,216,.97);border-radius:12px 12px 12px 3px;padding:12px 15px;margin-bottom:8px;box-shadow:0 4px 20px rgba(0,0,0,.45);}
+  #speech-text{font-family:'Crimson Pro',serif;font-style:italic;font-size:1rem;color:var(--ink);line-height:1.6;}
+  #response-opts{display:flex;flex-direction:column;gap:6px;}
+  .resp-btn{display:flex;align-items:flex-start;gap:8px;padding:9px 13px;background:rgba(245,237,216,.94);border:1px solid rgba(201,168,76,.3);border-radius:8px;cursor:pointer;text-align:left;transition:background .12s,transform .1s;box-shadow:0 2px 10px rgba(0,0,0,.3);width:100%;}
+  .resp-btn:hover{background:#fff;transform:translateY(-1px);}
+  .resp-label{font-family:'Cinzel',serif;font-size:.68rem;font-weight:500;letter-spacing:.04em;display:block;margin-bottom:1px;}
+  .resp-text{font-family:'Crimson Pro',serif;font-size:.9rem;color:var(--ink);line-height:1.4;}
+
+  /* Reaction */
+  #reaction{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:flex-end;padding:16px;z-index:25;opacity:0;pointer-events:none;transition:opacity .4s ease;}
+  #reaction.show{opacity:1;pointer-events:all;}
+  #reaction-card{background:rgba(245,237,216,.98);border-radius:14px;padding:18px 20px;box-shadow:0 8px 32px rgba(0,0,0,.5);border:1px solid rgba(201,168,76,.3);max-width:640px;margin:0 auto;width:100%;}
+  #reaction-title{font-family:'Cinzel',serif;font-size:1rem;font-weight:600;color:var(--green-mid);margin-bottom:.5rem;letter-spacing:.03em;}
+  #reaction-text{font-family:'Crimson Pro',serif;font-size:1rem;color:#2a2010;line-height:1.7;margin-bottom:1.1rem;font-style:italic;}
+  #continue-btn{display:block;width:100%;padding:11px;background:var(--green-mid);color:var(--cream);border:none;border-radius:8px;font-family:'Cinzel',serif;font-size:.85rem;font-weight:500;letter-spacing:.05em;cursor:pointer;transition:background .15s;}
+  #continue-btn:hover{background:#2a4d30;}
+
+  /* Status bar */
+  #status-bar{background:rgba(10,20,5,.92);border-top:1px solid rgba(201,168,76,.15);padding:8px 16px;display:flex;align-items:center;justify-content:center;min-height:38px;}
+  #status-text{font-family:'Crimson Pro',serif;font-style:italic;font-size:.88rem;color:rgba(245,237,216,.6);text-align:center;}
+
+  /* Complete */
+  #complete-screen{display:none;position:absolute;inset:0;background:rgba(10,20,5,.88);z-index:50;align-items:center;justify-content:center;padding:20px;}
+  #complete-screen.show{display:flex;}
+  #complete-card{background:var(--cream);border-radius:16px;padding:2rem 2.5rem;max-width:480px;width:100%;text-align:center;box-shadow:0 16px 48px rgba(0,0,0,.6);border:1px solid var(--gold);}
+  #complete-card h2{font-family:'Cinzel',serif;font-size:1.4rem;font-weight:600;color:var(--green-mid);margin-bottom:.5rem;}
+  #complete-card p{font-family:'Crimson Pro',serif;font-size:1rem;color:#3a3020;line-height:1.7;margin-bottom:1.5rem;font-style:italic;}
+  #summary-btn{display:inline-block;padding:12px 28px;background:var(--green-mid);color:var(--cream);border:none;border-radius:8px;font-family:'Cinzel',serif;font-size:.85rem;font-weight:500;letter-spacing:.05em;cursor:pointer;transition:background .15s;}
+  #summary-btn:hover{background:#2a4d30;}
+
+  /* Sync indicator */
+  #sync-dot{position:absolute;bottom:14px;right:14px;z-index:10;width:8px;height:8px;border-radius:50%;background:#666;transition:background .3s;}
+  #sync-dot.live{background:#4CAF50;box-shadow:0 0 6px #4CAF50;}
+  #sync-dot.error{background:#f44;}
+</style>
+</head>
+<body>
+
+<!-- LOADING -->
+<div id="loading">
+  <div id="loading-bg"></div>
+  <div id="loading-content">
+    <h1>Willowmere</h1>
+    <p>A village of choices</p>
+    <div class="loading-bar"><div class="loading-bar-fill"></div></div>
+    <p id="loading-status">Connecting…</p>
+  </div>
+</div>
+
+<!-- GAME -->
+<div id="game">
+
+  <!-- MAP VIEW -->
+  <div id="map-view">
+    <div id="map-container">
+      <img id="map-img" src="../assets/landscapes/Willowmere/Willowmere Map.png" alt="Willowmere">
+
+      <!-- NPC hotspots — adjust left/top % to match your map image -->
+      <div class="npc-spot" id="spot-ember" style="left:18%;top:26%" onclick="enterScene('ember')">
+        <div class="npc-pulse"><span class="npc-emoji">🧺</span></div>
+        <span class="npc-label">Ember</span>
+      </div>
+      <div class="npc-spot" id="spot-maren" style="left:46%;top:20%" onclick="enterScene('maren')">
+        <div class="npc-pulse"><span class="npc-emoji">🌿</span></div>
+        <span class="npc-label">Sage Maren</span>
+      </div>
+      <div class="npc-spot" id="spot-kids" style="left:79%;top:22%" onclick="enterScene('kids')">
+        <div class="npc-pulse"><span class="npc-emoji">🌊</span></div>
+        <span class="npc-label">River Kids</span>
+      </div>
+      <div class="npc-spot" id="spot-pip" style="left:14%;top:54%" onclick="enterScene('pip')">
+        <div class="npc-pulse"><span class="npc-emoji">🐑</span></div>
+        <span class="npc-label">Pip</span>
+      </div>
+      <div class="npc-spot" id="spot-voss" style="left:49%;top:50%" onclick="enterScene('voss')">
+        <div class="npc-pulse"><span class="npc-emoji">📜</span></div>
+        <span class="npc-label">Elder Voss</span>
+      </div>
+      <div class="npc-spot" id="spot-wren" style="left:78%;top:52%" onclick="enterScene('wren')">
+        <div class="npc-pulse"><span class="npc-emoji">🌳</span></div>
+        <span class="npc-label">Wren</span>
+      </div>
+      <div class="npc-spot" id="spot-finn" style="left:22%;top:78%" onclick="enterScene('finn')">
+        <div class="npc-pulse"><span class="npc-emoji">🪙</span></div>
+        <span class="npc-label">Finn</span>
+      </div>
+      <div class="npc-spot" id="spot-lira" style="left:74%;top:80%" onclick="enterScene('lira')">
+        <div class="npc-pulse"><span class="npc-emoji">🍂</span></div>
+        <span class="npc-label">Lira</span>
+      </div>
+
+      <div id="char-token" style="left:49%;top:57%">
+        <div id="char-token-inner">⚔️</div>
+      </div>
+
+      <div id="hud">
+        <span id="hud-title">🌲 Willowmere</span>
+        <div id="progress-row"></div>
+      </div>
+      <div id="map-hint">Tap a villager to enter their scene</div>
+      <div id="sync-dot" title="Therapist connection"></div>
+    </div>
+    <div id="status-bar"><p id="status-text">Eight villagers are waiting. Where will you go first?</p></div>
+  </div>
+
+  <!-- SCENE VIEW -->
+  <div id="scene-view">
+    <div id="scene-bg"></div>
+    <div id="scene-vignette"></div>
+    <button id="back-btn" onclick="backToMap()">← Map</button>
+    <div id="scene-title-badge"></div>
+    <div id="dialog">
+      <div id="portrait-frame">
+        <img id="portrait-img" src="" alt="">
+      </div>
+      <div id="bubble-col">
+        <p id="npc-name-tag"></p>
+        <div id="speech-bubble"><p id="speech-text"></p></div>
+        <div id="response-opts"></div>
+      </div>
+    </div>
+    <div id="reaction">
+      <div id="reaction-card">
+        <p id="reaction-title"></p>
+        <p id="reaction-text"></p>
+        <button id="continue-btn" onclick="continueFromReaction()">Continue exploring →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPLETE -->
+  <div id="complete-screen">
+    <div id="complete-card">
+      <h2>Journey Complete</h2>
+      <p>You've spoken with every villager in Willowmere. The choices you made today are yours — there were no right answers, only honest ones.</p>
+      <button id="summary-btn" onclick="notifyComplete()">All done ✓</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────
+// CONFIGURATION — replace with your values
+// ─────────────────────────────────────────
+const SUPABASE_URL  = 'https://vfpxovpwwabisfjjqkpm.supabase.co';
+const SUPABASE_KEY  = 'sb_publishable_-cIPFr0xt1CfC8fwh0e_ew_Q6LIbcX5';
+
+// Session ID comes from the URL: activity-boundaries.html?session=abc123
+const SESSION_ID = new URLSearchParams(window.location.search).get('session');
+
+// ─────────────────────────────────────────
+// SUPABASE INIT
+// ─────────────────────────────────────────
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// Broadcast channel — therapist subscribes to same channel
+const channel = db.channel(`quest-${SESSION_ID}`);
+
+// ─────────────────────────────────────────
+// NPC DATA
+// ─────────────────────────────────────────
+const NPC = {
+  ember: {
+    name:'Ember', loc:'The Mill',
+    portrait:'../assets/portraits/Ember.png',
+    scene:'../assets/landscapes/Willowmere/The Mill.png',
+    mapX:18, mapY:26, boundary:'Saying no to a favour',
+    speech:'"You\'re so strong — can you carry my grain sacks all the way to the storehouse? It\'ll only take a minute. I\'d do it myself but… you\'re just so much better at it."',
+    opts:[
+      {label:'Set a limit', color:'#1D9E75', text:'"I can help with one bag, but not all of them."'},
+      {label:'Say no',      color:'#7F77DD', text:'"I don\'t have time for that today — I hope you find someone to help."'},
+      {label:'Say yes',     color:'#C4520A', text:'"Sure, I\'ll do it." (carries all the bags)'}
+    ],
+    reactions:[
+      'Ember looks surprised, then nods. "Fair enough." She finds another villager to help.',
+      'Ember looks put out — but asks someone else. She manages just fine without you.',
+      'Ember waves cheerfully. But the next time you pass the mill, she asks again.'
+    ],
+    titles:['You set a limit.','You said no.','You said yes.'],
+    prompts:[
+      ['What made you decide to offer just one bag?','Has there been a time when someone asked too much of you?','What did it feel like to set that limit?'],
+      ['That took courage — what helped you say no?','How did it feel watching Ember figure it out on her own?','Is saying no usually easy or hard for you?'],
+      ['What made you say yes even though it was a lot?','How did you feel carrying all those bags?','Do you often say yes when you wish you could say no?']
+    ]
+  },
+  maren: {
+    name:'Sage Maren', loc:'The Herbalist\'s Hut',
+    portrait:'../assets/portraits/Sage Maren.png',
+    scene:'../assets/landscapes/Willowmere/The Herbalist\'s Hut.png',
+    mapX:46, mapY:20, boundary:'Privacy',
+    speech:'"I know everything about everyone in this village — did you hear what happened to the Baker\'s son? Now tell me, what\'s going on with you? You can trust me… I share everything with my friends."',
+    opts:[
+      {label:'Keep it private', color:'#1D9E75', text:'"I\'d rather not share — some things are just for me."'},
+      {label:'Redirect',        color:'#7F77DD', text:'"I\'m not comfortable with how you share others\' stories."'},
+      {label:'Share',           color:'#C4520A', text:'"Okay… well, lately I\'ve been feeling…"'}
+    ],
+    reactions:[
+      '"A wise keeper guards their own garden." Maren tilts her head — and seems to respect you.',
+      'Maren goes quiet. Something shifts in her expression. A seed of change planted.',
+      'Maren smiles warmly. But later, you hear your story being told to someone else.'
+    ],
+    titles:['You kept it private.','You redirected her.','You shared.'],
+    prompts:[
+      ['What told you that this wasn\'t a safe place to share?','How do you decide who gets to know your private things?','What does it feel like to keep something just for yourself?'],
+      ['That was really perceptive — how did you notice something felt off?','Has anyone ever shared your private things without asking?','What do you wish Maren understood?'],
+      ['What made you decide to trust her?','How did it feel finding out she told others?','Do you find it hard to say no when someone seems warm and friendly?']
+    ]
+  },
+  kids: {
+    name:'The River Kids', loc:'The Old Bridge',
+    portrait:'../assets/portraits/River Kids.png',
+    scene:'../assets/landscapes/Willowmere/The Old Bridge.png',
+    mapX:79, mapY:22, boundary:'Peer pressure',
+    speech:'"Everyone\'s jumping off the bridge into the river! Come on — don\'t be scared. If you don\'t do it, you can\'t hang out with us anymore. It\'s just a bit of water."',
+    opts:[
+      {label:'Hold firm',  color:'#1D9E75', text:'"I don\'t want to jump — and I shouldn\'t have to to be your friend."'},
+      {label:'Walk away',  color:'#7F77DD', text:'"If that\'s the rule, I\'ll find somewhere else to be today."'},
+      {label:'Give in',    color:'#C4520A', text:'"Okay… I\'ll try it." (jumps despite not wanting to)'}
+    ],
+    reactions:[
+      'One kid shrugs. Another says quietly: "Actually… that\'s kind of brave."',
+      'You find a quiet part of the forest — and something unexpected waiting there.',
+      'The kids cheer. Walking home, something feels off inside.'
+    ],
+    titles:['You held firm.','You walked away.','You gave in.'],
+    prompts:[
+      ['What gave you the strength to hold your ground?','How do you feel when friends use friendship as a condition?','Has something like this happened to you before?'],
+      ['Walking away is hard — what made you do it?','Do you think those kids were real friends? Why or why not?','What did it feel like to choose yourself over the group?'],
+      ['What was going through your mind when you jumped?','What does that feeling on the walk home tell you?','Is it hard for you to say no to friends specifically?']
+    ]
+  },
+  pip: {
+    name:'Pip', loc:'The Meadow',
+    portrait:'../assets/portraits/Pip.png',
+    scene:'../assets/landscapes/Willowmere/The Meadow.png',
+    mapX:14, mapY:54, boundary:'Emotional limits',
+    speech:'"You\'re the only one who understands me. I need you to stay and listen — please don\'t go. If you leave I\'ll just be alone again. You\'re the only friend I have."',
+    opts:[
+      {label:'Be honest',  color:'#1D9E75', text:'"I care about you, but I can\'t be your only person — I have to go now."'},
+      {label:'Offer less', color:'#7F77DD', text:'"I can stay a little while, but then I need to go."'},
+      {label:'Stay',       color:'#C4520A', text:'"Okay, I\'ll stay." (gives up your own plans)'}
+    ],
+    reactions:[
+      'Pip looks sad at first — then slowly starts talking to another shepherd nearby.',
+      'Pip smiles. "Okay — that helps." You both feel a little lighter.',
+      'Pip is relieved. But somewhere else in the village, something has changed without you.'
+    ],
+    titles:['You were honest.','You offered less.','You stayed.'],
+    prompts:[
+      ['That was kind and honest at the same time — how did that feel?','Do you ever worry about hurting someone by being honest?','What do you think Pip needed to hear, even if it was hard?'],
+      ['Offering something smaller is a real skill — how did you figure that out?','Do you find it hard to give less than what someone asks for?','How did you feel leaving knowing Pip was okay?'],
+      ['What made you give up your plans?','Do you find it hard when someone says you\'re their only person?','How do you usually handle it when someone needs more than you can give?']
+    ]
+  },
+  voss: {
+    name:'Elder Voss', loc:'The Village Hall',
+    portrait:'../assets/portraits/Elder Voss.png',
+    scene:'../assets/landscapes/Willowmere/The Village Hall.png',
+    mapX:49, mapY:50, boundary:'Saying no to authority',
+    speech:'"The festival is tomorrow and we need everyone to help decorate. I don\'t care that you\'re tired — this is what villagers do. You don\'t have a choice in this."',
+    opts:[
+      {label:'Speak up',       color:'#1D9E75', text:'"I\'m genuinely exhausted — I can help for one hour, not the whole day."'},
+      {label:'Ask a question', color:'#7F77DD', text:'"What would happen if I took care of myself first and helped when I\'m rested?"'},
+      {label:'Comply',         color:'#C4520A', text:'"Yes, Elder." (works all day despite being worn out)'}
+    ],
+    reactions:[
+      'Elder Voss pauses. "…One hour is acceptable." A small moment of real change.',
+      'Voss doesn\'t have an answer. Your character stands just a little taller.',
+      'The festival looks beautiful. But you sit alone at the end, completely exhausted.'
+    ],
+    titles:['You spoke up.','You asked a question.','You complied.'],
+    prompts:[
+      ['Speaking up to an authority figure is hard — what made you do it?','How did it feel when Voss actually listened?','Are there people in your life it\'s especially hard to speak up to?'],
+      ['That question flipped the whole conversation — how did that feel?','Do you think you have the right to take care of yourself first sometimes?','What do adults in your life say when you put yourself first?'],
+      ['What stopped you from speaking up?','How do you feel after giving everything to someone who didn\'t ask how you were?','Is it hard for you to say no to people who seem to be in charge?']
+    ]
+  },
+  wren: {
+    name:'Wren', loc:'The Treehouse',
+    portrait:'../assets/portraits/Wren.png',
+    scene:'../assets/landscapes/Willowmere/The Treehouse.png',
+    mapX:78, mapY:52, boundary:'Keeping an unsafe secret',
+    speech:'"I found Old Hazel\'s medicine — I took it by accident and now I\'m scared to tell her. Promise me you won\'t say anything. Please — you\'re my best friend."',
+    opts:[
+      {label:'Refuse the secret',  color:'#1D9E75', text:'"I can\'t promise that — Old Hazel needs her medicine. Let\'s return it together."'},
+      {label:'Support + redirect', color:'#7F77DD', text:'"I care about you — and that\'s why I think we need to fix this. I\'ll come with you."'},
+      {label:'Keep the secret',    color:'#C4520A', text:'"Okay… I won\'t say anything."'}
+    ],
+    reactions:[
+      'Wren is scared but relieved. You both go to Old Hazel\'s. She gets her medicine back.',
+      'Wren and you go together — she feels braver for having done it.',
+      'Old Hazel is unwell the next time you pass her cottage. Something weighs on you.'
+    ],
+    titles:['You refused the secret.','You supported and redirected.','You kept the secret.'],
+    prompts:[
+      ['How did you know this was a secret you couldn\'t keep?','What\'s the difference between a secret that\'s okay and one that isn\'t?','How did Wren seem after you both fixed it together?'],
+      ['You found a way to be loyal and honest at the same time — how did that feel?','Do you think Wren was glad you pushed her to fix it?','Has anyone ever helped you do something scary because they went with you?'],
+      ['What made you promise even though something felt wrong?','What does that heaviness at the end tell you?','Is it hard for you to break a promise even when keeping it might cause harm?']
+    ]
+  },
+  finn: {
+    name:'Finn', loc:'The Market Stall',
+    portrait:'../assets/portraits/Finn.png',
+    scene:'../assets/landscapes/Willowmere/The Market Stall.png',
+    mapX:22, mapY:78, boundary:'Physical space & belongings',
+    speech:'"Oh cool, is that your compass? Can I borrow it? I\'ll give it back. Actually — I\'m just going to take it for a bit." (reaches over and takes it without waiting)',
+    opts:[
+      {label:'Speak up',   color:'#1D9E75', text:'"Hey — that\'s mine and you need to ask first. Please give it back."'},
+      {label:'Set a rule', color:'#7F77DD', text:'"You can look at it, but ask me before touching my things."'},
+      {label:'Let it go',  color:'#C4520A', text:'"It\'s fine… you can have it for a while."'}
+    ],
+    reactions:[
+      'Finn looks embarrassed and hands it back. "Sorry — I didn\'t think."',
+      'Finn nods slowly. You notice him starting to ask others before grabbing things.',
+      'Finn takes other things later. The compass comes back scratched.'
+    ],
+    titles:['You spoke up.','You set a rule.','You let it go.'],
+    prompts:[
+      ['How did it feel to say "that\'s mine" out loud?','Did Finn\'s reaction surprise you?','Is it usually easy or hard to claim your belongings?'],
+      ['Setting a rule is calm and clear — how did you think of that?','Do you think Finn will remember that rule?','What does it feel like when someone touches your things without asking?'],
+      ['What made you let him take it?','How did you feel seeing it come back scratched?','Do you find it hard to say "that\'s mine" to certain kinds of people?']
+    ]
+  },
+  lira: {
+    name:'Lira', loc:'The Forest Path',
+    portrait:'../assets/portraits/Lira.png',
+    scene:'../assets/landscapes/Willowmere/The Forest Path.png',
+    mapX:74, mapY:80, boundary:'Space in friendship',
+    speech:'"Can we walk together? And after, can we eat together? Oh — you\'re going to see Wren? Can I come? I just… I don\'t really know anyone else yet. I need you."',
+    opts:[
+      {label:'Warm + honest', color:'#1D9E75', text:'"I like spending time with you — and I also need time with other friends. Let\'s plan something just us tomorrow."'},
+      {label:'Introduce her', color:'#7F77DD', text:'"Come meet Wren — making more friends in the village might help."'},
+      {label:'Give in',       color:'#C4520A', text:'"Sure, you can come everywhere with me today."'}
+    ],
+    reactions:[
+      'Lira looks touched. She\'s seen talking to another villager the next day.',
+      'Lira and Wren find common ground. You get your own time back.',
+      'Lira follows you everywhere. You start avoiding the map just to get space.'
+    ],
+    titles:['You were warm and honest.','You introduced her.','You gave in.'],
+    prompts:[
+      ['How did you hold both things — caring about her and needing your own space?','Is it hard to tell a new friend you need time for others?','How do you think Lira felt about that answer?'],
+      ['That was creative — how did you think to introduce her?','Do you find it easier to solve a problem than say no directly?','How did it feel getting your own time back?'],
+      ['What made it hard to say you needed space?','What does it feel like when someone follows you everywhere?','Do you ever feel responsible for other people\'s loneliness?']
+    ]
+  }
+};
+
+const IDS = Object.keys(NPC);
+let currentNPC = null;
+let done = {};
+let sessionLog = [];
+
+// ─────────────────────────────────────────
+// SUPABASE SETUP
+// ─────────────────────────────────────────
+async function initSession() {
+  if (!SESSION_ID) {
+    setStatus('No session ID found in URL.');
+    finishLoading();
+    return;
+  }
+
+  // Create session row if it doesn't exist
+  const { error } = await db
+    .from('quest_sessions')
+    .upsert({ id: SESSION_ID, status: 'active' }, { onConflict: 'id', ignoreDuplicates: true });
+
+  if (error) console.warn('Session upsert:', error.message);
+
+  // Subscribe broadcast channel so therapist gets live events
+  channel.subscribe(status => {
+    const dot = document.getElementById('sync-dot');
+    if (status === 'SUBSCRIBED') {
+      dot.classList.add('live');
+      setLoadingStatus('Connected ✓');
+    } else {
+      dot.classList.remove('live');
+      dot.classList.add('error');
+    }
+  });
+
+  finishLoading();
+}
+
+async function pushEncounter(npcId, choiceIndex) {
+  const n = NPC[npcId];
+
+  // 1. Write to database (therapist dashboard reads this)
+  const { error } = await db.from('quest_encounters').insert({
+    session_id:   SESSION_ID,
+    npc_id:       npcId,
+    npc_name:     n.name,
+    location:     n.loc,
+    boundary_type: n.boundary,
+    choice_index:  choiceIndex,
+    choice_label:  n.opts[choiceIndex].label,
+    choice_text:   n.opts[choiceIndex].text,
+    reaction:      n.reactions[choiceIndex]
+  });
+  if (error) console.warn('Insert encounter:', error.message);
+
+  // 2. Broadcast real-time event (therapist screen reacts instantly)
+  channel.send({
+    type: 'broadcast',
+    event: 'encounter',
+    payload: {
+      npc_id:       npcId,
+      npc_name:     n.name,
+      location:     n.loc,
+      boundary:     n.boundary,
+      choice_index: choiceIndex,
+      choice_label: n.opts[choiceIndex].label,
+      choice_text:  n.opts[choiceIndex].text,
+      reaction:     n.reactions[choiceIndex],
+      prompts:      n.prompts[choiceIndex],
+      timestamp:    new Date().toISOString()
+    }
+  });
+}
+
+async function pushComplete() {
+  await db
+    .from('quest_sessions')
+    .update({ status: 'complete', completed_at: new Date().toISOString() })
+    .eq('id', SESSION_ID);
+
+  channel.send({
+    type: 'broadcast',
+    event: 'session_complete',
+    payload: { session_id: SESSION_ID, log: sessionLog }
+  });
+}
+
+// ─────────────────────────────────────────
+// UI HELPERS
+// ─────────────────────────────────────────
+function setLoadingStatus(msg) {
+  const el = document.getElementById('loading-status');
+  if (el) el.textContent = msg;
+}
+
+function setStatus(msg) {
+  document.getElementById('status-text').textContent = msg;
+}
+
+function finishLoading() {
+  setTimeout(() => {
+    document.getElementById('loading').classList.add('fade-out');
+    document.getElementById('game').classList.add('visible');
+  }, 2200);
+}
+
+// ─────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────
+window.addEventListener('load', () => {
+  // Build progress dots
+  const row = document.getElementById('progress-row');
+  IDS.forEach(id => {
+    const d = document.createElement('div');
+    d.className = 'pdot';
+    d.id = 'dot-' + id;
+    row.appendChild(d);
+  });
+
+  initSession();
+});
+
+// ─────────────────────────────────────────
+// GAME LOGIC
+// ─────────────────────────────────────────
+function enterScene(id) {
+  if (done[id]) return;
+  currentNPC = id;
+  const n = NPC[id];
+
+  document.getElementById('char-token').style.left = n.mapX + '%';
+  document.getElementById('char-token').style.top  = (n.mapY - 6) + '%';
+  document.getElementById('map-hint').style.opacity = '0';
+
+  setTimeout(() => {
+    document.getElementById('map-view').style.display = 'none';
+    const sv = document.getElementById('scene-view');
+    sv.style.display = 'block';
+    requestAnimationFrame(() => sv.classList.add('visible'));
+
+    document.getElementById('scene-bg').style.backgroundImage = `url('${n.scene}')`;
+    document.getElementById('scene-title-badge').textContent = n.loc;
+    document.getElementById('portrait-img').src = n.portrait;
+    document.getElementById('portrait-img').alt = n.name;
+    document.getElementById('npc-name-tag').textContent = n.name + ' · ' + n.loc;
+    document.getElementById('speech-text').textContent = n.speech;
+
+    document.getElementById('response-opts').innerHTML = n.opts.map((o, i) =>
+      `<button class="resp-btn" onclick="chooseResponse(${i})">
+        <div>
+          <span class="resp-label" style="color:${o.color}">${o.label}</span>
+          <span class="resp-text">${o.text}</span>
+        </div>
+      </button>`
+    ).join('');
+
+    document.getElementById('reaction').classList.remove('show');
+    setTimeout(() => document.getElementById('dialog').classList.add('show'), 120);
+    setStatus('How will you respond?');
+  }, 450);
+}
+
+function chooseResponse(ri) {
+  const n = NPC[currentNPC];
+
+  sessionLog.push({
+    npc: currentNPC, name: n.name, loc: n.loc,
+    boundary: n.boundary, choiceIndex: ri,
+    choiceLabel: n.opts[ri].label,
+    choiceText: n.opts[ri].text,
+    reaction: n.reactions[ri]
+  });
+
+  pushEncounter(currentNPC, ri);
+
+  document.getElementById('dialog').classList.remove('show');
+  setTimeout(() => {
+    document.getElementById('reaction-title').textContent = n.titles[ri];
+    document.getElementById('reaction-text').textContent  = n.reactions[ri];
+    document.getElementById('reaction').classList.add('show');
+    setStatus('See what happens…');
+  }, 350);
+}
+
+function continueFromReaction() {
+  done[currentNPC] = true;
+  const dot = document.getElementById('dot-' + currentNPC);
+  if (dot) dot.classList.add('done');
+  const spot = document.getElementById('spot-' + currentNPC);
+  if (spot) spot.classList.add('visited');
+  backToMap();
+  if (IDS.every(k => done[k])) {
+    setTimeout(() => document.getElementById('complete-screen').classList.add('show'), 600);
+  }
+}
+
+function backToMap() {
+  document.getElementById('reaction').classList.remove('show');
+  document.getElementById('dialog').classList.remove('show');
+  const sv = document.getElementById('scene-view');
+  sv.classList.remove('visible');
+  setTimeout(() => {
+    sv.style.display = 'none';
+    document.getElementById('map-view').style.display = 'flex';
+  }, 500);
+  document.getElementById('char-token').style.left = '49%';
+  document.getElementById('char-token').style.top  = '57%';
+  document.getElementById('map-hint').style.opacity = '1';
+  const left = IDS.filter(k => !done[k]).length;
+  setStatus(left > 0 ? `${left} villager${left !== 1 ? 's' : ''} left to visit.` : 'All encounters complete.');
+  currentNPC = null;
+}
+
+async function notifyComplete() {
+  await pushComplete();
+  document.getElementById('complete-screen').classList.remove('show');
+  setStatus('Session complete. Your therapist has the summary.');
+}
+</script>
+</body>
+</html>

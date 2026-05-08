@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Willowmere â Therapist View · Cypress Mind</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap');
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --green:#355E3B;--green-light:#4a7d51;--green-pale:#EAF3DE;
+    --gold:#c9a84c;--cream:#f8faf9;--ink:#1a2a1c;
+    --border:#e2ece3;--mid:#6b8f6e;
+  }
+  html,body{width:100%;height:100%;background:var(--cream);font-family:'DM Sans',sans-serif;color:var(--ink);overflow:hidden;}
+
+  /* ——— LAYOUT ——— */
+  #shell{display:grid;grid-template-rows:56px 1fr;height:100vh;}
+
+  /* Header */
+  #header{background:var(--green);display:flex;align-items:center;justify-content:space-between;padding:0 20px;gap:12px;box-shadow:0 2px 8px rgba(0,0,0,.2);}
+  #header-left{display:flex;align-items:center;gap:10px;}
+  #header h1{font-family:'Cinzel',serif;font-size:1rem;font-weight:500;color:#fff;letter-spacing:.05em;}
+  #header-sub{font-size:.78rem;color:rgba(255,255,255,.6);font-style:italic;}
+  #live-badge{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:3px 10px;font-size:.75rem;color:#fff;}
+  #live-dot{width:7px;height:7px;border-radius:50%;background:#ccc;transition:background .3s;}
+  #live-dot.on{background:#8BC34A;box-shadow:0 0 6px #8BC34A;}
+  #session-info{font-size:.78rem;color:rgba(255,255,255,.55);}
+
+  /* Body */
+  #body{display:grid;grid-template-columns:1fr 320px;overflow:hidden;}
+
+  /* Feed column */
+  #feed-col{display:flex;flex-direction:column;border-right:1px solid var(--border);overflow:hidden;}
+  #feed-header{padding:14px 18px 10px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;flex-shrink:0;}
+  #feed-header h2{font-family:'Cinzel',serif;font-size:.85rem;font-weight:500;color:var(--green);letter-spacing:.04em;}
+  #progress-summary{font-size:.78rem;color:var(--mid);}
+  #feed{flex:1;overflow-y:auto;padding:14px 18px;display:flex;flex-direction:column;gap:10px;}
+  #feed:empty::after{content:'Waiting for the first encounter…';font-size:.9rem;color:var(--mid);font-style:italic;padding:8px 0;}
+
+  /* Encounter card */
+  .enc-card{background:#fff;border:1px solid var(--border);border-radius:10px;overflow:hidden;animation:slide-in .35s ease;}
+  @keyframes slide-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+  .enc-top{padding:11px 14px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);}
+  .enc-avatar{width:36px;height:36px;border-radius:8px;object-fit:cover;object-position:top;flex-shrink:0;border:1px solid var(--border);}
+  .enc-meta{flex:1;}
+  .enc-npc{font-size:.88rem;font-weight:500;color:var(--ink);}
+  .enc-loc{font-size:.75rem;color:var(--mid);}
+  .enc-badge{font-size:.7rem;padding:2px 8px;border-radius:20px;background:var(--green-pale);color:var(--green);font-weight:500;white-space:nowrap;}
+  .enc-body{padding:10px 14px;}
+  .enc-choice{display:flex;align-items:flex-start;gap:6px;margin-bottom:6px;}
+  .choice-dot{width:8px;height:8px;border-radius:50%;margin-top:5px;flex-shrink:0;}
+  .choice-label{font-size:.75rem;font-weight:500;color:var(--green);margin-bottom:1px;}
+  .choice-text{font-size:.82rem;color:var(--ink);line-height:1.5;}
+  .enc-reaction{font-size:.8rem;color:var(--mid);font-style:italic;line-height:1.5;border-top:1px solid var(--border);padding-top:8px;margin-top:6px;}
+  .enc-time{font-size:.7rem;color:#aaa;margin-left:auto;white-space:nowrap;}
+
+  /* Prompts column */
+  #prompt-col{display:flex;flex-direction:column;overflow:hidden;}
+  #prompt-header{padding:14px 18px 10px;border-bottom:1px solid var(--border);flex-shrink:0;}
+  #prompt-header h2{font-family:'Cinzel',serif;font-size:.85rem;font-weight:500;color:var(--green);letter-spacing:.04em;margin-bottom:2px;}
+  #prompt-header p{font-size:.75rem;color:var(--mid);}
+  #prompt-area{flex:1;overflow-y:auto;padding:14px 18px;}
+  #prompt-idle{font-size:.88rem;color:var(--mid);font-style:italic;line-height:1.6;}
+
+  /* Prompt card */
+  .prompt-card{background:#fff;border:1px solid var(--border);border-radius:10px;padding:13px;margin-bottom:10px;animation:slide-in .3s ease;}
+  .prompt-npc-name{font-family:'Cinzel',serif;font-size:.8rem;font-weight:500;color:var(--green);margin-bottom:4px;}
+  .prompt-choice-tag{display:inline-block;font-size:.7rem;padding:2px 8px;border-radius:20px;margin-bottom:8px;font-weight:500;}
+  .prompt-list{display:flex;flex-direction:column;gap:7px;}
+  .prompt-item{display:flex;gap:7px;align-items:flex-start;}
+  .prompt-num{font-size:.7rem;font-weight:500;color:var(--gold);flex-shrink:0;padding-top:2px;}
+  .prompt-q{font-size:.83rem;color:var(--ink);line-height:1.55;}
+  .prompt-note{font-size:.75rem;color:var(--mid);font-style:italic;margin-top:8px;padding-top:8px;border-top:1px solid var(--border);}
+
+  /* Summary panel */
+  #summary-banner{display:none;background:var(--green);color:#fff;padding:10px 18px;text-align:center;font-size:.85rem;font-family:'Cinzel',serif;letter-spacing:.04em;flex-shrink:0;}
+  #summary-banner.show{display:block;}
+
+  /* Map mini */
+  #mini-map-wrap{padding:12px 18px;border-top:1px solid var(--border);flex-shrink:0;}
+  #mini-map-label{font-size:.72rem;font-weight:500;color:var(--mid);text-transform:uppercase;letter-spacing:.06em;margin-bottom:6px;}
+  #mini-map{position:relative;border-radius:8px;overflow:hidden;border:1px solid var(--border);}
+  #mini-map img{width:100%;display:block;height:110px;object-fit:cover;}
+  .mini-dot{position:absolute;width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.4);border:1.5px solid rgba(255,255,255,.6);transform:translate(-50%,-50%);transition:background .4s;}
+  .mini-dot.done{background:var(--gold);border-color:var(--gold);}
+</style>
+</head>
+<body>
+<div id="shell">
+
+  <!-- HEADER -->
+  <div id="header">
+    <div id="header-left">
+      <h1>Willowmere · Boundaries</h1>
+      <span id="header-sub">Therapist View</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span id="session-info">Session: —</span>
+      <div id="live-badge"><div id="live-dot"></div><span id="live-label">Connecting…</span></div>
+    </div>
+  </div>
+
+  <!-- BODY -->
+  <div id="body">
+
+    <!-- LEFT: Encounter feed -->
+    <div id="feed-col">
+      <div id="feed-header">
+        <h2>Encounter Feed</h2>
+        <span id="progress-summary">0 / 8 complete</span>
+      </div>
+      <div id="feed"></div>
+      <div id="summary-banner">✓ All 8 encounters complete — session finished</div>
+    </div>
+
+    <!-- RIGHT: Reflection prompts + mini map -->
+    <div id="prompt-col">
+      <div id="prompt-header">
+        <h2>Reflection Prompts</h2>
+        <p>Suggested questions after each encounter</p>
+      </div>
+      <div id="prompt-area">
+        <p id="prompt-idle">Prompts will appear here as your client makes choices.</p>
+      </div>
+      <div id="mini-map-wrap">
+        <p id="mini-map-label">Village progress</p>
+        <div id="mini-map">
+          <img src="../assets/landscapes/Willowmere/Willowmere Map.png" alt="Map">
+          <!-- Mini dots — same positions as client hotspots -->
+          <div class="mini-dot" id="mini-ember" style="left:18%;top:26%"></div>
+          <div class="mini-dot" id="mini-maren" style="left:46%;top:20%"></div>
+          <div class="mini-dot" id="mini-kids"  style="left:79%;top:22%"></div>
+          <div class="mini-dot" id="mini-pip"   style="left:14%;top:54%"></div>
+          <div class="mini-dot" id="mini-voss"  style="left:49%;top:50%"></div>
+          <div class="mini-dot" id="mini-wren"  style="left:78%;top:52%"></div>
+          <div class="mini-dot" id="mini-finn"  style="left:22%;top:78%"></div>
+          <div class="mini-dot" id="mini-lira"  style="left:74%;top:80%"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────
+// CONFIGURATION — same values as client file
+// ─────────────────────────────────────────
+const SUPABASE_URL  = 'https://vfpxovpwwabisfjjqkpm.supabase.co';
+const SUPABASE_KEY  = 'sb_publishable_-cIPFr0xt1CfC8fwh0e_ew_Q6LIbcX5';
+const SESSION_ID    = new URLSearchParams(window.location.search).get('session');
+
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+// NPC choice colours matching client
+const CHOICE_COLORS = ['#1D9E75','#7F77DD','#C4520A'];
+const CHOICE_BG     = ['#E1F5EE','#EEEDFE','#FAECE7'];
+
+let encounterCount = 0;
+
+// ─────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────
+window.addEventListener('load', () => {
+  if (!SESSION_ID) {
+    document.getElementById('session-info').textContent = 'No session ID in URL';
+    return;
+  }
+  document.getElementById('session-info').textContent = 'Session: ' + SESSION_ID;
+
+  // Load any existing encounters first (in case therapist joins mid-session)
+  loadExisting();
+
+  // Subscribe to live broadcast
+  db.channel(`quest-${SESSION_ID}`)
+    .on('broadcast', { event: 'encounter' }, ({ payload }) => handleEncounter(payload))
+    .on('broadcast', { event: 'session_complete' }, () => handleComplete())
+    .subscribe(status => {
+      const dot   = document.getElementById('live-dot');
+      const label = document.getElementById('live-label');
+      if (status === 'SUBSCRIBED') {
+        dot.classList.add('on');
+        label.textContent = 'Live';
+      } else {
+        dot.classList.remove('on');
+        label.textContent = status;
+      }
+    });
+});
+
+async function loadExisting() {
+  const { data, error } = await db
+    .from('quest_encounters')
+    .select('*')
+    .eq('session_id', SESSION_ID)
+    .order('created_at', { ascending: true });
+
+  if (error) { console.warn(error); return; }
+  if (data && data.length > 0) {
+    data.forEach(row => handleEncounter({
+      npc_id:       row.npc_id,
+      npc_name:     row.npc_name,
+      location:     row.location,
+      boundary:     row.boundary_type,
+      choice_index: row.choice_index,
+      choice_label: row.choice_label,
+      choice_text:  row.choice_text,
+      reaction:     row.reaction,
+      prompts:      NPC_PROMPTS[row.npc_id]?.[row.choice_index] || [],
+      timestamp:    row.created_at
+    }, true));
+  }
+}
+
+// ─────────────────────────────────────────
+// ENCOUNTER HANDLER
+// ─────────────────────────────────────────
+function handleEncounter(p, historical = false) {
+  encounterCount++;
+  document.getElementById('progress-summary').textContent =
+    `${encounterCount} / 8 complete`;
+
+  // Mark mini map dot
+  const miniDot = document.getElementById('mini-' + p.npc_id);
+  if (miniDot) miniDot.classList.add('done');
+
+  const ci    = p.choice_index ?? 0;
+  const color = CHOICE_COLORS[ci];
+  const bg    = CHOICE_BG[ci];
+  const time  = p.timestamp
+    ? new Date(p.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
+    : '';
+
+  // Build encounter card
+  const card = document.createElement('div');
+  card.className = 'enc-card';
+  card.innerHTML = `
+    <div class="enc-top">
+      <img class="enc-avatar"
+           src="../assets/portraits/${encodePortrait(p.npc_id)}"
+           alt="${p.npc_name}"
+           onerror="this.style.display='none'">
+      <div class="enc-meta">
+        <div class="enc-npc">${p.npc_name}</div>
+        <div class="enc-loc">${p.location}</div>
+      </div>
+      <span class="enc-badge">${p.boundary}</span>
+      <span class="enc-time">${time}</span>
+    </div>
+    <div class="enc-body">
+      <div class="enc-choice">
+        <div class="choice-dot" style="background:${color}"></div>
+        <div>
+          <div class="choice-label" style="color:${color}">${p.choice_label}</div>
+          <div class="choice-text">${p.choice_text}</div>
+        </div>
+      </div>
+      <div class="enc-reaction">${p.reaction}</div>
+    </div>
+  `;
+
+  // Newest at top for live, bottom for historical load
+  const feed = document.getElementById('feed');
+  if (historical) {
+    feed.appendChild(card);
+  } else {
+    feed.prepend(card);
+    // Scroll to top on new card
+    feed.scrollTop = 0;
+  }
+
+  // Update prompt panel with latest encounter
+  updatePrompts(p, ci, color, bg);
+}
+
+// ─────────────────────────────────────────
+// PROMPTS
+// ─────────────────────────────────────────
+function updatePrompts(p, ci, color, bg) {
+  const prompts = p.prompts || NPC_PROMPTS[p.npc_id]?.[ci] || [];
+  if (!prompts.length) return;
+
+  const area = document.getElementById('prompt-area');
+  const idle = document.getElementById('prompt-idle');
+  if (idle) idle.style.display = 'none';
+
+  const card = document.createElement('div');
+  card.className = 'prompt-card';
+  card.innerHTML = `
+    <div class="prompt-npc-name">${p.npc_name} · ${p.location}</div>
+    <span class="prompt-choice-tag" style="background:${bg};color:${color}">${p.choice_label}</span>
+    <div class="prompt-list">
+      ${prompts.map((q, i) => `
+        <div class="prompt-item">
+          <span class="prompt-num">${i+1}.</span>
+          <span class="prompt-q">${q}</span>
+        </div>`).join('')}
+    </div>
+    <p class="prompt-note">These are conversation starters — use what feels right for this moment.</p>
+  `;
+
+  // Newest prompt at top
+  area.prepend(card);
+}
+
+function handleComplete() {
+  document.getElementById('summary-banner').classList.add('show');
+}
+
+// Portrait filename map
+function encodePortrait(npcId) {
+  const map = {
+    ember: 'Ember.png', maren: 'Sage Maren.png', kids: 'River Kids.png',
+    pip: 'Pip.png', voss: 'Elder Voss.png', wren: 'Wren.png',
+    finn: 'Finn.png', lira: 'Lira.png'
+  };
+  return map[npcId] || '';
+}
+
+// Fallback prompts if not sent in broadcast payload
+const NPC_PROMPTS = {
+  ember:  [['What made you decide to offer just one bag?','Has there been a time when someone asked too much of you?','What did it feel like to set that limit?'],['That took courage — what helped you say no?','How did it feel watching Ember figure it out on her own?','Is saying no usually easy or hard for you?'],['What made you say yes even though it was a lot?','How did you feel carrying all those bags?','Do you often say yes when you wish you could say no?']],
+  maren:  [['What told you this wasn\'t a safe place to share?','How do you decide who gets to know your private things?','What does it feel like to keep something just for yourself?'],['Has anyone ever shared your private things without asking?','That was perceptive — how did you notice something felt off?','What do you wish Maren understood?'],['What made you decide to trust her?','How did it feel finding out she told others?','Do you find it hard to say no when someone seems warm and friendly?']],
+  kids:   [['What gave you the strength to hold your ground?','How do you feel when friends use friendship as a condition?','Has something like this happened to you before?'],['Walking away is hard — what made you do it?','Do you think those kids were real friends?','What did it feel like to choose yourself over the group?'],['What was going through your mind when you jumped?','What does that feeling on the walk home tell you?','Is it hard for you to say no to friends specifically?']],
+  pip:    [['That was kind and honest — how did that feel?','Do you ever worry about hurting someone by being honest?','What do you think Pip needed to hear?'],['Offering something smaller is a real skill — how did you figure that out?','How did you feel leaving knowing Pip was okay?','Do you find it hard to give less than what someone asks for?'],['What made you give up your plans?','Do you find it hard when someone says you\'re their only person?','How do you handle it when someone needs more than you can give?']],
+  voss:   [['Speaking up to authority is hard — what made you do it?','How did it feel when Voss actually listened?','Are there people in your life it\'s especially hard to speak up to?'],['That question flipped the whole conversation — how did that feel?','Do you think you have the right to take care of yourself first?','What do adults in your life say when you put yourself first?'],['What stopped you from speaking up?','How do you feel after giving everything to someone who didn\'t ask how you were?','Is it hard to say no to people who seem to be in charge?']],
+  wren:   [['How did you know this was a secret you couldn\'t keep?','What\'s the difference between a safe secret and an unsafe one?','How did Wren seem after you both fixed it together?'],['You were loyal and honest at the same time — how did that feel?','Has anyone ever helped you do something scary because they went with you?','Do you think Wren was glad you pushed her to fix it?'],['What made you promise even though something felt wrong?','What does that heaviness tell you?','Is it hard to break a promise even when keeping it might cause harm?']],
+  finn:   [['How did it feel to say "that\'s mine" out loud?','Did Finn\'s reaction surprise you?','Is it usually easy or hard to claim your belongings?'],['Setting a calm rule is a real skill — how did you think of that?','What does it feel like when someone touches your things without asking?','Do you think Finn will remember that rule?'],['What made you let him take it?','How did you feel seeing it come back scratched?','Do you find it hard to say "that\'s mine" to certain kinds of people?']],
+  lira:   [['How did you hold both things — caring about her and needing space?','Is it hard to tell a new friend you need time for others?','How do you think Lira felt about that answer?'],['That was creative — how did you think to introduce her?','Do you find it easier to solve a problem than say no directly?','How did it feel getting your own time back?'],['What made it hard to say you needed space?','What does it feel like when someone follows you everywhere?','Do you ever feel responsible for other people\'s loneliness?']]
+};
+</script>
+</body>
+</html>
