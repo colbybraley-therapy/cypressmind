@@ -840,7 +840,7 @@
           <h1 class="landing-hero-h1">Therapeutic work, made <em>memorable</em>.</h1>
           <p class="landing-hero-sub">A character-driven platform that transforms your clinical sessions into immersive therapeutic experiences — keeping clients engaged while you stay informed.</p>
           <div class="landing-hero-actions">
-            <button class="landing-hero-btn-primary" onclick="toggleSignIn()">
+            <button class="landing-hero-btn-primary" onclick="openSignInPanel(event)">
               Therapist Sign-In
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
@@ -1113,7 +1113,7 @@
         <p class="landing-section-eyebrow" style="color:rgba(248,250,249,0.65);display:block;margin-bottom:18px;">Growing Together</p>
         <h2>Bring Cypress Mind into <em>your next session</em>.</h2>
         <p>Join clinicians using Cypress Mind to keep clients engaged and progress visible.</p>
-        <button class="hero-cta" onclick="toggleSignIn()">
+        <button class="hero-cta" onclick="openSignInPanel(event)">
           Therapist Sign-In
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </button>
@@ -1479,6 +1479,12 @@
 
   function toggleSignIn() {
     document.getElementById('signin-panel').classList.toggle('open');
+  }
+
+  function openSignInPanel(e) {
+    e.stopPropagation();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    document.getElementById('signin-panel').classList.add('open');
   }
 
   function toggleFaq(btn) {
