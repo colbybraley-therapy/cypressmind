@@ -1622,8 +1622,16 @@
       await loadActivities();
       loadClientStats();
     } catch(e) {
-      alert('saveLesson threw: ' + e.message);
       console.error('saveLesson threw:', e);
+      let banner = document.getElementById('debug-banner');
+      if (!banner) {
+        banner = document.createElement('div');
+        banner.id = 'debug-banner';
+        banner.style = 'position:fixed;top:0;left:0;right:0;background:#900;color:#fff;font-size:13px;padding:10px 16px;z-index:9999;font-family:monospace;white-space:pre-wrap;cursor:pointer;';
+        banner.onclick = () => banner.remove();
+        document.body.appendChild(banner);
+      }
+      banner.textContent = 'saveLesson exception: ' + e.message;
     }
   }
 
