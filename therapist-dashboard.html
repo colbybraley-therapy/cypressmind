@@ -1583,6 +1583,7 @@
     if (!currentUser) { if (errEl) errEl.textContent = 'Session expired — please sign in again.'; return; }
 
     const m = ACTIVITY_META[selectedActivityType] || ACTIVITY_META.custom;
+    const at = ACTIVITY_TYPES.find(t => t.type === selectedActivityType);
     const customName = document.getElementById('ls-name')?.value.trim();
     const name = selectedActivityType === 'custom' && customName ? customName : m.label;
 
@@ -1590,12 +1591,13 @@
       client_id: currentClient.id,
       user_id: currentUser.id,
       activity_type: selectedActivityType,
+      activity_icon: selectedActivityType !== 'custom' ? (at?.icon || m.icon) : null,
       name,
       done: false,
     });
 
     if (error) {
-      console.error('saveLesson error:', error);
+      console.error('saveLesson error — code:', error.code, 'message:', error.message, 'details:', error.details, 'hint:', error.hint);
       if (errEl) errEl.textContent = 'Could not assign: ' + error.message;
       return;
     }
