@@ -1191,6 +1191,44 @@ let heroTrait      = null;
 let heroCompanion  = null;
 let heroName       = '';
 
+// ── Character variant image lookup ──────────────────────────
+const _VBASE = 'https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters';
+const CHAR_VARIANT_URLS = {
+  scout: {
+    'default':         `${_VBASE}/The%20Scout.png`,
+    'cloak-green':     `${_VBASE}/The%20Scout%20-%20Green%20Cloak.png`,
+    'cloak-blue':      `${_VBASE}/The%20Scout%20-%20Green%20Cloak.png`,
+    'cloak-purple':    `${_VBASE}/The%20Scout.png`,
+    'cloak-gold':      `${_VBASE}/The%20Scout%20-%20Gold%20Cloak.png`,
+    'cloak-crimson':   `${_VBASE}/The%20Scout%20-%20Crimson%20Cloak.png`,
+    'item-staff':      `${_VBASE}/The%20Scout%20-%20Staff.png`,
+    'item-shield':     `${_VBASE}/The%20Scout.png`,
+    'item-binoculars': `${_VBASE}/The%20Scout%20-%20Binoculars.png`,
+    'item-compass':    `${_VBASE}/The%20Scout.png`,
+    'item-orb':        `${_VBASE}/The%20Scout.png`,
+    'item-tome':       `${_VBASE}/The%20Scout.png`,
+    'item-blade':      `${_VBASE}/The%20Scout.png`,
+  },
+};
+
+function getCharImage(archetype, appearance, items) {
+  const variants = CHAR_VARIANT_URLS[archetype];
+  if (!variants) return CHAR_IMG_URLS[archetype] || CHAR_IMG_URLS.scout;
+
+  const cloakChoice = (appearance || []).find(a => a.startsWith('cloak-'));
+  const itemChoice  = (items || []).find(i =>
+    ['staff','shield','binoculars','compass','orb','tome','blade'].includes(i)
+  );
+
+  if (cloakChoice && itemChoice) {
+    const combo = `${cloakChoice}-item-${itemChoice}`;
+    if (variants[combo]) return variants[combo];
+  }
+  if (itemChoice && variants[`item-${itemChoice}`]) return variants[`item-${itemChoice}`];
+  if (cloakChoice && variants[cloakChoice]) return variants[cloakChoice];
+  return variants['default'] || CHAR_IMG_URLS[archetype] || CHAR_IMG_URLS.scout;
+}
+
 const CHAR_CONGRATS = {
   scout:    "You explored today with curiosity and courage. Every step forward counts — keep moving.",
   voyager:  "You stayed the course. Every session is another step in your journey, and you showed up.",
@@ -1278,7 +1316,11 @@ async function restoreSavedCharacter(clientId) {
 
   if (charData?.character === 'custom' && charData?.name) {
     wizardArchetype = charData.archetype || null;
-    CHAR_IMG_URLS['custom']  = CHAR_IMG_URLS[wizardArchetype] || CHAR_IMG_URLS.scout;
+    CHAR_IMG_URLS['custom'] = getCharImage(
+      charData.archetype,
+      charData.appearance || [],
+      charData.items      || []
+    );
     CHAR_CONGRATS['custom']  = `${charData.name}, you showed up today. That's what matters.`;
     wizardName   = charData.name;
     wizardTraits = charData.traits    || [];
@@ -1895,6 +1937,7 @@ function renderWzPowersTraits(el) {
 /* ── Step 6: Summary ── */
 function renderWzSummary(el) {
   const arch  = WZ_ARCHETYPES.find(a => a.id === wizardArchetype);
+  const resolvedImg = getCharImage(wizardArchetype, wizardAppearance, wizardItems);
   const itemLabels     = WZ_ITEMS.filter(o => wizardItems.includes(o.id)).map(o => wzLabel(o));
   const appearLabels   = WZ_APPEARANCE.filter(o => wizardAppearance.includes(o.id)).map(o => wzLabel(o));
   const powerLabels    = WZ_POWERS.filter(o => wizardPowers.includes(o.id)).map(o => wzLabel(o));
@@ -1913,7 +1956,8 @@ function renderWzSummary(el) {
     </div>
     <div class="wz-summary-card">
       <div class="wz-summary-hero">
-        <img class="wz-summary-char-img" src="${arch?.img || ''}" alt="${arch?.name || ''}" />
+        <img class="wz-summary-char-img" src="${resolvedImg}" alt="${arch?.name || ''}"
+             style="width:72px;height:96px;border-radius:10px;object-fit:cover;object-position:top center;box-shadow:0 4px 16px rgba(0,0,0,0.18);" />
         <div>
           <div class="wz-summary-name">${wizardName}</div>
           <div class="wz-summary-type">${arch?.name || ''} · ${arch?.tag || ''}</div>
@@ -1983,7 +2027,7 @@ function finishWizard() {
     .map(o => wzLabel(o))
     .slice(0, 2).join(' and ');
 
-  CHAR_IMG_URLS['custom']  = CHAR_IMG_URLS[wizardArchetype] || CHAR_IMG_URLS.scout;
+  CHAR_IMG_URLS['custom'] = getCharImage(wizardArchetype, wizardAppearance, wizardItems);
   CHAR_CONGRATS['custom']  =
     `${wizardName}, you showed up today as ${arch ? arch.name : 'yourself'}` +
     `${traitStr ? ' — ' + traitStr : ''}. That's real. Keep going.`;
