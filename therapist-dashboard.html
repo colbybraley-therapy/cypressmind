@@ -1575,36 +1575,46 @@
   }
 
   async function saveLesson() {
-    const errEl = document.getElementById('assign-error');
-    if (errEl) errEl.textContent = '';
+    try {
+      const errEl = document.getElementById('assign-error');
+      if (errEl) errEl.textContent = '';
 
-    if (!selectedActivityType) { if (errEl) errEl.textContent = 'Please select an activity type.'; return; }
-    if (!currentClient) { if (errEl) errEl.textContent = 'No client selected.'; return; }
-    if (!currentUser) { if (errEl) errEl.textContent = 'Session expired — please sign in again.'; return; }
+      if (!selectedActivityType) { alert('No activity type selected'); return; }
+      if (!currentClient)        { alert('No client selected — currentClient is null'); return; }
+      if (!currentUser)          { alert('Not logged in — currentUser is null'); return; }
 
-    const m = ACTIVITY_META[selectedActivityType] || ACTIVITY_META.custom;
-    const at = ACTIVITY_TYPES.find(t => t.type === selectedActivityType);
-    const customName = document.getElementById('ls-name')?.value.trim();
-    const name = selectedActivityType === 'custom' && customName ? customName : m.label;
+      const m = ACTIVITY_META[selectedActivityType] || ACTIVITY_META.custom;
+      const at = ACTIVITY_TYPES.find(t => t.type === selectedActivityType);
+      const customName = document.getElementById('ls-name')?.value.trim();
+      const name = selectedActivityType === 'custom' && customName ? customName : m.label;
 
-    const { error } = await db.from('activities').insert({
-      client_id: currentClient.id,
-      user_id: currentUser.id,
-      activity_type: selectedActivityType,
-      activity_icon: selectedActivityType !== 'custom' ? (at?.icon || m.icon) : null,
-      name,
-      done: false,
-    });
+      const payload = {
+        client_id: currentClient.id,
+        user_id: currentUser.id,
+        activity_type: selectedActivityType,
+        activity_icon: selectedActivityType !== 'custom' ? (at?.icon || m.icon) : null,
+        name,
+        done: false,
+      };
+      console.log('saveLesson payload:', payload);
 
-    if (error) {
-      console.error('saveLesson error — code:', error.code, 'message:', error.message, 'details:', error.details, 'hint:', error.hint);
-      if (errEl) errEl.textContent = 'Could not assign: ' + error.message;
-      return;
+      const { data, error } = await db.from('activities').insert(payload).select();
+      console.log('saveLesson result — data:', data, 'error:', error);
+
+      if (error) {
+        const msg = `Insert failed\ncode: ${error.code}\nmessage: ${error.message}\ndetails: ${error.details}\nhint: ${error.hint}`;
+        alert(msg);
+        if (errEl) errEl.textContent = error.message;
+        return;
+      }
+
+      closeOverlay('add-lesson-overlay');
+      await loadActivities();
+      loadClientStats();
+    } catch(e) {
+      alert('saveLesson threw: ' + e.message);
+      console.error('saveLesson threw:', e);
     }
-
-    closeOverlay('add-lesson-overlay');
-    await loadActivities();
-    loadClientStats();
   }
 
   /* ─────────────────────────────────────────
