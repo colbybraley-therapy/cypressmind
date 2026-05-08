@@ -1602,9 +1602,19 @@
       console.log('saveLesson result — data:', data, 'error:', error);
 
       if (error) {
-        const msg = `Insert failed\ncode: ${error.code}\nmessage: ${error.message}\ndetails: ${error.details}\nhint: ${error.hint}`;
-        alert(msg);
-        if (errEl) errEl.textContent = error.message;
+        const msg = `${error.code}: ${error.message} | ${error.details} | ${error.hint}`;
+        console.warn('🔴 SAVE LESSON FAILED:', msg, error);
+        // Show error in a fixed banner impossible to miss
+        let banner = document.getElementById('debug-banner');
+        if (!banner) {
+          banner = document.createElement('div');
+          banner.id = 'debug-banner';
+          banner.style = 'position:fixed;top:0;left:0;right:0;background:#c00;color:#fff;font-size:13px;padding:10px 16px;z-index:9999;font-family:monospace;white-space:pre-wrap;cursor:pointer;';
+          banner.onclick = () => banner.remove();
+          document.body.appendChild(banner);
+        }
+        banner.textContent = 'ACTIVITY INSERT ERROR (click to dismiss):\n' + msg;
+        if (errEl) errEl.textContent = msg;
         return;
       }
 
