@@ -1580,8 +1580,15 @@
       if (errEl) errEl.textContent = '';
 
       if (!selectedActivityType) { alert('No activity type selected'); return; }
-      if (!currentClient)        { alert('No client selected — currentClient is null'); return; }
-      if (!currentUser)          { alert('Not logged in — currentUser is null'); return; }
+      if (!currentClient)        { alert('No client selected'); return; }
+
+      const { data: { user: freshUser } } = await db.auth.getUser();
+      if (!freshUser?.id) {
+        let banner = document.getElementById('debug-banner');
+        if (!banner) { banner = document.createElement('div'); banner.id = 'debug-banner'; banner.style = 'position:fixed;top:0;left:0;right:0;background:#c00;color:#fff;font-size:13px;padding:10px 16px;z-index:9999;font-family:monospace;cursor:pointer;'; banner.onclick = () => banner.remove(); document.body.appendChild(banner); }
+        banner.textContent = 'Not logged in — please sign in and try again';
+        return;
+      }
 
       const m = ACTIVITY_META[selectedActivityType] || ACTIVITY_META.custom;
       const at = ACTIVITY_TYPES.find(t => t.type === selectedActivityType);
@@ -1590,7 +1597,7 @@
 
       const payload = {
         client_id: currentClient.id,
-        user_id: currentUser.id,
+        user_id: freshUser.id,
         activity_type: selectedActivityType,
         activity_icon: selectedActivityType !== 'custom' ? (at?.icon || m.icon) : null,
         name,
