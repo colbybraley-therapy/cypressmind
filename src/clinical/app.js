@@ -10,6 +10,10 @@ const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 const AVATARS = ["🐻","🦊","🐺","🐱","🐶","🐸","🦁","🐯","🐼","🦋","🌻","⭐","🍀","🎯","🏔"];
 const COLORS  = ["#D3D1C7","#B5D4F4","#9FE1CB","#F4C0D1","#F5C4B3","#FAC775","#C0DD97","#CECBF6","#F7C1C1","#85B7EB"];
 
+function esc(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
 const BASE_IMG = 'https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/characters';
 const CHARACTER_IMAGES = {
   scout:    `${BASE_IMG}/The%20Scout.png`,
@@ -220,8 +224,8 @@ async function renderClients() {
       return `
         <div class="client-card" onclick="openClientById('${c.id}')">
           <button class="del-client-btn" onclick="event.stopPropagation(); archiveClient('${c.id}')" title="Remove client">✕</button>
-          <div class="av" style="background:${color}">${c.avatar}</div>
-          <div class="cn">${c.name}</div>
+          <div class="av" style="background:${color}">${esc(c.avatar)}</div>
+          <div class="cn">${esc(c.name)}</div>
           <div class="cs">Since ${new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</div>
           <div class="prog-bar-wrap"><div class="prog-bar" style="width:${pct}%"></div></div>
           <div style="font-size:10px;color:var(--color-text-tertiary);margin-top:4px;">${pct}% complete</div>
@@ -266,8 +270,8 @@ async function renderPastClients() {
       <div class="past-client-card" onclick="openClientById('${c.id}')">
         <button class="delete-perm-btn" onclick="event.stopPropagation(); deleteClient('${c.id}')" title="Permanently delete client">Delete</button>
         <button class="restore-btn" onclick="event.stopPropagation(); restoreClient('${c.id}')" title="Restore client">Restore</button>
-        <div class="av" style="background:${color};filter:grayscale(0.5);">${c.avatar}</div>
-        <div class="cn">${c.name}</div>
+        <div class="av" style="background:${color};filter:grayscale(0.5);">${esc(c.avatar)}</div>
+        <div class="cn">${esc(c.name)}</div>
         <div class="cs">Since ${new Date(c.created_at).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}</div>
         ${archivedStr ? `<div class="archived-badge">Archived ${archivedStr}</div>` : ''}
         <div class="prog-bar-wrap"><div class="prog-bar" style="width:${pct}%;background:var(--color-text-tertiary);"></div></div>
@@ -485,16 +489,16 @@ async function renderSessionHistory() {
             </div>
             <div class="session-history-date">${date} · ${duration}</div>
           </div>
-          <div class="session-history-narrative">${s.generated_summary}</div>
+          <div class="session-history-narrative">${esc(s.generated_summary)}</div>
           ${s.therapist_notes ? `
             <div class="session-history-notes">
               <span class="session-notes-label">📝 Notes</span>
-              <span>${s.therapist_notes}</span>
+              <span>${esc(s.therapist_notes)}</span>
             </div>` : ''}
           <div class="session-history-stats">
             <span>Steps: ${s.total_steps}</span>
             ${s.correct_answers > 0 ? `<span>Correct: ${s.correct_answers}</span>` : ''}
-            ${s.emotions_explored?.length > 0 ? `<span>Emotions: ${s.emotions_explored.join(', ')}</span>` : ''}
+            ${s.emotions_explored?.length > 0 ? `<span>Emotions: ${esc(s.emotions_explored.join(', '))}</span>` : ''}
             ${s.breathing_completed ? `<span>✅ Breathing complete</span>` : ''}
           </div>
         </div>`;
@@ -546,7 +550,7 @@ async function renderActivities() {
           </svg>
         </div>
         <div class="lesson-info">
-          <div class="lesson-name">${a.activity_icon ? `<span class="lesson-act-icon">${a.activity_icon}</span>` : ''}${a.name}</div>
+          <div class="lesson-name">${a.activity_icon ? `<span class="lesson-act-icon">${esc(a.activity_icon)}</span>` : ''}${esc(a.name)}</div>
           <div class="lesson-meta">
             ${lastDate ? 'Last: ' + lastDate : 'Not started'}
             ${lastScore !== null ? ' · Score: ' + lastScore + '%' : ''}
@@ -968,7 +972,7 @@ function addResponseToPanel(response) {
   if (data?.emotion) {
     // Emotion Explorer
     label = 'Emotion Check-in';
-    content = `<span style="font-size:22px;line-height:1;">${data.icon || ''}</span> <strong>${data.emotion}</strong>`;
+    content = `<span style="font-size:22px;line-height:1;">${esc(data.icon || '')}</span> <strong>${esc(data.emotion)}</strong>`;
   } else if (data?.correct !== undefined) {
     // Quiz
     const icon = data.correct ? '✓' : '✗';
@@ -976,17 +980,20 @@ function addResponseToPanel(response) {
     const bg    = data.correct ? '#edfbf0' : '#fff0eb';
     label = data.correct ? 'Quiz — Correct' : 'Quiz — Incorrect';
     content = `
-      <div style="margin-bottom:5px;font-size:12px;color:#7B7899;">${data.question || ''}</div>
-      <span style="display:inline-block;background:${bg};color:${color};padding:3px 10px;border-radius:4px;font-weight:600;font-size:13px;">${icon} ${data.answer || ''}</span>`;
+      <div style="margin-bottom:5px;font-size:12px;color:#7B7899;">${esc(data.question || '')}</div>
+      <span style="display:inline-block;background:${bg};color:${color};padding:3px 10px;border-radius:4px;font-weight:600;font-size:13px;">${icon} ${esc(data.answer || '')}</span>`;
   } else if (data?.completed === true && data?.cycles !== undefined) {
     // Breathing
     label = 'Breathing Exercise';
     content = `✅ Completed ${data.cycles} cycles`;
   } else if (data?.response !== undefined) {
     // Journal
-    const excerpt = data.response.length > 120 ? data.response.slice(0, 120) + '…' : data.response;
+    const rawResp = data.response;
+    const excerpt = rawResp.length > 120 ? esc(rawResp.slice(0, 120)) + '…' : esc(rawResp);
     label = 'Journal Response';
-    content = `<div style="font-size:11px;color:#7B7899;margin-bottom:4px;font-style:italic;">${(data.prompt || '').slice(0, 80)}${data.prompt?.length > 80 ? '…' : ''}</div>${excerpt}`;
+    const rawPrompt = data.prompt || '';
+    const truncPrompt = rawPrompt.length > 80 ? esc(rawPrompt.slice(0, 80)) + '…' : esc(rawPrompt);
+    content = `<div style="font-size:11px;color:#7B7899;margin-bottom:4px;font-style:italic;">${truncPrompt}</div>${excerpt}`;
   } else {
     // Fallback — skip unrecognised internal responses
     return;
