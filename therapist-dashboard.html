@@ -1222,8 +1222,11 @@
     const now = new Date();
     const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString();
 
-    const { data: sessions } = await db.from('sessions').select('*').eq('user_id', user.id).gte('created_at', monthStart);
-    const { data: allActivities } = await db.from('activities').select('*').in('client_id', clients.map(c => c.id));
+    const clientIds = clients.map(c => c.id);
+    const { data: sessions } = clientIds.length
+      ? await db.from('sessions').select('id').in('client_id', clientIds).gte('created_at', monthStart)
+      : { data: [] };
+    const { data: allActivities } = await db.from('activities').select('*').in('client_id', clientIds);
 
     const active = clients.length;
     const sessCount = sessions?.length || 0;
