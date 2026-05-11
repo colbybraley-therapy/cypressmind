@@ -64,7 +64,7 @@ html,body{width:100%;height:100%;background:#0e1f06;font-family:'Crimson Pro',Ge
 #status-text{font-family:'Crimson Pro',serif;font-style:italic;font-size:.88rem;color:rgba(245,237,216,.55);text-align:center;}
 
 /* ── SCENE VIEW — Visual Novel ── */
-#scene-view{position:absolute;inset:0;display:none;opacity:0;transition:opacity .5s ease;}
+#scene-view{position:absolute;inset:0;height:100%;display:none;opacity:0;transition:opacity .5s ease;}
 #scene-view.visible{opacity:1;}
 #scene-bg{position:absolute;inset:0;background-size:cover;background-position:center;}
 #scene-vignette{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,transparent 40%,rgba(0,0,0,.38) 100%);}
@@ -78,6 +78,7 @@ html,body{width:100%;height:100%;background:#0e1f06;font-family:'Crimson Pro',Ge
 #scene-stage{
   position: absolute;
   inset: 0;
+  height: 100%;
   display: flex;
   align-items: flex-end;
   justify-content: flex-start;
