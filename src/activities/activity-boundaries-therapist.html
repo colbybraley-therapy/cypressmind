@@ -55,6 +55,42 @@
   .choice-text{font-size:.82rem;color:var(--ink);line-height:1.5;}
   .enc-reaction{font-size:.8rem;color:var(--mid);font-style:italic;line-height:1.5;border-top:1px solid var(--border);padding-top:8px;margin-top:6px;}
   .enc-time{font-size:.7rem;color:#aaa;margin-left:auto;white-space:nowrap;}
+  .enc-paused-badge{
+    background:#FAEEDA;color:#993C1D;
+    font-size:.62rem;font-weight:500;letter-spacing:.04em;
+    padding:2px 8px;border-radius:20px;margin-left:6px;
+  }
+  .enc-paused-badge.released{background:#EAF3DE;color:#3B6D11;}
+  .enc-nudge-badge{
+    background:#FAEEDA;color:#993C1D;
+    font-size:.62rem;font-weight:500;letter-spacing:.04em;
+    padding:2px 8px;border-radius:20px;
+    display:none;align-items:center;gap:4px;
+    animation:nudge-pulse 2s ease-in-out infinite;
+    margin-left:6px;
+  }
+  .enc-nudge-badge.show{display:inline-flex;}
+  @keyframes nudge-pulse{0%,100%{opacity:1}50%{opacity:.55}}
+  .enc-continue-row{
+    padding:10px 14px;border-top:1px solid var(--border);
+    background:#fafbf7;
+  }
+  .enc-continue-btn{
+    width:100%;padding:9px 14px;background:#3C3489;color:#fff;
+    border:none;border-radius:7px;font-family:'Cinzel',serif;
+    font-size:.78rem;font-weight:500;letter-spacing:.05em;cursor:pointer;
+    transition:background .15s;
+  }
+  .enc-continue-btn:hover{background:#2e2870;}
+  .enc-continue-btn.released{
+    background:#EAF3DE;color:#3B6D11;cursor:default;pointer-events:none;
+  }
+  .enc-nudge-message{
+    display:none;margin-top:6px;
+    font-family:'Crimson Pro',serif;font-style:italic;
+    font-size:.75rem;color:#7a4a18;text-align:center;line-height:1.5;
+  }
+  .enc-nudge-message.show{display:block;}
 
   /* Prompts column */
   #prompt-col{display:flex;flex-direction:column;overflow:hidden;}
@@ -175,9 +211,18 @@ window.addEventListener('load', () => {
   loadExisting();
 
   // Subscribe to live broadcast
-  db.channel(`quest-${SESSION_ID}`)
+  const channel = db.channel(`quest-${SESSION_ID}`);
+  channel
     .on('broadcast', { event: 'encounter' }, ({ payload }) => handleEncounter(payload))
     .on('broadcast', { event: 'session_complete' }, () => handleComplete())
+    .on('broadcast', { event: 'therapist_nudge' }, ({ payload }) => {
+      const badge = document.getElementById('nudge-' + payload.npc_id);
+      const msg = document.getElementById('nudge-msg-' + payload.npc_id);
+      const btn = document.getElementById('continue-' + payload.npc_id);
+      if (btn && btn.classList.contains('released')) return;
+      if (badge) badge.classList.add('show');
+      if (msg) msg.classList.add('show');
+    })
     .subscribe(status => {
       const dot   = document.getElementById('live-dot');
       const label = document.getElementById('live-label');
@@ -248,6 +293,8 @@ function handleEncounter(p, historical = false) {
         <div class="enc-loc">${p.location}</div>
       </div>
       <span class="enc-badge">${p.boundary}</span>
+      <span class="enc-paused-badge" id="paused-${p.npc_id}">PAUSED</span>
+      <span class="enc-nudge-badge" id="nudge-${p.npc_id}">⏳ 3 MIN</span>
       <span class="enc-time">${time}</span>
     </div>
     <div class="enc-body">
@@ -259,6 +306,10 @@ function handleEncounter(p, historical = false) {
         </div>
       </div>
       <div class="enc-reaction">${p.reaction}</div>
+    </div>
+    <div class="enc-continue-row">
+      <button class="enc-continue-btn" id="continue-${p.npc_id}" onclick="releaseNPC('${p.npc_id}')">Continue session →</button>
+      <p class="enc-nudge-message" id="nudge-msg-${p.npc_id}">Reminder: your client is still waiting at this encounter.</p>
     </div>
   `;
 
@@ -318,6 +369,24 @@ function encodePortrait(npcId) {
     finn: 'Finn.png', lira: 'Lira.png'
   };
   return map[npcId] || '';
+}
+
+async function releaseNPC(npcId){
+  const btn = document.getElementById('continue-' + npcId);
+  const badge = document.getElementById('paused-' + npcId);
+  const nudgeBadge = document.getElementById('nudge-' + npcId);
+  const nudgeMsg = document.getElementById('nudge-msg-' + npcId);
+
+  if (btn) { btn.textContent = 'Released ✓'; btn.classList.add('released'); }
+  if (badge) { badge.textContent = 'RELEASED'; badge.classList.add('released'); }
+  if (nudgeBadge) nudgeBadge.classList.remove('show');
+  if (nudgeMsg) nudgeMsg.classList.remove('show');
+
+  await channel.send({
+    type: 'broadcast',
+    event: 'unlock',
+    payload: { npc_id: npcId, timestamp: new Date().toISOString() }
+  });
 }
 
 // Fallback prompts if not sent in broadcast payload

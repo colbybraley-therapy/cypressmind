@@ -125,8 +125,22 @@ html,body{width:100%;height:100%;background:#0e1f06;font-family:'Crimson Pro',Ge
 #reaction-card{background:rgba(245,237,216,.98);border-radius:14px;padding:18px 20px;box-shadow:0 8px 32px rgba(0,0,0,.5);border:1px solid rgba(201,168,76,.28);max-width:560px;margin-left:clamp(260px,36vw,400px);}
 #reaction-title{font-family:'Cinzel',serif;font-size:.95rem;font-weight:600;color:var(--green-mid);margin-bottom:.45rem;letter-spacing:.03em;}
 #reaction-text{font-family:'Crimson Pro',serif;font-style:italic;font-size:.98rem;color:#2a2010;line-height:1.7;margin-bottom:1rem;}
-#continue-btn{display:block;width:100%;padding:11px;background:var(--green-mid);color:var(--cream);border:none;border-radius:8px;font-family:'Cinzel',serif;font-size:.82rem;font-weight:500;letter-spacing:.05em;cursor:pointer;transition:background .15s;}
+#continue-btn{display:none;width:100%;padding:11px;background:var(--green-mid);color:var(--cream);border:none;border-radius:8px;font-family:'Cinzel',serif;font-size:.82rem;font-weight:500;letter-spacing:.05em;cursor:pointer;transition:background .15s;}
 #continue-btn:hover{background:#2a4d30;}
+#continue-btn.unlocked{display:block;}
+#reaction-waiting{
+  display:none;align-items:center;justify-content:center;gap:8px;
+  padding:10px 4px 2px;margin-top:6px;
+  border-top:1px solid rgba(201,168,76,.25);
+  font-family:'Crimson Pro',serif;font-style:italic;
+  font-size:.85rem;color:#7a6a48;text-align:center;
+}
+#reaction-waiting.show{display:flex;}
+#waiting-dot{
+  width:7px;height:7px;border-radius:50%;background:#c9a84c;
+  animation:waiting-pulse 1.4s ease-in-out infinite;flex-shrink:0;
+}
+@keyframes waiting-pulse{0%,100%{opacity:.3}50%{opacity:1}}
 
 /* ── COMPLETE ── */
 #complete-screen{display:none;position:absolute;inset:0;background:rgba(10,20,5,.88);z-index:50;align-items:center;justify-content:center;padding:20px;}
@@ -273,6 +287,10 @@ html,body{width:100%;height:100%;background:#0e1f06;font-family:'Crimson Pro',Ge
         <p id="reaction-title"></p>
         <p id="reaction-text"></p>
         <button id="continue-btn" onclick="continueFromReaction()">Continue exploring →</button>
+        <div id="reaction-waiting">
+          <span id="waiting-dot"></span>
+          <span>When you're ready, your therapist will continue you on.</span>
+        </div>
       </div>
     </div>
   </div>
@@ -295,6 +313,9 @@ const SESSION_ID   = new URLSearchParams(window.location.search).get('session');
 const { createClient } = supabase;
 const db      = createClient(SUPABASE_URL, SUPABASE_KEY);
 const channel = db.channel(`quest-${SESSION_ID}`);
+channel.on('broadcast', { event: 'unlock' }, ({ payload }) => {
+  if (payload.npc_id === currentNPC) unlockContinue();
+});
 
 // ── NPC DATA ──
 const NPC = {
@@ -309,7 +330,7 @@ const NPC = {
 };
 
 const IDS = Object.keys(NPC);
-let currentNPC = null, done = {}, sessionLog = [], typeTimer = null;
+let currentNPC = null, done = {}, sessionLog = [], typeTimer = null, nudgeTimer = null;
 
 // ── MAP GLOW + TOOLTIP ──
 const tooltip = document.getElementById('map-tooltip');
@@ -491,6 +512,18 @@ function chooseResponse(ri) {
     document.getElementById('reaction').classList.add('in');
     setStatus('See what happens…');
   }, 380);
+
+  // Lock: hide Continue, show soft waiting line. After 3 min, silently nudge therapist.
+  document.getElementById('continue-btn').classList.remove('unlocked');
+  document.getElementById('reaction-waiting').classList.add('show');
+  clearTimeout(nudgeTimer);
+  nudgeTimer = setTimeout(() => {
+    channel.send({
+      type: 'broadcast',
+      event: 'therapist_nudge',
+      payload: { npc_id: currentNPC, timestamp: new Date().toISOString() }
+    });
+  }, 180000);
 }
 
 // ── CONTINUE / BACK ──
@@ -508,6 +541,7 @@ function continueFromReaction() {
 }
 
 function backToMap() {
+  clearTimeout(nudgeTimer);
   document.getElementById('reaction').classList.remove('in');
   document.getElementById('dialogue-wrap').classList.remove('in');
   document.getElementById('npc-wrap').classList.remove('in');
@@ -526,6 +560,13 @@ async function notifyComplete() {
   await pushComplete();
   document.getElementById('complete-screen').classList.remove('show');
   setStatus('Session complete. Your therapist has the full summary.');
+}
+
+function unlockContinue(){
+  clearTimeout(nudgeTimer);
+  document.getElementById('continue-btn').classList.add('unlocked');
+  document.getElementById('reaction-waiting').classList.remove('show');
+  setStatus('Your therapist released you — continue when ready.');
 }
 </script>
 </body>
