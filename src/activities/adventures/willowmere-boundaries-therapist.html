@@ -399,6 +399,13 @@ async function endSession() {
   const btn = document.getElementById('end-session-btn');
   btn.disabled = true;
   btn.textContent = 'Session ended';
+  // If embedded in the dashboard, delegate to the parent which handles
+  // the broadcast, activity update, and overlay close all in one place.
+  if (window.parent && window.parent !== window && typeof window.parent.closeWillowmereOverlay === 'function') {
+    window.parent.closeWillowmereOverlay();
+    return;
+  }
+  // Standalone fallback (e.g. direct URL access)
   await channel.send({
     type: 'broadcast',
     event: 'end_session',

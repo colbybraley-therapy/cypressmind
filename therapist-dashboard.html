@@ -1707,6 +1707,12 @@
       db.removeChannel(_wmChannel);
       _wmChannel = null;
     }
+    if (_wmActivityId) {
+      await db.from('activities').update({ done: true, completed_at: new Date().toISOString() }).eq('id', _wmActivityId);
+      _wmActivityId = null;
+      loadActivities();
+      loadClientStats();
+    }
     document.getElementById('wm-therapist-frame').src = '';
     document.getElementById('willowmere-panel').style.display = 'none';
   }
