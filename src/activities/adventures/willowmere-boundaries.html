@@ -622,9 +622,10 @@ function chooseResponse(ri) {
     setStatus('See what happens…');
   }, 380);
 
-  // Lock: hide Continue, show soft waiting line. After 3 min, silently nudge therapist.
+  // Lock: hide Continue and back button, show soft waiting line. After 3 min, silently nudge therapist.
   document.getElementById('continue-btn').classList.remove('unlocked');
   document.getElementById('reaction-waiting').classList.add('show');
+  document.getElementById('back-btn').style.display = 'none';
   clearTimeout(nudgeTimer);
   nudgeTimer = setTimeout(() => {
     channel.send({
@@ -673,9 +674,10 @@ async function notifyComplete() {
 
 function unlockContinue(){
   clearTimeout(nudgeTimer);
-  document.getElementById('continue-btn').classList.add('unlocked');
   document.getElementById('reaction-waiting').classList.remove('show');
-  setStatus('Your therapist released you — continue when ready.');
+  document.getElementById('back-btn').style.display = '';
+  setStatus('Your therapist released you — returning to the village…');
+  continueFromReaction();
 }
 </script>
 </body>
