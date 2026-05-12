@@ -692,8 +692,7 @@ function backToMap() {
 
 async function notifyComplete() {
   await pushComplete();
-  document.getElementById('complete-screen').classList.remove('show');
-  setStatus('Session complete. Your therapist has the full summary.');
+  window.close();
 }
 
 function endSessionFromTherapist() {
