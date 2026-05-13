@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Reflection Journal â Cypress Mind</title>
+<title>Reflection Journal — Cypress Mind</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -613,7 +613,7 @@
 
     <!-- Check email state -->
     <div id="auth-sent" style="display:none; text-align:center;">
-      <div class="auth-sent-icon">â</div>
+      <div class="auth-sent-icon">✉</div>
       <h2 style="margin-bottom:10px;">Check your email</h2>
       <p class="sub">We sent a sign-in link to <strong id="auth-sent-email"></strong>.</p>
       <p style="font-size:13px; color:var(--text-tertiary); line-height:1.6;">
@@ -634,7 +634,7 @@
   <div class="top-bar">
     <span class="wordmark">Cypress Mind</span>
     <button class="top-btn" onclick="showScreen('screen-entries')">
-      Past entries â
+      Past entries →
     </button>
   </div>
   <div class="screen-inner">
@@ -658,13 +658,13 @@
 âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ -->
 <div id="screen-moodcheckin" class="screen">
   <div class="top-bar">
-    <button class="top-btn" onclick="showScreen('screen-welcome')">â Back</button>
+    <button class="top-btn" onclick="showScreen('screen-welcome')">← Back</button>
   </div>
   <div class="screen-inner">
 
     <div class="eyebrow">Mood check-in</div>
     <h2>How are you feeling right now?</h2>
-    <p class="sub" style="margin-bottom:16px;">Pick as many as feel true â or just one.</p>
+    <p class="sub" style="margin-bottom:16px;">Pick as many as feel true — or just one.</p>
 
     <div class="selected-summary" id="selected-summary">
       <span class="selected-summary-empty" id="summary-empty">Nothing selected yet</span>
@@ -691,41 +691,41 @@
 âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ -->
 <div id="screen-pathways" class="screen">
   <div class="top-bar">
-    <button class="top-btn" onclick="showScreen('screen-moodcheckin')">â Back</button>
+    <button class="top-btn" onclick="showScreen('screen-moodcheckin')">← Back</button>
   </div>
   <div class="screen-inner">
     <div class="eyebrow">How would you like to write?</div>
     <h2 id="pathway-greeting">Got it.</h2>
-    <p class="sub">Now â how do you want to write today?</p>
+    <p class="sub">Now — how do you want to write today?</p>
 
     <!-- Adventure bridge card (hidden by default, shown if session match) -->
     <div id="bridge-card" style="display:none;">
       <div class="bridge-card">
         <span class="bridge-text" id="bridge-text">You explored boundaries in Willowmere today. Want to keep going?</span>
-        <button class="bridge-cta" onclick="chooseBridgeTheme()">Write about it â</button>
+        <button class="bridge-cta" onclick="chooseBridgeTheme()">Write about it →</button>
       </div>
       <button class="bridge-dismiss" onclick="dismissBridge()">Maybe later</button>
     </div>
 
     <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:auto;">
       <div class="pathway-card" onclick="choosePathway('guided')">
-        <div class="pathway-icon">â¦</div>
+        <div class="pathway-icon">✦</div>
         <div class="pathway-info">
           <div class="pathway-title">Guided</div>
-          <div class="pathway-desc">A question to write toward. We'll offer a prompt â you take it wherever it leads.</div>
+          <div class="pathway-desc">A question to write toward. We'll offer a prompt — you take it wherever it leads.</div>
         </div>
       </div>
 
       <div class="pathway-card" onclick="choosePathway('themed')">
-        <div class="pathway-icon">â</div>
+        <div class="pathway-icon">◎</div>
         <div class="pathway-info">
           <div class="pathway-title">Themed</div>
-          <div class="pathway-desc">A topic that matters to you â boundaries, relationships, identity, and more.</div>
+          <div class="pathway-desc">A topic that matters to you — boundaries, relationships, identity, and more.</div>
         </div>
       </div>
 
       <div class="pathway-card" onclick="choosePathway('free')">
-        <div class="pathway-icon">â</div>
+        <div class="pathway-icon">✏</div>
         <div class="pathway-info">
           <div class="pathway-title">Free</div>
           <div class="pathway-desc">No prompt, no direction. Just you and the page.</div>
@@ -734,7 +734,7 @@
     </div>
 
     <div class="btn-stack">
-      <button class="btn-text" onclick="choosePathway('skip')">Not today â <span style="font-size:12px;">your check-in is still saved</span></button>
+      <button class="btn-text" onclick="choosePathway('skip')">Not today → <span style="font-size:12px;">your check-in is still saved</span></button>
     </div>
   </div>
 </div>
@@ -744,7 +744,7 @@
 âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ -->
 <div id="screen-themes" class="screen">
   <div class="top-bar">
-    <button class="top-btn" onclick="showScreen('screen-pathways')">â Back</button>
+    <button class="top-btn" onclick="showScreen('screen-pathways')">← Back</button>
   </div>
   <div class="screen-inner">
     <div class="eyebrow">Choose a theme</div>
@@ -753,7 +753,7 @@
 
     <div style="display:flex; flex-direction:column; gap:10px;">
       <div class="pathway-card" onclick="chooseTheme('boundaries')">
-        <div class="pathway-icon">â¬¡</div>
+        <div class="pathway-icon">⬡</div>
         <div class="pathway-info">
           <div class="pathway-title">Boundaries</div>
           <div class="pathway-desc">What feels like too much, what feels safe, and what you're figuring out.</div>
@@ -761,7 +761,7 @@
       </div>
       <!-- TODO: Add more themes as they're built (self-worth, friendships, family) -->
       <div class="pathway-card" style="opacity:0.4; cursor:default;">
-        <div class="pathway-icon" style="opacity:0.5;">â</div>
+        <div class="pathway-icon" style="opacity:0.5;">+</div>
         <div class="pathway-info">
           <div class="pathway-title" style="color:var(--text-tertiary);">More themes coming</div>
           <div class="pathway-desc">Self-worth, friendships, family, and more.</div>
@@ -776,7 +776,7 @@
 âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ -->
 <div id="screen-writing" class="screen">
   <div class="top-bar">
-    <button class="top-btn" onclick="showScreen('screen-pathways')">â Back</button>
+    <button class="top-btn" onclick="showScreen('screen-pathways')">← Back</button>
     <span style="font-size:12px; color:var(--text-tertiary);" id="write-pathway-label"></span>
   </div>
   <div class="screen-inner" style="padding-bottom:24px;">
@@ -806,7 +806,7 @@
 
       <div style="display:flex; flex-direction:column; gap:10px; margin-bottom:24px;">
         <div class="share-option" id="share-opt-therapist" onclick="toggleShare('therapist')">
-          <div class="share-option-icon">â</div>
+          <div class="share-option-icon">♡</div>
           <div class="share-option-text">
             <div class="share-option-title">Share with my therapist</div>
             <div class="share-option-sub">They'll be able to read this entry.</div>
@@ -815,7 +815,7 @@
         </div>
 
         <div class="share-option" id="share-opt-flag" onclick="toggleShare('flag')">
-          <div class="share-option-icon">â</div>
+          <div class="share-option-icon">★</div>
           <div class="share-option-text">
             <div class="share-option-title">I want to talk about this</div>
             <div class="share-option-sub">Flagged for your next session.</div>
@@ -824,7 +824,7 @@
         </div>
 
         <div class="share-option" id="share-opt-week" onclick="toggleShare('week')">
-          <div class="share-option-icon">â·</div>
+          <div class="share-option-icon">◷</div>
           <div class="share-option-text">
             <div class="share-option-title">Share my week with my therapist</div>
             <div class="share-option-sub">A summary of this week's entries.</div>
@@ -845,7 +845,7 @@
 âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ -->
 <div id="screen-entries" class="screen">
   <div class="top-bar">
-    <button class="top-btn" onclick="showScreen('screen-welcome')">â Back</button>
+    <button class="top-btn" onclick="showScreen('screen-welcome')">← Back</button>
     <span class="wordmark">Cypress Mind</span>
   </div>
   <div class="screen-inner">
@@ -1055,7 +1055,7 @@ const GUIDED_PROMPTS = [
     families: ['sadness', 'trust', 'joy']
   },
   {
-    text: "What's something you're hoping for â even a small thing?",
+    text: "What's something you're hoping for — even a small thing?",
     families: ['sadness', 'fear', 'anticipation']
   },
   {
@@ -1075,7 +1075,7 @@ const GUIDED_PROMPTS = [
     families: ['trust', 'anger', 'sadness', 'anticipation']
   },
   {
-    text: "What does it feel like when something is going right â even a small thing?",
+    text: "What does it feel like when something is going right — even a small thing?",
     families: ['joy', 'trust', 'anticipation']
   },
   {
@@ -1113,12 +1113,12 @@ function getPromptsForMoods() {
 /* ââ Themed prompts âââââââââââââââââââââââââââââââââââââââââââ */
 const THEMED_PROMPTS = {
   boundaries: [
-    "Is there something in your life right now that feels like too much â something you wish you could say no to but haven't?",
+    "Is there something in your life right now that feels like too much — something you wish you could say no to but haven't?",
     "When did you last feel uncomfortable about something someone asked of you? What happened?",
     "Is there something you keep doing even though part of you doesn't want to? What keeps you doing it?",
-    "What does it feel like in your body when something crosses a line for you â even before your brain figures it out?",
+    "What does it feel like in your body when something crosses a line for you — even before your brain figures it out?",
     "Think about someone you feel comfortable around. What is it about them that makes it feel safe to be yourself?",
-    "Have you ever said yes to something and felt worse afterward â not because of what you did, but because you didn't really want to do it?",
+    "Have you ever said yes to something and felt worse afterward — not because of what you did, but because you didn't really want to do it?",
     "If there's one thing you wish you could change about how you handle a situation with someone in your life, what would it be?"
   ]
 };
@@ -1401,7 +1401,7 @@ function toggleShare(type) {
 
   if (state[mapping[type]]) {
     el.classList.add('selected');
-    chk.textContent = 'â';
+    chk.textContent = '✓';
   } else {
     el.classList.remove('selected');
     chk.textContent = '';
@@ -1493,7 +1493,7 @@ async function renderEntries() {
   ENTRIES_CACHE = data || [];
 
   if (!ENTRIES_CACHE.length) {
-    el.innerHTML = '<p style="font-size:14px; color:var(--text-tertiary); text-align:center; padding:24px 0;">Nothing yet â your first entry will live here.</p>';
+    el.innerHTML = '<p style="font-size:14px; color:var(--text-tertiary); text-align:center; padding:24px 0;">Nothing yet — your first entry will live here.</p>';
     return;
   }
 
@@ -1504,7 +1504,7 @@ async function renderEntries() {
         <div class="entry-meta-row">
           <span class="entry-date">${formatEntryDate(e.created_at)}</span>
           <span class="entry-badge ${e.flagged_for_session ? 'badge-flagged' : e.shared ? 'badge-shared' : ''}">
-            ${e.flagged_for_session ? 'â Talk about this' : e.shared ? 'â Shared' : ''}
+            ${e.flagged_for_session ? '★ Talk about this' : e.shared ? '✓ Shared' : ''}
           </span>
         </div>
         ${e.mood_words && e.mood_words.length ? `
@@ -1529,10 +1529,10 @@ function openEntry(id) {
   const badge = document.getElementById('detail-badge');
   if (entry.flagged_for_session) {
     badge.className = 'entry-badge badge-flagged';
-    badge.textContent = 'â Talk about this';
+    badge.textContent = '★ Talk about this';
   } else if (entry.shared) {
     badge.className = 'entry-badge badge-shared';
-    badge.textContent = 'â Shared';
+    badge.textContent = '✓ Shared';
   } else {
     badge.className = '';
     badge.textContent = '';
@@ -1561,7 +1561,7 @@ function openEntry(id) {
     const optEl   = document.getElementById(`detail-opt-${type}`);
     const checkEl = document.getElementById(`detail-check-${type}`);
     optEl.classList.toggle('selected', isActive);
-    checkEl.textContent  = isActive ? 'â' : '';
+    checkEl.textContent  = isActive ? '✓' : '';
     optEl.style.opacity  = isActive ? '0.5' : '1';
     optEl.style.cursor   = isActive ? 'default' : 'pointer';
     optEl.onclick        = isActive ? null : () => detailToggleShare(type);
@@ -1581,7 +1581,7 @@ async function detailToggleShare(type) {
   const optEl   = document.getElementById(`detail-opt-${type}`);
   const checkEl = document.getElementById(`detail-check-${type}`);
   optEl.classList.toggle('selected', isActive);
-  checkEl.textContent  = isActive ? 'â' : '';
+  checkEl.textContent  = isActive ? '✓' : '';
   optEl.style.opacity  = isActive ? '0.5' : '1';
   optEl.style.cursor   = isActive ? 'default' : 'pointer';
   optEl.onclick        = isActive ? null : () => detailToggleShare(type);
@@ -1693,7 +1693,7 @@ init();
 âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ -->
 <div id="screen-entry-detail" class="screen">
   <div class="top-bar">
-    <button class="top-btn" onclick="showScreen('screen-entries')">â Back</button>
+    <button class="top-btn" onclick="showScreen('screen-entries')">← Back</button>
     <span class="top-btn" id="detail-pathway-label" style="cursor:default;"></span>
   </div>
   <div class="screen-inner">
@@ -1717,7 +1717,7 @@ init();
       <p style="font-size:13px; color:var(--text-secondary); margin-bottom:12px;">Want to do anything with this entry?</p>
       <div style="display:flex; flex-direction:column; gap:8px;">
         <div class="share-option" id="detail-opt-therapist" onclick="detailToggleShare('therapist')">
-          <div class="share-option-icon">â</div>
+          <div class="share-option-icon">♡</div>
           <div class="share-option-text">
             <div class="share-option-title">Share with my therapist</div>
             <div class="share-option-sub">They'll be able to read this entry.</div>
@@ -1725,7 +1725,7 @@ init();
           <div class="share-option-check" id="detail-check-therapist"></div>
         </div>
         <div class="share-option" id="detail-opt-flag" onclick="detailToggleShare('flag')">
-          <div class="share-option-icon">â</div>
+          <div class="share-option-icon">★</div>
           <div class="share-option-text">
             <div class="share-option-title">I want to talk about this</div>
             <div class="share-option-sub">Flagged for your next session.</div>

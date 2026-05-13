@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Reflection Journal â Therapist View Â· Cypress Mind</title>
+<title>Reflection Journal — Therapist View Â· Cypress Mind</title>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -389,7 +389,7 @@
   <!-- ââ Sidebar âââââââââââââââââââââââââââââââââââââââââââââââ -->
   <aside class="sidebar">
     <div class="sidebar-wordmark">Cypress Mind</div>
-    <div class="sidebar-label">Clients â Journal</div>
+    <div class="sidebar-label">Clients · Journal</div>
     <div id="client-list">
       <div style="padding:8px 20px; font-size:12px; color:rgba(255,255,255,0.3);">Loadingâ¦</div>
     </div>
@@ -420,10 +420,10 @@
           Invite client to journal
         </h2>
         <button onclick="closeInviteModal()" style="background:none;border:none;cursor:pointer;
-          font-size:18px; color:var(--text-tertiary); line-height:1;">â</button>
+          font-size:18px; color:var(--text-tertiary); line-height:1;">×</button>
       </div>
       <p style="font-size:13px; color:var(--text-secondary); line-height:1.6; margin-bottom:20px;">
-        Enter your client's email. They'll receive a private link to their journal â no password needed.
+        Enter your client's email. They'll receive a private link to their journal — no password needed.
       </p>
       <input type="email" id="invite-email-input" placeholder="client@email.com"
         style="width:100%; padding:13px 16px; border:0.5px solid var(--border-mid);
@@ -440,7 +440,7 @@
       <div id="invite-sent-msg" style="display:none; font-size:13px; color:var(--green);
         text-align:center; padding:10px; background:var(--green-light);
         border-radius:var(--radius-sm); line-height:1.5;">
-        â Invite sent. Your client will receive a sign-in link shortly.
+        ✓ Invite sent. Your client will receive a sign-in link shortly.
       </div>
       <p style="font-size:11px; color:var(--text-tertiary); text-align:center; margin-top:10px; line-height:1.5;">
         The link is single-use and expires in 1 hour. You can resend at any time.
@@ -478,15 +478,15 @@
     <div class="panel active" id="tab-0">
 
       <div class="stat-grid" id="stat-grid">
-        <div class="stat-card"><div class="stat-label">Last entry</div><div class="stat-value" style="font-size:18px;">â</div></div>
-        <div class="stat-card"><div class="stat-label">Entries this week</div><div class="stat-value">â</div></div>
-        <div class="stat-card"><div class="stat-label">Shared with you</div><div class="stat-value">â</div></div>
-        <div class="stat-card"><div class="stat-label">Flagged for session</div><div class="stat-value">â</div></div>
+        <div class="stat-card"><div class="stat-label">Last entry</div><div class="stat-value" style="font-size:18px;">—</div></div>
+        <div class="stat-card"><div class="stat-label">Entries this week</div><div class="stat-value">—</div></div>
+        <div class="stat-card"><div class="stat-label">Shared with you</div><div class="stat-value">—</div></div>
+        <div class="stat-card"><div class="stat-label">Flagged for session</div><div class="stat-value">—</div></div>
       </div>
 
       <div class="two-col">
         <div class="card">
-          <div class="card-title">Mood family frequency â last 4 weeks</div>
+          <div class="card-title">Mood family frequency — last 4 weeks</div>
           <div style="position:relative; height:180px;">
             <canvas id="moodChart" aria-label="Stacked bar chart of mood family frequency over 4 weeks"></canvas>
           </div>
@@ -688,7 +688,7 @@ let realtimeChannel = null;
 
 /* ââ Helpers ââââââââââââââââââââââââââââââââââââââââââââââ */
 function formatDate(iso) {
-  if (!iso) return 'â';
+  if (!iso) return '—';
   const d = new Date(iso);
   const now = new Date();
   const diff = Math.floor((now - d) / 86400000);
@@ -818,7 +818,7 @@ async function renderOverview(entries) {
   grid.innerHTML = `
     <div class="stat-card">
       <div class="stat-label">Last entry</div>
-      <div class="stat-value" style="font-size:18px;">${latest ? formatDate(latest.created_at).split(',')[0] : 'â'}</div>
+      <div class="stat-value" style="font-size:18px;">${latest ? formatDate(latest.created_at).split(',')[0] : '—'}</div>
       <div class="stat-sub">${latest ? formatDate(latest.created_at).split(', ')[1] || '' : ''}</div>
     </div>
     <div class="stat-card">
@@ -928,7 +928,7 @@ async function renderOverview(entries) {
       const name    = a.adventure_id.charAt(0).toUpperCase() + a.adventure_id.slice(1);
       const daysAgo = Math.floor((Date.now() - new Date(a.completed_at)) / 86400000);
       const when    = daysAgo === 0 ? 'today' : daysAgo === 1 ? 'yesterday' : `${daysAgo} days ago`;
-      return `<span class="adventure-pill">â¬¡ ${name} completed â ${when}</span>
+      return `<span class="adventure-pill">▶ ${name} completed — ${when}</span>
         <span style="font-size:12px; color:var(--text-tertiary);">
           Theme: ${a.theme_tag || 'untagged'}
         </span>`;
@@ -947,7 +947,7 @@ function renderEntries(entries) {
 
   document.getElementById('entries-summary-line').innerHTML = `
     <div style="width:6px;height:6px;border-radius:50%;background:var(--green-mid);"></div>
-    ${thisWeek.length} entries this week Â· ${sharedCount} shared or flagged Â· ${privateCount} private â private entries show mood check-in only`;
+    ${thisWeek.length} entries this week Â· ${sharedCount} shared or flagged · ${privateCount} private — private entries show mood check-in only`;
 
   if (!entries.length) {
     document.getElementById('entries-list').innerHTML =
@@ -961,8 +961,8 @@ function renderEntries(entries) {
     return `<div class="entry-card">
       <div class="entry-meta">
         <span class="entry-date">${formatDate(e.created_at)}</span>
-        ${e.flagged_for_session ? '<span class="entry-badge badge-flagged">â I want to talk about this</span>' : ''}
-        ${e.shared && !e.flagged_for_session ? '<span class="entry-badge badge-shared">â Shared</span>' : ''}
+        ${e.flagged_for_session ? '<span class="entry-badge badge-flagged">✓ I want to talk about this</span>' : ''}
+        ${e.shared && !e.flagged_for_session ? '<span class="entry-badge badge-shared">✓ Shared</span>' : ''}
         ${!e.shared && !e.flagged_for_session ? '<span class="entry-badge badge-private">Private</span>' : ''}
       </div>
       ${(e.mood_words && e.mood_words.length) ? `
@@ -1005,10 +1005,10 @@ function renderSessionPrep(entries) {
     entryPoints.push(`What the client flagged: "${excerpt}"`);
   }
   if (topWords.length >= 2) {
-    entryPoints.push(`The co-occurrence of "${topWords[0][0]}" and "${topWords[1][0]}" this week â what's connecting them`);
+    entryPoints.push(`The co-occurrence of "${topWords[0][0]}" and "${topWords[1][0]}" this week — what's connecting them`);
   }
   if (topFamilies.length > 0) {
-    entryPoints.push(`The ${topFamilies[0]} family has been most present this week â where it's showing up and what it's connected to`);
+    entryPoints.push(`The ${topFamilies[0]} family has been most present this week — where it's showing up and what it's connected to`);
   }
 
   const el = document.getElementById('session-prep-content');
@@ -1016,7 +1016,7 @@ function renderSessionPrep(entries) {
     <div class="section-label" style="margin-bottom:12px;">Flagged for discussion</div>
     ${flagged.length ? flagged.map(e => `
       <div class="flag-card">
-        <div class="flag-title">"I want to talk about this" â ${formatDate(e.created_at)}</div>
+        <div class="flag-title">"I want to talk about this" — ${formatDate(e.created_at)}</div>
         ${e.entry_text ? `<div style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-bottom:10px;">"${e.entry_text.slice(0,120)}â¦"</div>` : ''}
         <div class="mood-chips">${(e.mood_words||[]).map(m=>`<span class="mood-chip">${m}</span>`).join('')}</div>
       </div>`).join('') :
