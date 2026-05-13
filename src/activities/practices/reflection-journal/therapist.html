@@ -573,6 +573,7 @@ function showInviteModal() {
   document.getElementById('invite-error').textContent  = '';
   document.getElementById('invite-sent-msg').style.display = 'none';
   const btn = document.getElementById('invite-send-btn');
+  btn.style.display = '';
   btn.textContent = 'Send invite';
   btn.disabled    = false;
 }
@@ -752,14 +753,30 @@ async function loadClientList() {
     const name     = escapeHtml(c.client_email.split('@')[0]);
     const accepted = !!c.accepted_at;
     const isActive = c.client_id === CLIENT_ID;
+    const deleteBtn = !accepted
+      ? `<button onclick="removeInvite(decodeURIComponent('${encodeURIComponent(c.client_email)}'), event)"
+           style="margin-left:auto;background:none;border:none;cursor:pointer;
+           color:rgba(255,255,255,0.35);font-size:18px;line-height:1;padding:0 2px;
+           flex-shrink:0;" title="Remove invite">&times;</button>`
+      : '';
     return `<div class="client-item${isActive ? ' active' : ''}"
       onclick="selectClient('${escapeHtml(c.client_id || '')}', this)"
       style="${!accepted ? 'opacity:0.5;' : ''}">
       <div class="client-avatar">${initials}</div>
       <span class="client-name">${name}${!accepted ? ' (pending)' : ''}</span>
+      ${deleteBtn}
     </div>`;
   }).join('');
 }
+async function removeInvite(email, e) {
+  e.stopPropagation();
+  await db.from('therapist_clients')
+    .delete()
+    .eq('therapist_id', THERAPIST_ID)
+    .eq('client_email', email);
+  loadClientList();
+}
+
 function setTab(i) {
   document.querySelectorAll('.tab').forEach((t, idx) => t.classList.toggle('active', idx === i));
   document.querySelectorAll('.panel').forEach((p, idx) => p.classList.toggle('active', idx === i));
