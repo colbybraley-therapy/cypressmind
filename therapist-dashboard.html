@@ -1296,7 +1296,11 @@
   }
 
   db.auth.onAuthStateChange((event, session) => {
-    if (session) loadApp();
+    if (!session) return;
+    // A client clicking their magic link in the same browser fires this event
+    // with the client's session. Ignore it if a different user just signed in.
+    if (currentUser && session.user.id !== currentUser.id) return;
+    loadApp();
   });
 
   /* ─────────────────────────────────────────
