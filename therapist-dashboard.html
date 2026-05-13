@@ -2495,6 +2495,13 @@
     }
     btn.textContent = 'Sending…';
     btn.disabled = true;
+    // Ensure therapist_clients record exists so client's login can link their auth UID
+    await db.from('therapist_clients').upsert({
+      therapist_id: currentUser.id,
+      client_email: jClientEmail,
+      client_name:  currentClient.name || null,
+    }, { onConflict: 'therapist_id,client_email' });
+
     const { error } = await otpClient.auth.signInWithOtp({
       email: jClientEmail,
       options: { emailRedirectTo: 'https://cypressmind.com/journal' }
