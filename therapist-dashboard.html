@@ -1708,7 +1708,7 @@
     });
 
     if (insertError) {
-      document.getElementById('cb-status').textContent = '⚠️ Error creating session — try closing and relaunching.';
+      document.getElementById('cb-status').textContent = `⚠️ ${insertError.message || insertError.code || JSON.stringify(insertError)}`;
       console.error('character_builder session error:', insertError);
       return;
     }
