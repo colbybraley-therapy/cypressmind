@@ -2402,7 +2402,7 @@
   const J_FAMILY_COLORS = { joy:'#F7D06B',trust:'#A8C87A',fear:'#AFA9EC',surprise:'#85C5EB',sadness:'#85B7EB',disgust:'#7aab80',anger:'#F0997B',anticipation:'#F5C07A',other:'#C5C5C5' };
   const J_WORD_COLORS   = { joy:'#c49a14',trust:'#3b8a5c',fear:'#7a5a9e',surprise:'#3a87b5',sadness:'#5177b5',disgust:'#5c7a3a',anger:'#b55a3a',anticipation:'#b5893a',other:'#888780' };
 
-  let jAllEntries = [], jChartInstance = null, jRealtimeChannel = null, jClientEmail = null;
+  let jAllEntries = [], jChartInstance = null, jRealtimeChannel = null, jClientEmail = null, jClientAuthId = null;
 
   function jFormatDate(iso) {
     if (!iso) return '—';
@@ -2439,11 +2439,33 @@
     if (labelEl) labelEl.textContent = `${currentClient.name}'s Journal`;
 
     jClientEmail = currentClient.email || null;
+    jClientAuthId = null;
+
+    // Journal entries are keyed by the client's Supabase auth UID, not the clients-table row ID.
+    // Resolve it via therapist_clients using the client's email.
+    if (jClientEmail) {
+      const { data: tc } = await db
+        .from('therapist_clients')
+        .select('client_id')
+        .eq('client_email', jClientEmail)
+        .not('client_id', 'is', null)
+        .maybeSingle();
+      jClientAuthId = tc?.client_id || null;
+    }
+
+    if (!jClientAuthId) {
+      jAllEntries = [];
+      jRenderOverview([]);
+      jRenderEntries([]);
+      jRenderSessionPrep([]);
+      if (jRealtimeChannel) { db.removeChannel(jRealtimeChannel); jRealtimeChannel = null; }
+      return;
+    }
 
     const { data, error } = await db
       .from('journal_entries')
       .select('*')
-      .eq('client_id', currentClient.id)
+      .eq('client_id', jClientAuthId)
       .order('created_at', { ascending: false });
 
     if (error) { console.error('Journal load error:', error); return; }
@@ -2454,8 +2476,8 @@
     jRenderSessionPrep(jAllEntries);
 
     if (jRealtimeChannel) db.removeChannel(jRealtimeChannel);
-    jRealtimeChannel = db.channel(`jdash:${currentClient.id}`)
-      .on('postgres_changes', { event:'*', schema:'public', table:'journal_entries', filter:`client_id=eq.${currentClient.id}` },
+    jRealtimeChannel = db.channel(`jdash:${jClientAuthId}`)
+      .on('postgres_changes', { event:'*', schema:'public', table:'journal_entries', filter:`client_id=eq.${jClientAuthId}` },
         () => loadJournalTab())
       .subscribe();
   }
