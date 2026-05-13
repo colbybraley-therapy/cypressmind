@@ -987,6 +987,18 @@
         <!-- Journal Tab -->
         <div id="tab-journal" class="tab-panel" style="display:none; padding:18px 20px;">
 
+          <!-- Send sign-in link row -->
+          <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+            <span style="font-size:10px; text-transform:uppercase; letter-spacing:.08em; color:var(--slate-light);" id="j-client-label">Reflection Journal</span>
+            <button id="j-send-link-btn" onclick="jSendMagicLink()"
+              style="font-family:var(--sans); font-size:12px; font-weight:500; color:var(--hunter-green);
+              background:var(--green-light); border:0.5px solid var(--hunter-green); border-radius:6px;
+              padding:5px 12px; cursor:pointer;">
+              ✉ Send sign-in link
+            </button>
+          </div>
+          <div id="j-link-status" style="display:none; font-size:12px; padding:8px 12px; border-radius:6px; margin-bottom:12px;"></div>
+
           <!-- Stat cards -->
           <div class="j-stat-grid" id="j-stat-grid">
             <div class="j-stat-card"><div class="j-stat-label">Last entry</div><div class="j-stat-value" style="font-size:16px;">—</div></div>
@@ -2312,7 +2324,7 @@
   const J_FAMILY_COLORS = { joy:'#F7D06B',trust:'#A8C87A',fear:'#AFA9EC',surprise:'#85C5EB',sadness:'#85B7EB',disgust:'#7aab80',anger:'#F0997B',anticipation:'#F5C07A',other:'#C5C5C5' };
   const J_WORD_COLORS   = { joy:'#c49a14',trust:'#3b8a5c',fear:'#7a5a9e',surprise:'#3a87b5',sadness:'#5177b5',disgust:'#5c7a3a',anger:'#b55a3a',anticipation:'#b5893a',other:'#888780' };
 
-  let jAllEntries = [], jChartInstance = null, jRealtimeChannel = null;
+  let jAllEntries = [], jChartInstance = null, jRealtimeChannel = null, jClientEmail = null;
 
   function jFormatDate(iso) {
     if (!iso) return '—';
@@ -2342,6 +2354,20 @@
   async function loadJournalTab() {
     if (!currentClient) return;
 
+    // Reset send-link UI
+    const statusEl = document.getElementById('j-link-status');
+    if (statusEl) { statusEl.style.display = 'none'; statusEl.textContent = ''; }
+    const labelEl = document.getElementById('j-client-label');
+    if (labelEl) labelEl.textContent = `${currentClient.name}'s Journal`;
+
+    // Fetch client email from therapist_clients
+    const { data: tcData } = await db
+      .from('therapist_clients')
+      .select('client_email')
+      .eq('client_id', currentClient.id)
+      .maybeSingle();
+    jClientEmail = tcData?.client_email || null;
+
     const { data, error } = await db
       .from('journal_entries')
       .select('*')
@@ -2360,6 +2386,33 @@
       .on('postgres_changes', { event:'*', schema:'public', table:'journal_entries', filter:`client_id=eq.${currentClient.id}` },
         () => loadJournalTab())
       .subscribe();
+  }
+
+  async function jSendMagicLink() {
+    const btn    = document.getElementById('j-send-link-btn');
+    const status = document.getElementById('j-link-status');
+    if (!jClientEmail) {
+      status.textContent = 'No email on file for this client.';
+      status.style.background = '#fdecea'; status.style.color = '#b04040';
+      status.style.display = 'block';
+      return;
+    }
+    btn.textContent = 'Sending…';
+    btn.disabled = true;
+    const { error } = await db.auth.signInWithOtp({
+      email: jClientEmail,
+      options: { emailRedirectTo: 'https://cypressmind.com/journal' }
+    });
+    if (error) {
+      status.textContent = 'Could not send link — please try again.';
+      status.style.background = '#fdecea'; status.style.color = '#b04040';
+    } else {
+      status.textContent = `✓ Sign-in link sent to ${jClientEmail}`;
+      status.style.background = 'var(--green-light)'; status.style.color = 'var(--hunter-green)';
+    }
+    status.style.display = 'block';
+    btn.textContent = '✉ Send sign-in link';
+    btn.disabled = false;
   }
 
   function jRenderOverview(entries) {
