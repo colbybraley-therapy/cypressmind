@@ -1071,6 +1071,10 @@ let state = {
 /* ââ Entry cache â populated by loadEntries() âââââââââââââââ */
 let ENTRIES_CACHE = [];
 
+function escapeHtml(str) {
+  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
 /* ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
    SCREEN NAVIGATION
 ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
@@ -1350,6 +1354,7 @@ async function finalizeAndReturn() {
 
   // Reset state for next entry
   state.selectedWords   = [];
+  state.customWords     = [];
   state.pathway         = null;
   state.theme           = null;
   state.prompt          = null;
@@ -1428,9 +1433,9 @@ async function renderEntries() {
         </div>
         ${e.mood_words && e.mood_words.length ? `
           <div class="entry-mood-chips">
-            ${e.mood_words.map(m => `<span class="entry-mood-chip">${m}</span>`).join('')}
+            ${e.mood_words.map(m => `<span class="entry-mood-chip">${escapeHtml(m)}</span>`).join('')}
           </div>` : ''}
-        ${excerpt ? `<div class="entry-excerpt">${excerpt}</div>` : ''}
+        ${excerpt ? `<div class="entry-excerpt">${escapeHtml(excerpt)}</div>` : ''}
         <div class="entry-pathway">${formatPathwayLabel(e)}</div>
       </div>`;
   }).join('');
@@ -1458,7 +1463,7 @@ function openEntry(id) {
   }
 
   document.getElementById('detail-mood-chips').innerHTML =
-    (entry.mood_words || []).map(m => `<span class="entry-mood-chip">${m}</span>`).join('');
+    (entry.mood_words || []).map(m => `<span class="entry-mood-chip">${escapeHtml(m)}</span>`).join('');
 
   const promptsEl = document.getElementById('detail-prompts');
   if (entry.prompt_used) {
@@ -1564,9 +1569,12 @@ function resetAuthForm() {
   btn.disabled    = false;
 }
 
+let journalStarted = false;
+
 function proceedToJournal(session) {
-  // Override CLIENT_ID with real auth UUID
-  window.CLIENT_ID = session.user.id;
+  if (journalStarted) return;
+  journalStarted = true;
+  CLIENT_ID = session.user.id;
 
   // Set returning-user welcome copy
   db.from('journal_entries')
