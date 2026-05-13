@@ -871,7 +871,14 @@
           <div class="client-av-wrap">
             <div class="client-av" id="cp-av"></div>
             <div class="client-name-block">
-              <div class="client-name" id="cp-name"></div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <div class="client-name" id="cp-name"></div>
+                <button onclick="openClientEdit()" title="Edit client info"
+                  style="background:none; border:none; cursor:pointer; color:var(--slate-light);
+                  font-size:12px; padding:2px 4px; line-height:1; border-radius:4px;"
+                  onmouseover="this.style.color='var(--hunter-green)'"
+                  onmouseout="this.style.color='var(--slate-light)'">✏ Edit</button>
+              </div>
               <div class="client-meta" id="cp-since"></div>
             </div>
           </div>
@@ -1151,6 +1158,34 @@
     <div class="drawer-copy">
       <p class="drawer-copy-label">A client might choose this character because...</p>
       <p class="drawer-copy-text" id="dr-copy"></p>
+    </div>
+  </div>
+
+  <!-- Edit client info modal -->
+  <div id="client-edit-modal" onclick="if(event.target===this)closeClientEdit()"
+    style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:300;align-items:center;justify-content:center;padding:24px;">
+    <div style="background:#fff;border-radius:16px;padding:28px;max-width:400px;width:100%;box-shadow:0 8px 32px rgba(0,0,0,.12);">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+        <h2 style="font-family:var(--serif);font-size:18px;font-weight:400;color:var(--ink);">Edit client info</h2>
+        <button onclick="closeClientEdit()" style="background:none;border:none;cursor:pointer;font-size:20px;color:var(--slate-light);line-height:1;">×</button>
+      </div>
+      <label style="display:block;font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--slate-light);margin-bottom:6px;">Name</label>
+      <input id="cedit-name" type="text" placeholder="Client name"
+        style="width:100%;padding:11px 14px;border:0.5px solid var(--border-strong);border-radius:8px;
+        font-family:var(--sans);font-size:14px;color:var(--ink);outline:none;margin-bottom:14px;"/>
+      <label style="display:block;font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--slate-light);margin-bottom:6px;">Email</label>
+      <input id="cedit-email" type="email" placeholder="client@email.com"
+        style="width:100%;padding:11px 14px;border:0.5px solid var(--border-strong);border-radius:8px;
+        font-family:var(--sans);font-size:14px;color:var(--ink);outline:none;margin-bottom:6px;"/>
+      <p style="font-size:11px;color:var(--slate-light);margin-bottom:18px;line-height:1.5;">
+        This email is used to send the client their journal sign-in link.
+      </p>
+      <div id="cedit-error" style="font-size:12px;color:#b04040;min-height:16px;margin-bottom:8px;"></div>
+      <button onclick="saveClientEdit()" id="cedit-save-btn"
+        style="width:100%;padding:12px;background:var(--hunter-green);color:#fff;border:none;
+        border-radius:8px;font-family:var(--sans);font-size:14px;font-weight:500;cursor:pointer;">
+        Save
+      </button>
     </div>
   </div>
 
@@ -2308,6 +2343,41 @@
     return new Date(iso).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
   }
 
+  /* ── Client edit modal ── */
+  function openClientEdit() {
+    if (!currentClient) return;
+    document.getElementById('cedit-name').value  = currentClient.name  || '';
+    document.getElementById('cedit-email').value = currentClient.email || '';
+    document.getElementById('cedit-error').textContent = '';
+    const btn = document.getElementById('cedit-save-btn');
+    btn.textContent = 'Save'; btn.disabled = false;
+    document.getElementById('client-edit-modal').style.display = 'flex';
+  }
+  function closeClientEdit() {
+    document.getElementById('client-edit-modal').style.display = 'none';
+  }
+  async function saveClientEdit() {
+    const name  = document.getElementById('cedit-name').value.trim();
+    const email = document.getElementById('cedit-email').value.trim();
+    const errEl = document.getElementById('cedit-error');
+    const btn   = document.getElementById('cedit-save-btn');
+    errEl.textContent = '';
+    if (!name) { errEl.textContent = 'Name is required.'; return; }
+    btn.textContent = 'Saving…'; btn.disabled = true;
+    const { error } = await db.from('clients')
+      .update({ name, email: email || null })
+      .eq('id', currentClient.id);
+    if (error) {
+      errEl.textContent = 'Could not save — please try again.';
+      btn.textContent = 'Save'; btn.disabled = false;
+      return;
+    }
+    currentClient.name  = name;
+    currentClient.email = email || null;
+    document.getElementById('cp-name').textContent = name;
+    closeClientEdit();
+  }
+
   /* ─────────────────────────────────────────
      JOURNAL TAB
   ───────────────────────────────────────── */
@@ -2360,13 +2430,7 @@
     const labelEl = document.getElementById('j-client-label');
     if (labelEl) labelEl.textContent = `${currentClient.name}'s Journal`;
 
-    // Fetch client email from therapist_clients
-    const { data: tcData } = await db
-      .from('therapist_clients')
-      .select('client_email')
-      .eq('client_id', currentClient.id)
-      .maybeSingle();
-    jClientEmail = tcData?.client_email || null;
+    jClientEmail = currentClient.email || null;
 
     const { data, error } = await db
       .from('journal_entries')
