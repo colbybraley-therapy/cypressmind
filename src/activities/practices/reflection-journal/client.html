@@ -784,7 +784,7 @@
     <textarea
       class="write-area"
       id="write-area"
-      placeholder="Start anywhereâ¦"
+      placeholder="Start anywhere…"
       oninput="updateWordCount()"
     ></textarea>
     <div class="word-count-label" id="word-count">0 words</div>
@@ -1354,7 +1354,7 @@ function setupWritingScreen() {
     promptSetEl.style.display = 'none';
   }
 
-  const labels = { guided: 'Guided', themed: 'Themed Â· ' + (state.theme || ''), free: 'Free' };
+  const labels = { guided: 'Guided', themed: 'Themed · ' + (state.theme || ''), free: 'Free' };
   labelEl.textContent = labels[state.pathway] || '';
 }
 
@@ -1410,7 +1410,7 @@ function toggleShare(type) {
 
 async function finalizeAndReturn() {
   const pathwayLabel = state.theme
-    ? `themed Â· ${state.theme}`
+    ? `themed · ${state.theme}`
     : state.pathway;
 
   const { error } = await db.from('journal_entries').insert({
@@ -1426,7 +1426,13 @@ async function finalizeAndReturn() {
     week_review:         state.weekReview,
   });
 
-  if (error) console.error('Error saving entry:', error);
+  if (error) {
+    console.error('Error saving entry:', error);
+    document.getElementById('affirmation-text').textContent = 'Something went wrong saving your entry.';
+    document.getElementById('affirmation-text').style.color = '#b04040';
+    document.getElementById('affirmation-text').style.fontSize = '18px';
+    return;
+  }
 
   // Reset state for next entry
   state.selectedWords   = [];
@@ -1465,18 +1471,18 @@ function formatEntryDate(isoString) {
   const time = date.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
   if (days === 0) return `Today, ${time}`;
   if (days === 1) return `Yesterday, ${time}`;
-  return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ` Â· ${time}`;
+  return date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ` · ${time}`;
 }
 
 function formatPathwayLabel(entry) {
   if (!entry.pathway || entry.pathway === 'skip') return '';
-  if (entry.pathway === 'themed' && entry.theme) return `Themed Â· ${entry.theme}`;
+  if (entry.pathway === 'themed' && entry.theme) return `Themed · ${entry.theme}`;
   return entry.pathway.charAt(0).toUpperCase() + entry.pathway.slice(1);
 }
 
 async function renderEntries() {
   const el = document.getElementById('entries-list');
-  el.innerHTML = '<p style="font-size:14px; color:var(--text-tertiary); text-align:center; padding:24px 0;">Loadingâ¦</p>';
+  el.innerHTML = '<p style="font-size:14px; color:var(--text-tertiary); text-align:center; padding:24px 0;">Loading…</p>';
 
   const { data, error } = await db
     .from('journal_entries')
@@ -1498,7 +1504,7 @@ async function renderEntries() {
   }
 
   el.innerHTML = ENTRIES_CACHE.map(e => {
-    const excerpt = e.entry_text ? e.entry_text.slice(0, 120) + (e.entry_text.length > 120 ? 'â¦' : '') : null;
+    const excerpt = e.entry_text ? e.entry_text.slice(0, 120) + (e.entry_text.length > 120 ? '…' : '') : null;
     return `
       <div class="entry-item" onclick="openEntry('${e.id}')">
         <div class="entry-meta-row">
@@ -1611,7 +1617,7 @@ async function sendMagicLink() {
     return;
   }
 
-  btn.textContent = 'Sendingâ¦';
+  btn.textContent = 'Sending…';
   btn.disabled = true;
 
   const { error } = await db.auth.signInWithOtp({
@@ -1649,8 +1655,14 @@ let journalStarted = false;
 function proceedToJournal(session) {
   if (journalStarted) return;
   journalStarted = true;
-  // Override CLIENT_ID with real auth UUID
   CLIENT_ID = session.user.id;
+
+  // Link this auth UID to the therapist's invite record (first login only)
+  db.from('therapist_clients')
+    .update({ client_id: session.user.id, accepted_at: new Date().toISOString() })
+    .eq('client_email', session.user.email)
+    .is('client_id', null)
+    .then();
 
   // Set returning-user welcome copy
   db.from('journal_entries')
