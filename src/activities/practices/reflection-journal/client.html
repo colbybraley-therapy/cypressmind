@@ -1145,7 +1145,7 @@ let state = {
   flagged:          false,
   weekReview:       false,
   bridgeDismissed:  false,
-  activeFamily:     'all',
+  activeFamily:     'joy',
 };
 
 /* ââ Entry cache â populated by loadEntries() âââââââââââââââ */
@@ -1179,9 +1179,9 @@ function setupMoodCheckin() {
 }
 
 function renderFamilyTabs() {
-  const families = ['all', ...Object.keys(WORD_LIBRARY).filter(k => k !== 'all')];
+  const families = Object.keys(WORD_LIBRARY).filter(k => k !== 'all');
   document.getElementById('family-tabs').innerHTML = families.map(key => {
-    const label = key === 'all' ? 'All' : WORD_LIBRARY[key].label;
+    const label = WORD_LIBRARY[key].label;
     return `<button class="family-tab${state.activeFamily === key ? ' active' : ''}"
       onclick="setFamily('${key}')">${label}</button>`;
   }).join('');
