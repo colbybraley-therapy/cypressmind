@@ -1085,19 +1085,20 @@
     </div>
   </div>
 
-  <div id="willowmere-panel" style="display:none;position:fixed;inset:0;z-index:400;flex-direction:column;background:#fff;">
-    <div style="display:flex;align-items:center;gap:14px;padding:10px 18px;border-bottom:0.5px solid var(--border);background:#fff;flex-shrink:0;">
-      <span style="font-size:14px;font-weight:600;color:var(--ink);white-space:nowrap;">🌲 Willowmere · Boundaries</span>
-      <div style="flex:1;"></div>
-      <div style="display:flex;align-items:center;gap:8px;background:var(--green-faint);border:0.5px solid var(--border);border-radius:6px;padding:6px 12px;min-width:0;">
-        <span style="font-size:10px;text-transform:uppercase;letter-spacing:0.08em;color:var(--slate-light);font-weight:500;white-space:nowrap;">Client link</span>
-        <span id="wm-client-url" style="font-family:var(--mono);font-size:11px;color:var(--hunter-green);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:320px;"></span>
-        <button id="wm-copy-btn" onclick="copyWillowmereUrl()" style="background:#fff;border:0.5px solid var(--border);border-radius:4px;padding:3px 10px;font-size:11px;cursor:pointer;color:var(--slate);font-family:var(--sans);white-space:nowrap;flex-shrink:0;">Copy</button>
+  <div id="willowmere-panel" style="display:none;position:fixed;inset:0;z-index:400;align-items:center;justify-content:center;background:rgba(0,0,0,.55);">
+    <div style="background:#fff;border-radius:16px;padding:2.5rem;width:460px;max-width:90vw;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.35);">
+      <div style="font-size:1.1rem;font-weight:700;color:var(--ink);margin-bottom:6px;font-family:var(--sans);">🌲 Willowmere · Boundaries</div>
+      <p style="font-size:13px;color:var(--slate);line-height:1.6;margin-bottom:1.75rem;">Share the adventure app link and this code with your client. They'll enter the code to start the Willowmere adventure.</p>
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--slate-light);font-weight:500;margin-bottom:6px;">Session Code</div>
+      <div id="wm-code-display" style="font-family:var(--mono);font-size:42px;font-weight:700;letter-spacing:10px;color:var(--hunter-green);margin-bottom:1.5rem;"></div>
+      <div style="display:flex;align-items:center;gap:8px;background:var(--green-faint);border:0.5px solid var(--border);border-radius:6px;padding:8px 12px;margin-bottom:1.5rem;">
+        <span style="font-size:11px;color:var(--slate-light);white-space:nowrap;">Adventure app:</span>
+        <span id="wm-client-url" style="font-family:var(--mono);font-size:11px;color:var(--hunter-green);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
+        <button id="wm-copy-btn" onclick="copyWillowmereUrl()" style="background:#fff;border:0.5px solid var(--border);border-radius:4px;padding:3px 10px;font-size:11px;cursor:pointer;color:var(--slate);font-family:var(--sans);flex-shrink:0;">Copy</button>
       </div>
-      <span id="wm-status" style="font-size:12px;color:var(--slate);font-style:italic;white-space:nowrap;"></span>
-      <button onclick="closeWillowmereOverlay()" style="background:none;border:0.5px solid var(--border);border-radius:4px;padding:5px 14px;font-size:12px;cursor:pointer;color:var(--slate);font-family:var(--sans);white-space:nowrap;flex-shrink:0;">✕ End session</button>
+      <div id="wm-status" style="font-size:13px;color:var(--slate);font-style:italic;margin-bottom:1.75rem;min-height:20px;"></div>
+      <button onclick="closeWillowmereOverlay()" style="background:none;border:0.5px solid var(--border);border-radius:6px;padding:9px 24px;font-size:13px;cursor:pointer;color:var(--slate);font-family:var(--sans);">✕ End session</button>
     </div>
-    <iframe id="wm-therapist-frame" src="" style="flex:1;border:none;width:100%;height:100%;"></iframe>
   </div>
 
   <!-- ══════════════════════════════════════════
@@ -1791,35 +1792,69 @@
   /* ─────────────────────────────────────────
      WILLOWMERE BOUNDARIES LAUNCH
   ───────────────────────────────────────── */
-  let _wmActivityId = null;
-  let _wmChannel    = null;
-  let _wmClientUrl  = '';
+  let _wmActivityId      = null;
+  let _wmChannel         = null;
+  let _wmSessionChannel  = null;
+  let _wmClientUrl       = '';
 
   async function launchWillowmere(actId, e) {
     e.stopPropagation();
     _wmActivityId = actId;
 
-    const sessionId    = Math.random().toString(36).substring(2, 10).toUpperCase();
-    const base         = window.location.origin;
-    _wmClientUrl       = `${base}/src/activities/adventures/willowmere-boundaries.html?session=${sessionId}`;
-    const therapistUrl = `${base}/src/activities/adventures/willowmere-boundaries-therapist.html?session=${sessionId}`;
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+    const base = window.location.origin;
+    _wmClientUrl = base + '/adventure/index.html';
 
-    document.getElementById('wm-client-url').textContent = _wmClientUrl;
-    document.getElementById('wm-status').textContent     = '⏳ Waiting for client…';
-    document.getElementById('wm-copy-btn').textContent   = 'Copy';
-    document.getElementById('wm-therapist-frame').src    = therapistUrl;
-    const panel = document.getElementById('willowmere-panel');
-    panel.style.display = 'flex';
+    document.getElementById('wm-code-display').textContent = code;
+    document.getElementById('wm-client-url').textContent   = _wmClientUrl;
+    document.getElementById('wm-status').textContent       = '⏳ Setting up session…';
+    document.getElementById('wm-copy-btn').textContent     = 'Copy';
+    document.getElementById('willowmere-panel').style.display = 'flex';
 
-    if (_wmChannel) { db.removeChannel(_wmChannel); }
-    _wmChannel = db.channel(`quest-${sessionId}`)
+    const { error: insertError } = await db.from('sessions').insert({
+      client_id:     currentClient.id,
+      therapist_id:  currentUser?.id,
+      code,
+      status:        'waiting',
+      activity_type: 'willowmere_boundaries',
+    });
+
+    if (insertError) {
+      document.getElementById('wm-status').textContent = `⚠️ ${insertError.message || insertError.code || JSON.stringify(insertError)}`;
+      return;
+    }
+
+    const { data: session } = await db.from('sessions').select('id').eq('code', code).single();
+    if (!session) { document.getElementById('wm-status').textContent = '⚠️ Could not retrieve session. Try again.'; return; }
+
+    document.getElementById('wm-status').textContent = '⏳ Waiting for client to join…';
+
+    // Watch for client joining
+    if (_wmSessionChannel) db.removeChannel(_wmSessionChannel);
+    _wmSessionChannel = db.channel('wm-session-' + session.id)
+      .on('postgres_changes', {
+        event:  'UPDATE',
+        schema: 'public',
+        table:  'sessions',
+        filter: `id=eq.${session.id}`,
+      }, payload => {
+        if (payload.new.status === 'active') {
+          document.getElementById('wm-status').textContent = '✅ Client joined — starting Willowmere…';
+        }
+      })
+      .subscribe();
+
+    // Watch for in-adventure activity broadcasts
+    if (_wmChannel) db.removeChannel(_wmChannel);
+    _wmChannel = db.channel(`quest-${session.id}`)
       .on('broadcast', { event: 'encounter' }, () => {
-        document.getElementById('wm-status').textContent = '✅ Client is active — check your therapist tab for live updates.';
+        document.getElementById('wm-status').textContent = '✅ Client is active — working through Willowmere…';
       })
       .on('broadcast', { event: 'session_complete' }, async () => {
         document.getElementById('wm-status').textContent = '✅ Session complete — marking activity done…';
         if (_wmActivityId) {
           await db.from('activities').update({ done: true, completed_at: new Date().toISOString() }).eq('id', _wmActivityId);
+          _wmActivityId = null;
           loadActivities();
           loadClientStats();
           document.getElementById('wm-status').textContent = '✅ Activity marked complete.';
@@ -1832,7 +1867,7 @@
     navigator.clipboard.writeText(_wmClientUrl).then(() => {
       const btn = document.getElementById('wm-copy-btn');
       btn.textContent = 'Copied ✓';
-      setTimeout(() => { btn.textContent = 'Copy link'; }, 2000);
+      setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
     });
   }
 
@@ -1842,13 +1877,16 @@
       db.removeChannel(_wmChannel);
       _wmChannel = null;
     }
+    if (_wmSessionChannel) {
+      db.removeChannel(_wmSessionChannel);
+      _wmSessionChannel = null;
+    }
     if (_wmActivityId) {
       await db.from('activities').update({ done: true, completed_at: new Date().toISOString() }).eq('id', _wmActivityId);
       _wmActivityId = null;
       loadActivities();
       loadClientStats();
     }
-    document.getElementById('wm-therapist-frame').src = '';
     document.getElementById('willowmere-panel').style.display = 'none';
   }
 

@@ -1467,12 +1467,13 @@ function go(id) {
 }
 
 const ACTIVITY_STYLES = {
-  quiz:              { icon: '🧠', color: 'purple', xp: '+10 XP each', desc: 'Test your coping knowledge' },
-  breathing:         { icon: '🌬️', color: 'teal',   xp: '+15 XP',     desc: 'Calm your mind with guided breath' },
-  journal:           { icon: '📓', color: 'amber',  xp: '+20 XP',     desc: 'Guided prompts for self-discovery' },
-  emotions:          { icon: '🎭', color: 'coral',  xp: '+15 XP',     desc: 'Name feelings & find coping tools' },
-  custom:            { icon: '✏️', color: 'amber',  xp: '',           desc: 'Complete this activity' },
-  character_builder: { icon: '⚔️', color: 'purple', xp: '',           desc: 'Build your hero identity' },
+  quiz:                   { icon: '🧠', color: 'purple', xp: '+10 XP each', desc: 'Test your coping knowledge' },
+  breathing:              { icon: '🌬️', color: 'teal',   xp: '+15 XP',     desc: 'Calm your mind with guided breath' },
+  journal:                { icon: '📓', color: 'amber',  xp: '+20 XP',     desc: 'Guided prompts for self-discovery' },
+  emotions:               { icon: '🎭', color: 'coral',  xp: '+15 XP',     desc: 'Name feelings & find coping tools' },
+  custom:                 { icon: '✏️', color: 'amber',  xp: '',           desc: 'Complete this activity' },
+  character_builder:      { icon: '⚔️', color: 'purple', xp: '',           desc: 'Build your hero identity' },
+  willowmere_boundaries:  { icon: '🌲', color: 'teal',   xp: '+25 XP',     desc: 'A boundary-setting adventure in Willowmere' },
 };
 
 async function renderAssignedActivities() {
@@ -1501,7 +1502,9 @@ async function renderAssignedActivities() {
     const icon = a.activity_icon || s.icon;
     const clickHandler = a.activity_type === 'character_builder'
       ? `document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));document.getElementById('character-builder').classList.add('active');openWizard()`
-      : `go('${a.activity_type}')`;
+      : a.activity_type === 'willowmere_boundaries'
+        ? `window.location.href='/src/activities/adventures/willowmere-boundaries.html?session=${currentSession?.id}'`
+        : `go('${a.activity_type}')`;
     return `
       <div class="act-card ${s.color}" onclick="${clickHandler}">
         <span class="act-icon">${icon}</span>
