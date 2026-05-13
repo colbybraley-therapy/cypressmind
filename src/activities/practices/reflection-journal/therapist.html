@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Reflection Journal — Therapist View · Cypress Mind</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --green:        #355E3B;
+    --green-light:  #EDF4EE;
+    --green-mid:    #7aab80;
+    --green-dark:   #243f28;
+    --off-white:    #F8FAF9;
+    --surface:      #FFFFFF;
+    --border:       rgba(53,94,59,0.12);
+    --border-mid:   rgba(53,94,59,0.22);
+    --text-primary:   #1a2b1c;
+    --text-secondary: #526655;
+    --text-tertiary:  #8faa91;
+    --amber:        #BA7517;
+    --amber-light:  #FFF8EC;
+    --amber-mid:    #e8a83a;
+    --blue:         #185FA5;
+    --blue-light:   #EBF3FB;
+    --red-light:    #fdecea;
+    --red:          #b04040;
+    --radius-sm:    8px;
+    --radius-md:    12px;
+    --radius-lg:    20px;
+    --transition:   0.28s cubic-bezier(0.4, 0, 0.2, 1);
+    --sidebar-w:    220px;
+  }
+
+  html, body {
+    height: 100%;
+    font-family: 'DM Sans', sans-serif;
+    background: var(--off-white);
+    color: var(--text-primary);
+    font-size: 15px;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Layout ───────────────────────────────────────────────── */
+  .app {
+    display: grid;
+    grid-template-columns: var(--sidebar-w) 1fr;
+    grid-template-rows: auto 1fr;
+    min-height: 100vh;
+  }
+
+  /* ── Sidebar ──────────────────────────────────────────────── */
+  .sidebar {
+    grid-row: 1 / 3;
+    background: var(--green-dark);
+    padding: 24px 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .sidebar-wordmark {
+    font-family: 'Playfair Display', serif;
+    font-size: 15px;
+    color: rgba(255,255,255,0.9);
+    padding: 0 20px 24px;
+    letter-spacing: 0.02em;
+    border-bottom: 0.5px solid rgba(255,255,255,0.1);
+    margin-bottom: 20px;
+  }
+  .sidebar-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: rgba(255,255,255,0.35);
+    padding: 0 20px;
+    margin-bottom: 6px;
+  }
+  .client-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 20px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border-left: 2px solid transparent;
+  }
+  .client-item:hover { background: rgba(255,255,255,0.06); }
+  .client-item.active {
+    background: rgba(255,255,255,0.1);
+    border-left-color: var(--green-mid);
+  }
+  .client-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 500;
+    color: rgba(255,255,255,0.8);
+    flex-shrink: 0;
+  }
+  .client-name {
+    font-size: 13px;
+    color: rgba(255,255,255,0.8);
+    flex: 1;
+  }
+  .client-flag {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--amber-mid);
+    flex-shrink: 0;
+  }
+  .sidebar-footer {
+    margin-top: auto;
+    padding: 20px;
+    font-size: 12px;
+    color: rgba(255,255,255,0.3);
+    line-height: 1.5;
+  }
+
+  /* ── Top bar ──────────────────────────────────────────────── */
+  .topbar {
+    background: var(--surface);
+    border-bottom: 0.5px solid var(--border);
+    padding: 16px 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .topbar-left { display: flex; align-items: center; gap: 12px; }
+  .topbar-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--green-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--green);
+    flex-shrink: 0;
+  }
+  .topbar-name {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--text-primary);
+  }
+  .topbar-sub {
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+  .privacy-pill {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: var(--text-tertiary);
+    background: var(--off-white);
+    padding: 6px 12px;
+    border-radius: 20px;
+    border: 0.5px solid var(--border);
+  }
+  .privacy-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--green-mid);
+    flex-shrink: 0;
+  }
+
+  /* ── Main content ─────────────────────────────────────────── */
+  .main {
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* ── Tabs ─────────────────────────────────────────────────── */
+  .tabs {
+    display: flex;
+    gap: 0;
+    background: var(--surface);
+    border-bottom: 0.5px solid var(--border);
+    padding: 0 28px;
+  }
+  .tab {
+    padding: 12px 18px;
+    font-size: 13px;
+    font-family: 'DM Sans', sans-serif;
+    cursor: pointer;
+    border: none;
+    background: transparent;
+    color: var(--text-secondary);
+    border-bottom: 2px solid transparent;
+    margin-bottom: -0.5px;
+    transition: all 0.15s;
+  }
+  .tab.active {
+    color: var(--green);
+    border-bottom-color: var(--green);
+    font-weight: 500;
+  }
+  .tab:hover:not(.active) { color: var(--text-primary); }
+
+  /* ── Tab panel ────────────────────────────────────────────── */
+  .panel {
+    display: none;
+    padding: 24px 28px;
+    flex: 1;
+    animation: fadeIn 0.2s ease forwards;
+  }
+  .panel.active { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* ── Section label ────────────────────────────────────────── */
+  .section-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-tertiary);
+    margin-bottom: 12px;
+  }
+
+  /* ── Stat grid ────────────────────────────────────────────── */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 16px 18px;
+  }
+  .stat-label { font-size: 12px; color: var(--text-secondary); margin-bottom: 6px; }
+  .stat-value { font-size: 24px; font-weight: 500; color: var(--text-primary); line-height: 1; }
+  .stat-sub   { font-size: 11px; color: var(--text-tertiary); margin-top: 4px; }
+  .stat-card.flagged .stat-value { color: var(--amber); }
+
+  /* ── Two-col grid ─────────────────────────────────────────── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1.6fr 1fr;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  /* ── Card ─────────────────────────────────────────────────── */
+  .card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 18px 20px;
+  }
+  .card-title {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 14px;
+  }
+
+  /* ── Word frequency bars ──────────────────────────────────── */
+  .word-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 5px 0;
+    border-bottom: 0.5px solid var(--border);
+  }
+  .word-row:last-child { border-bottom: none; }
+  .word-name  { font-size: 13px; color: var(--text-primary); min-width: 100px; }
+  .word-bar-bg { flex: 1; height: 5px; background: var(--border); border-radius: 3px; }
+  .word-bar   { height: 5px; border-radius: 3px; transition: width 0.6s ease; }
+  .word-count { font-size: 12px; color: var(--text-tertiary); min-width: 16px; text-align: right; }
+
+  /* ── Adventure pill ───────────────────────────────────────── */
+  .adventure-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    background: var(--green-light);
+    color: var(--green);
+    border: 0.5px solid var(--green-mid);
+  }
+
+  /* ── Entry card ───────────────────────────────────────────── */
+  .entry-card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 16px 18px;
+    margin-bottom: 10px;
+    transition: border-color 0.15s;
+  }
+  .entry-card:hover { border-color: var(--green-mid); }
+  .entry-meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 10px;
+    flex-wrap: wrap;
+  }
+  .entry-date { font-size: 12px; color: var(--text-tertiary); }
+  .entry-badge {
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 10px;
+  }
+  .badge-flagged { background: var(--amber-light); color: var(--amber); }
+  .badge-shared  { background: var(--blue-light);  color: var(--blue);  }
+  .badge-private { background: var(--off-white);   color: var(--text-tertiary); border: 0.5px solid var(--border); }
+  .mood-chips    { display: flex; flex-wrap: wrap; gap: 5px; margin-bottom: 10px; }
+  .mood-chip {
+    font-size: 12px;
+    padding: 2px 9px;
+    background: var(--green-light);
+    color: var(--green-dark);
+    border-radius: 10px;
+  }
+  .entry-text    { font-size: 14px; color: var(--text-primary); line-height: 1.7; white-space: pre-wrap; }
+  .entry-private { font-size: 13px; color: var(--text-tertiary); font-style: italic; }
+  .entry-pathway { font-size: 11px; color: var(--text-tertiary); margin-top: 8px; }
+
+  /* ── Flag card (session prep) ─────────────────────────────── */
+  .flag-card {
+    background: var(--surface);
+    border: 0.5px solid var(--border);
+    border-left: 3px solid var(--amber);
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    padding: 14px 16px;
+    margin-bottom: 10px;
+  }
+  .flag-card.green { border-left-color: var(--green); }
+  .flag-card.blue  { border-left-color: var(--blue);  }
+  .flag-title { font-size: 14px; font-weight: 500; color: var(--text-primary); margin-bottom: 5px; }
+  .flag-sub   { font-size: 13px; color: var(--text-secondary); line-height: 1.6; }
+
+  /* ── Entry point rows ─────────────────────────────────────── */
+  .entry-point {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    padding: 12px 14px;
+    background: var(--off-white);
+    border-radius: var(--radius-sm);
+    margin-bottom: 8px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+  .entry-point-num {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    min-width: 16px;
+    margin-top: 1px;
+  }
+
+  /* ── Divider ──────────────────────────────────────────────── */
+  .divider { height: 0.5px; background: var(--border); margin: 20px 0; }
+
+  /* ── Responsive fallback ──────────────────────────────────── */
+  @media (max-width: 800px) {
+    .app { grid-template-columns: 1fr; }
+    .sidebar { display: none; }
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    .two-col { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ── Sidebar ─────────────────────────────────────────────── -->
+  <aside class="sidebar">
+    <div class="sidebar-wordmark">Cypress Mind</div>
+    <div class="sidebar-label">Clients — Journal</div>
+
+    <div class="client-item active" onclick="selectClient('jordan')">
+      <div class="client-avatar">JM</div>
+      <span class="client-name">Jordan M.</span>
+      <div class="client-flag" title="Flagged entry"></div>
+    </div>
+    <div class="client-item" onclick="selectClient('alex')">
+      <div class="client-avatar">AR</div>
+      <span class="client-name">Alex R.</span>
+    </div>
+    <div class="client-item" onclick="selectClient('sam')">
+      <div class="client-avatar">SC</div>
+      <span class="client-name">Sam C.</span>
+    </div>
+
+    <div class="sidebar-footer">
+      Reflection Journal<br>
+      Therapist view
+    </div>
+  </aside>
+
+  <!-- ── Top bar ─────────────────────────────────────────────── -->
+  <header class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-avatar">JM</div>
+      <div>
+        <div class="topbar-name">Jordan M.</div>
+        <div class="topbar-sub">Reflection Journal · Last entry today</div>
+      </div>
+    </div>
+    <div class="privacy-pill">
+      <div class="privacy-dot"></div>
+      Viewing shared content only
+    </div>
+  </header>
+
+  <!-- ── Main ────────────────────────────────────────────────── -->
+  <main class="main">
+
+    <div class="tabs">
+      <button class="tab active" onclick="setTab(0)">Overview</button>
+      <button class="tab" onclick="setTab(1)">Shared entries</button>
+      <button class="tab" onclick="setTab(2)">Session prep</button>
+    </div>
+
+    <!-- ────────────────────────────────────────────────────────
+         TAB 0 — OVERVIEW
+    ──────────────────────────────────────────────────────── -->
+    <div class="panel active" id="tab-0">
+
+      <div class="stat-grid" id="stat-grid">
+        <div class="stat-card"><div class="stat-label">Last entry</div><div class="stat-value" style="font-size:18px;">—</div></div>
+        <div class="stat-card"><div class="stat-label">Entries this week</div><div class="stat-value">—</div></div>
+        <div class="stat-card"><div class="stat-label">Shared with you</div><div class="stat-value">—</div></div>
+        <div class="stat-card"><div class="stat-label">Flagged for session</div><div class="stat-value">—</div></div>
+      </div>
+
+      <div class="two-col">
+        <div class="card">
+          <div class="card-title">Mood family frequency — last 4 weeks</div>
+          <div style="position:relative; height:180px;">
+            <canvas id="moodChart" aria-label="Stacked bar chart of mood family frequency over 4 weeks"></canvas>
+          </div>
+          <div style="display:flex; flex-wrap:wrap; gap:10px; margin-top:12px;">
+            <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-secondary);">
+              <div style="width:10px;height:10px;border-radius:2px;background:#AFA9EC;"></div>Fear
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-secondary);">
+              <div style="width:10px;height:10px;border-radius:2px;background:#85B7EB;"></div>Sadness
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-secondary);">
+              <div style="width:10px;height:10px;border-radius:2px;background:#F0997B;"></div>Anger
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-secondary);">
+              <div style="width:10px;height:10px;border-radius:2px;background:#97C459;"></div>Joy
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-secondary);">
+              <div style="width:10px;height:10px;border-radius:2px;background:#F7D06B;"></div>Anticipation
+            </div>
+            <div style="display:flex;align-items:center;gap:5px;font-size:11px;color:var(--text-secondary);">
+              <div style="width:10px;height:10px;border-radius:2px;background:#A8C87A;"></div>Trust/Other
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Top words this week</div>
+          <div id="word-bars">
+            <div style="font-size:13px;color:var(--text-tertiary);padding:8px 0;">Loading…</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-label">Adventure activity</div>
+      <div class="card" id="adventure-card" style="display:flex; align-items:center; gap:16px; flex-wrap:wrap;">
+        <span style="font-size:13px;color:var(--text-tertiary);">No adventure activity yet.</span>
+      </div>
+
+    </div>
+
+    <!-- ────────────────────────────────────────────────────────
+         TAB 1 — SHARED ENTRIES
+    ──────────────────────────────────────────────────────── -->
+    <div class="panel" id="tab-1">
+      <div style="font-size:12px; color:var(--text-tertiary); margin-bottom:16px; display:flex; align-items:center; gap:6px;" id="entries-summary-line">
+        <div style="width:6px;height:6px;border-radius:50%;background:var(--green-mid);"></div>
+        Loading entries…
+      </div>
+      <div id="entries-list">
+        <div style="font-size:14px;color:var(--text-tertiary);padding:24px 0;text-align:center;">Loading…</div>
+      </div>
+    </div>
+
+    <!-- ────────────────────────────────────────────────────────
+         TAB 2 — SESSION PREP
+    ──────────────────────────────────────────────────────── -->
+    <div class="panel" id="tab-2">
+      <div id="session-prep-content">
+        <div style="font-size:14px;color:var(--text-tertiary);padding:24px 0;text-align:center;">Loading…</div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+/* ── Supabase init ──────────────────────────────────────────
+   CDN pattern: const { createClient } = supabase
+────────────────────────────────────────────────────────── */
+const SUPABASE_URL = 'https://vfpxovpwwabisfjjqkpm.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_-cIPFr0xt1CfC8fwh0e_ew_Q6LIbcX5';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+/* ── URL params ───────────────────────────────────────────── */
+const params = new URLSearchParams(window.location.search);
+let CLIENT_ID = params.get('client_id') || null;
+
+/* ── Client roster (mirrors sidebar) ─────────────────────── */
+const CLIENTS = {
+  jordan: { initials: 'JM', name: 'Jordan M.' },
+  alex:   { initials: 'AR', name: 'Alex R.'   },
+  sam:    { initials: 'SC', name: 'Sam C.'    },
+};
+
+/* ── Word → Plutchik family map (mirrors client.html) ──────── */
+const WORD_FAMILY_MAP = {
+  // Joy
+  content:'joy', peaceful:'joy', grateful:'joy', happy:'joy',
+  playful:'joy', relieved:'joy', joyful:'joy', excited:'joy',
+  elated:'joy', blissful:'joy',
+  // Trust
+  open:'trust', accepted:'trust', safe:'trust', supported:'trust',
+  connected:'trust', valued:'trust', appreciated:'trust',
+  belonging:'trust', admired:'trust', secure:'trust', unseen:'trust',
+  // Fear
+  uneasy:'fear', unsure:'fear', nervous:'fear', worried:'fear',
+  anxious:'fear', overwhelmed:'fear', scared:'fear', afraid:'fear',
+  dread:'fear', terrified:'fear',
+  // Surprise
+  curious:'surprise', uncertain:'surprise', confused:'surprise',
+  startled:'surprise', 'caught off guard':'surprise',
+  disoriented:'surprise', shocked:'surprise', stunned:'surprise',
+  astonished:'surprise',
+  // Sadness
+  pensive:'sadness', disappointed:'sadness', lonely:'sadness',
+  hurt:'sadness', sad:'sadness', empty:'sadness', lost:'sadness',
+  heartbroken:'sadness', grieving:'sadness', devastated:'sadness',
+  hopeless:'sadness',
+  // Disgust
+  bored:'disgust', bothered:'disgust', uncomfortable:'disgust',
+  unsettled:'disgust', 'grossed out':'disgust', 'turned off':'disgust',
+  disgusted:'disgust', repulsed:'disgust', sick:'disgust',
+  ashamed:'disgust', guilty:'disgust',
+  // Anger
+  annoyed:'anger', irritated:'anger', frustrated:'anger',
+  resentful:'anger', mad:'anger', betrayed:'anger', angry:'anger',
+  furious:'anger', enraged:'anger', jealous:'anger',
+  // Anticipation
+  interested:'anticipation', hopeful:'anticipation',
+  eager:'anticipation', restless:'anticipation', impatient:'anticipation',
+  'anxious (excited)':'anticipation', 'on edge':'anticipation',
+  alert:'anticipation', stuck:'anticipation',
+};
+
+const FAMILY_COLORS = {
+  joy:'#F7D06B', trust:'#A8C87A', fear:'#AFA9EC',
+  surprise:'#85C5EB', sadness:'#85B7EB', disgust:'#7aab80',
+  anger:'#F0997B', anticipation:'#F5C07A', other:'#C5C5C5'
+};
+
+const WORD_COLORS = {
+  joy:'#c49a14', trust:'#3b8a5c', fear:'#7a5a9e',
+  surprise:'#3a87b5', sadness:'#5177b5', disgust:'#5c7a3a',
+  anger:'#b55a3a', anticipation:'#b5893a', other:'#888780'
+};
+
+/* ── State ────────────────────────────────────────────────── */
+let allEntries = [];
+let chartInstance = null;
+
+/* ── Helpers ──────────────────────────────────────────────── */
+function formatDate(iso) {
+  if (!iso) return '—';
+  const d = new Date(iso);
+  const now = new Date();
+  const diff = Math.floor((now - d) / 86400000);
+  const time = d.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' });
+  if (diff === 0) return `Today, ${time}`;
+  if (diff === 1) return `Yesterday, ${time}`;
+  return d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' }) + ` · ${time}`;
+}
+
+function formatPathway(e) {
+  if (!e.pathway || e.pathway === 'skip') return '';
+  if (e.pathway === 'themed' && e.theme)
+    return `Themed · ${e.theme.charAt(0).toUpperCase() + e.theme.slice(1)}`;
+  return e.pathway.charAt(0).toUpperCase() + e.pathway.slice(1);
+}
+
+function weekStart(date) {
+  const d = new Date(date);
+  d.setHours(0,0,0,0);
+  d.setDate(d.getDate() - d.getDay());
+  return d.toISOString().slice(0,10);
+}
+
+function isThisWeek(iso) {
+  if (!iso) return false;
+  const d = new Date(iso);
+  const now = new Date();
+  const startOfWeek = new Date(now);
+  startOfWeek.setDate(now.getDate() - now.getDay());
+  startOfWeek.setHours(0,0,0,0);
+  return d >= startOfWeek;
+}
+
+/* ── Tab switching ────────────────────────────────────────── */
+function setTab(i) {
+  document.querySelectorAll('.tab').forEach((t, idx) => t.classList.toggle('active', idx === i));
+  document.querySelectorAll('.panel').forEach((p, idx) => p.classList.toggle('active', idx === i));
+}
+
+/* ── Sidebar client switching ─────────────────────────────── */
+function selectClient(id) {
+  document.querySelectorAll('.client-item').forEach(el => el.classList.remove('active'));
+  event.currentTarget.classList.add('active');
+  CLIENT_ID = id;
+  const c = CLIENTS[id];
+  if (c) {
+    document.querySelector('.topbar-avatar').textContent = c.initials;
+    document.querySelector('.topbar-name').textContent   = c.name;
+    document.querySelector('.topbar-sub').textContent    = 'Reflection Journal · Loading…';
+  }
+  loadClientData();
+}
+
+/* ── Main data load ───────────────────────────────────────── */
+async function loadClientData() {
+  if (!CLIENT_ID) return;
+
+  const { data, error } = await db
+    .from('journal_entries')
+    .select('*')
+    .eq('client_id', CLIENT_ID)
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    console.error('Error loading journal entries:', error);
+    return;
+  }
+
+  allEntries = data || [];
+  renderOverview(allEntries);
+  renderEntries(allEntries);
+  renderSessionPrep(allEntries);
+
+  // Subscribe to realtime updates (new shares/flags)
+  db.channel(`journal:${CLIENT_ID}`)
+    .on('postgres_changes', {
+      event: '*', schema: 'public', table: 'journal_entries',
+      filter: `client_id=eq.${CLIENT_ID}`
+    }, () => loadClientData())
+    .subscribe();
+}
+
+/* ── Render: Overview ─────────────────────────────────────── */
+function renderOverview(entries) {
+  const thisWeek   = entries.filter(e => isThisWeek(e.created_at));
+  const withMood   = thisWeek.filter(e => e.mood_words && e.mood_words.length > 0);
+  const shared     = thisWeek.filter(e => e.shared);
+  const flagged    = thisWeek.filter(e => e.flagged_for_session);
+  const latest     = entries[0];
+
+  // Update topbar subtitle with last-entry date
+  const topbarSub = document.querySelector('.topbar-sub');
+  if (topbarSub) {
+    topbarSub.textContent = latest
+      ? `Reflection Journal · Last entry ${formatDate(latest.created_at).split(',')[0].toLowerCase()}`
+      : 'Reflection Journal · No entries yet';
+  }
+
+  // Stat cards
+  const grid = document.getElementById('stat-grid');
+  grid.innerHTML = `
+    <div class="stat-card">
+      <div class="stat-label">Last entry</div>
+      <div class="stat-value" style="font-size:18px;">${latest ? formatDate(latest.created_at).split(',')[0] : '—'}</div>
+      <div class="stat-sub">${latest ? formatDate(latest.created_at).split(', ')[1] || '' : ''}</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Entries this week</div>
+      <div class="stat-value">${thisWeek.length}</div>
+      <div class="stat-sub">${withMood.length} with mood check-in</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-label">Shared with you</div>
+      <div class="stat-value">${shared.length}</div>
+      <div class="stat-sub">this week</div>
+    </div>
+    <div class="stat-card${flagged.length > 0 ? ' flagged' : ''}">
+      <div class="stat-label">Flagged for session</div>
+      <div class="stat-value">${flagged.length}</div>
+      <div class="stat-sub">${flagged.length > 0 ? 'needs discussion' : 'none this week'}</div>
+    </div>`;
+
+  // Word frequency bars (this week)
+  const wordCounts = {};
+  thisWeek.forEach(e => (e.mood_words || []).forEach(w => {
+    wordCounts[w] = (wordCounts[w] || 0) + 1;
+  }));
+  const topWords = Object.entries(wordCounts)
+    .sort((a,b) => b[1] - a[1]).slice(0,5);
+  const maxCount = topWords[0] ? topWords[0][1] : 1;
+
+  document.getElementById('word-bars').innerHTML = topWords.length ? topWords.map(([word, count]) => {
+    const family = WORD_FAMILY_MAP[word] || 'other';
+    const color  = WORD_COLORS[family] || '#888';
+    const pct    = Math.round((count / maxCount) * 95);
+    return `<div class="word-row">
+      <div class="word-name">${word}</div>
+      <div class="word-bar-bg"><div class="word-bar" style="width:${pct}%;background:${color};"></div></div>
+      <div class="word-count">${count}</div>
+    </div>`;
+  }).join('') : '<div style="font-size:13px;color:var(--text-tertiary);padding:8px 0;">No mood data this week.</div>';
+
+  // Mood trend chart (last 4 weeks)
+  const now = new Date();
+  const weeks = Array.from({ length: 4 }, (_, i) => {
+    const d = new Date(now);
+    d.setDate(d.getDate() - (3 - i) * 7);
+    return weekStart(d);
+  });
+
+  const familyData = {};
+  Object.keys(FAMILY_COLORS).forEach(f => { familyData[f] = [0,0,0,0]; });
+
+  const cutoff = new Date(now);
+  cutoff.setDate(cutoff.getDate() - 28);
+
+  entries.filter(e => new Date(e.created_at) >= cutoff).forEach(e => {
+    const ws = weekStart(e.created_at);
+    const wi = weeks.indexOf(ws);
+    if (wi < 0) return;
+    (e.mood_words || []).forEach(w => {
+      const f = WORD_FAMILY_MAP[w] || 'other';
+      if (familyData[f]) familyData[f][wi]++;
+    });
+  });
+
+  if (chartInstance) chartInstance.destroy();
+  const ctx = document.getElementById('moodChart');
+  if (!ctx) return;
+
+  const weekLabels = weeks.map((w, i) => i === 3 ? 'This week' : `Week ${i+1}`);
+  const datasets = Object.entries(familyData)
+    .filter(([, counts]) => counts.some(c => c > 0))
+    .map(([family, counts]) => ({
+      label: family.charAt(0).toUpperCase() + family.slice(1),
+      data: counts,
+      backgroundColor: FAMILY_COLORS[family],
+      borderWidth: 0,
+      borderRadius: 2,
+    }));
+
+  chartInstance = new Chart(ctx, {
+    type: 'bar',
+    data: { labels: weekLabels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: {
+        callbacks: {
+          title: items => items[0].label,
+          label: item => ` ${item.dataset.label}: ${item.raw}`
+        }
+      }},
+      scales: {
+        x: { stacked: true, grid: { display: false }, ticks: { font: { size:11, family:'DM Sans' } } },
+        y: { stacked: true, grid: { color:'rgba(53,94,59,0.06)' }, ticks: { font: { size:11, family:'DM Sans' }, stepSize:2 } }
+      }
+    }
+  });
+
+  // Adventure activity — query session_activity for this client
+  // TODO: join session_activity when adventures are integrated
+  // For now show placeholder
+  document.getElementById('adventure-card').innerHTML =
+    `<span style="font-size:13px;color:var(--text-tertiary);">Adventure data loads from session_activity table. Wire after adventures integration.</span>`;
+}
+
+/* ── Render: Shared entries ───────────────────────────────── */
+function renderEntries(entries) {
+  const thisWeek = entries.filter(e => isThisWeek(e.created_at));
+  const sharedCount  = thisWeek.filter(e => e.shared || e.flagged_for_session).length;
+  const privateCount = thisWeek.length - sharedCount;
+
+  document.getElementById('entries-summary-line').innerHTML = `
+    <div style="width:6px;height:6px;border-radius:50%;background:var(--green-mid);"></div>
+    ${thisWeek.length} entries this week · ${sharedCount} shared or flagged · ${privateCount} private — private entries show mood check-in only`;
+
+  if (!entries.length) {
+    document.getElementById('entries-list').innerHTML =
+      '<p style="font-size:14px;color:var(--text-tertiary);text-align:center;padding:24px 0;">No entries yet.</p>';
+    return;
+  }
+
+  document.getElementById('entries-list').innerHTML = entries.map(e => {
+    const visible = e.shared || e.flagged_for_session;
+    const pathway = formatPathway(e);
+    return `<div class="entry-card">
+      <div class="entry-meta">
+        <span class="entry-date">${formatDate(e.created_at)}</span>
+        ${e.flagged_for_session ? '<span class="entry-badge badge-flagged">⚑ I want to talk about this</span>' : ''}
+        ${e.shared && !e.flagged_for_session ? '<span class="entry-badge badge-shared">↗ Shared</span>' : ''}
+        ${!e.shared && !e.flagged_for_session ? '<span class="entry-badge badge-private">Private</span>' : ''}
+      </div>
+      ${(e.mood_words && e.mood_words.length) ? `
+        <div class="mood-chips">
+          ${e.mood_words.map(m => `<span class="mood-chip">${m}</span>`).join('')}
+        </div>` : ''}
+      ${visible && e.entry_text
+        ? `<div class="entry-text">${e.entry_text}</div>`
+        : `<div class="entry-private">Entry content is private. Mood check-in only.</div>`}
+      ${pathway ? `<div class="entry-pathway">${pathway}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+/* ── Render: Session prep ─────────────────────────────────── */
+function renderSessionPrep(entries) {
+  const thisWeek = entries.filter(e => isThisWeek(e.created_at));
+  const flagged  = entries.filter(e => e.flagged_for_session);
+
+  // Word frequency
+  const wordCounts = {};
+  thisWeek.forEach(e => (e.mood_words||[]).forEach(w => {
+    wordCounts[w] = (wordCounts[w]||0) + 1;
+  }));
+  const topWords = Object.entries(wordCounts).sort((a,b)=>b[1]-a[1]).slice(0,5);
+
+  // Dominant families
+  const familyCounts = {};
+  topWords.forEach(([w]) => {
+    const f = WORD_FAMILY_MAP[w] || 'other';
+    familyCounts[f] = (familyCounts[f]||0) + (wordCounts[w]||0);
+  });
+  const topFamilies = Object.entries(familyCounts)
+    .sort((a,b)=>b[1]-a[1]).slice(0,2).map(([f])=>f);
+
+  // Suggested entry points (rule-based)
+  const entryPoints = [];
+  if (flagged.length > 0) {
+    const excerpt = flagged[0].entry_text ? flagged[0].entry_text.slice(0,80) + '…' : 'flagged entry';
+    entryPoints.push(`What the client flagged: "${excerpt}"`);
+  }
+  if (topWords.length >= 2) {
+    entryPoints.push(`The co-occurrence of "${topWords[0][0]}" and "${topWords[1][0]}" this week — what's connecting them`);
+  }
+  if (topFamilies.length > 0) {
+    entryPoints.push(`The ${topFamilies[0]} family has been most present this week — where it's showing up and what it's connected to`);
+  }
+
+  const el = document.getElementById('session-prep-content');
+  el.innerHTML = `
+    <div class="section-label" style="margin-bottom:12px;">Flagged for discussion</div>
+    ${flagged.length ? flagged.map(e => `
+      <div class="flag-card">
+        <div class="flag-title">"I want to talk about this" — ${formatDate(e.created_at)}</div>
+        ${e.entry_text ? `<div style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-bottom:10px;">"${e.entry_text.slice(0,120)}…"</div>` : ''}
+        <div class="mood-chips">${(e.mood_words||[]).map(m=>`<span class="mood-chip">${m}</span>`).join('')}</div>
+      </div>`).join('') :
+      '<p style="font-size:13px;color:var(--text-tertiary);margin-bottom:16px;">Nothing flagged this week.</p>'
+    }
+
+    <div class="divider"></div>
+
+    <div class="section-label">Mood pattern this week</div>
+    ${topWords.length ? `
+      <div class="flag-card green">
+        <div class="flag-title">${topFamilies.map(f=>f.charAt(0).toUpperCase()+f.slice(1)).join(' + ')} ${topFamilies.length > 1 ? 'families' : 'family'} dominant</div>
+        <div class="flag-sub">${topWords.map(([w,c])=>`${w} (${c}×)`).join(', ')}</div>
+      </div>` :
+      '<p style="font-size:13px;color:var(--text-tertiary);margin-bottom:16px;">No mood data this week.</p>'
+    }
+
+    <div class="divider"></div>
+
+    <div class="section-label" style="margin-bottom:10px;">Suggested entry points</div>
+    ${entryPoints.length ? entryPoints.map((pt, i) => `
+      <div class="entry-point">
+        <span class="entry-point-num">${i+1}</span>${pt}
+      </div>`).join('') :
+      '<p style="font-size:13px;color:var(--text-tertiary);">Not enough data yet to suggest entry points.</p>'
+    }
+    <p style="font-size:11px;color:var(--text-tertiary);font-style:italic;margin-top:8px;">
+      Generated from shared entries and mood data. Client has not seen these.
+    </p>`;
+}
+
+/* ── Init ─────────────────────────────────────────────────── */
+loadClientData();
+</script>
+</body>
+</html>
