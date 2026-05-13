@@ -423,8 +423,13 @@
           font-size:18px; color:var(--text-tertiary); line-height:1;">×</button>
       </div>
       <p style="font-size:13px; color:var(--text-secondary); line-height:1.6; margin-bottom:20px;">
-        Enter your client's email. They'll receive a private link to their journal — no password needed.
+        Enter your client's name and email. They'll receive a private link to their journal — no password needed.
       </p>
+      <input type="text" id="invite-name-input" placeholder="First name"
+        style="width:100%; padding:13px 16px; border:0.5px solid var(--border-mid);
+        border-radius:var(--radius-md); font-family:'DM Sans',sans-serif; font-size:14px;
+        background:var(--off-white); outline:none; margin-bottom:10px;"
+        autocomplete="off" />
       <input type="email" id="invite-email-input" placeholder="client@email.com"
         style="width:100%; padding:13px 16px; border:0.5px solid var(--border-mid);
         border-radius:var(--radius-md); font-family:'DM Sans',sans-serif; font-size:14px;
@@ -569,6 +574,7 @@ let THERAPIST_ID = null;  // set from session on auth
 function showInviteModal() {
   const modal = document.getElementById('invite-modal');
   modal.style.display = 'flex';
+  document.getElementById('invite-name-input').value  = '';
   document.getElementById('invite-email-input').value = '';
   document.getElementById('invite-error').textContent  = '';
   document.getElementById('invite-sent-msg').style.display = 'none';
@@ -588,6 +594,7 @@ document.getElementById('invite-modal').addEventListener('click', e => {
 });
 
 async function sendClientInvite() {
+  const name  = document.getElementById('invite-name-input').value.trim();
   const email = document.getElementById('invite-email-input').value.trim();
   const errEl = document.getElementById('invite-error');
   const btn   = document.getElementById('invite-send-btn');
@@ -621,6 +628,7 @@ async function sendClientInvite() {
     await db.from('therapist_clients').upsert({
       therapist_id: THERAPIST_ID,
       client_email: email,
+      client_name:  name || null,
     }, { onConflict: 'therapist_id,client_email' });
   }
 
@@ -735,7 +743,7 @@ function escapeHtml(str) {
 async function loadClientList() {
   const { data, error } = await db
     .from('therapist_clients')
-    .select('client_id, client_email, accepted_at')
+    .select('client_id, client_email, client_name, accepted_at')
     .eq('therapist_id', THERAPIST_ID)
     .order('invited_at', { ascending: false });
 
@@ -749,8 +757,9 @@ async function loadClientList() {
   }
 
   el.innerHTML = data.map((c, i) => {
-    const initials = escapeHtml(c.client_email.slice(0,2).toUpperCase());
-    const name     = escapeHtml(c.client_email.split('@')[0]);
+    const displayName = c.client_name || c.client_email.split('@')[0];
+    const initials = escapeHtml(displayName.slice(0,2).toUpperCase());
+    const name     = escapeHtml(displayName);
     const accepted = !!c.accepted_at;
     const isActive = c.client_id === CLIENT_ID;
     const deleteBtn = !accepted
