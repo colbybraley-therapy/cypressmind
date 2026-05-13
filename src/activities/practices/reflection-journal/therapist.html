@@ -565,6 +565,10 @@ const SUPABASE_URL = 'https://vfpxovpwwabisfjjqkpm.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_-cIPFr0xt1CfC8fwh0e_ew_Q6LIbcX5';
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+// Isolated client for sending OTPs — no session, no storage, won't touch therapist auth
+const otpClient = createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
+});
 
 /* ââ URL params âââââââââââââââââââââââââââââââââââââââââââ */
 const params = new URLSearchParams(window.location.search);
@@ -609,7 +613,7 @@ async function sendClientInvite() {
   btn.disabled    = true;
 
   // Send the client a magic link OTP
-  const { error: otpError } = await db.auth.signInWithOtp({
+  const { error: otpError } = await otpClient.auth.signInWithOtp({
     email,
     options: {
       emailRedirectTo: 'https://cypressmind.com/journal',
