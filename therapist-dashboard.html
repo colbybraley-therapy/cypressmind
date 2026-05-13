@@ -1523,17 +1523,18 @@
       const dispName = charId === 'custom' && charData2?.name ? charData2.name : charName;
       pill.innerHTML = `<span style="font-size:14px;">${charId === 'custom' ? '✦' : '🧭'}</span> ${esc(dispName || 'Hero chosen')}`;
 
-      // Sidebar
-      const imgWrap = document.getElementById('sidebar-char-img');
-      if (CHAR_IMAGES[charId]) {
-        imgWrap.innerHTML = `<img src="${CHAR_IMAGES[charId]}" alt="${charName}" />`;
+      // Sidebar — for custom wizard chars use the archetype image as the base
+      const imgWrap  = document.getElementById('sidebar-char-img');
+      const imgKey   = (charId === 'custom' && charData2?.archetype) ? charData2.archetype : charId;
+      if (CHAR_IMAGES[imgKey]) {
+        imgWrap.innerHTML = `<img src="${CHAR_IMAGES[imgKey]}" alt="${charName}" />`;
         imgWrap.className = 'char-img-wrap';
       } else {
         imgWrap.innerHTML = '🎭';
         imgWrap.className = 'char-img-wrap placeholder';
       }
       document.getElementById('sidebar-char-name').textContent = dispName || 'Custom Hero';
-      document.getElementById('sidebar-char-type').textContent = CHAR_TAGS[charId] || (charData2?.traits?.join(', ') || 'Custom archetype');
+      document.getElementById('sidebar-char-type').textContent = CHAR_TAGS[imgKey] || (charData2?.traits?.join(', ') || 'Custom archetype');
     } else {
       wrap.style.display = 'block';
       pill.innerHTML = `✦ No character chosen yet`;
