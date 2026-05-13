@@ -1743,6 +1743,16 @@
       }, async payload => {
         if (payload.new.step_index === -1) {
           document.getElementById('cb-status').textContent = '✅ Character built! Marking activity done…';
+
+          // Update clients.last_character so the client card reflects the new character
+          let rd = payload.new.response_data;
+          if (typeof rd === 'string') { try { rd = JSON.parse(rd); } catch(e) {} }
+          const charId = rd?.character;
+          const charKey = (charId === 'custom' && rd?.archetype) ? rd.archetype : charId;
+          if (charKey) {
+            await db.from('clients').update({ last_character: charKey }).eq('id', currentClient.id);
+          }
+
           if (_cbActivityId) {
             await db.from('activities')
               .update({ done: true, completed_at: new Date().toISOString() })
@@ -1751,6 +1761,7 @@
             loadActivities();
             loadClientStats();
             loadCharacter();
+            renderClientGrid();
             document.getElementById('cb-status').textContent = '✅ Activity marked complete.';
           }
         } else {
