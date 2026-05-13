@@ -566,23 +566,6 @@ const params = new URLSearchParams(window.location.search);
 let CLIENT_ID    = params.get('client_id') || null;
 let THERAPIST_ID = null;  // set from session on auth
 
-/* ââ Init âââââââââââââââââââââââââââââââââââââââââââââââââ */
-async function init() {
-  // Therapist is already authenticated via the main Cypress Mind dashboard.
-  // Just read the existing session â don't prompt for login here.
-  const { data: { session } } = await db.auth.getSession();
-
-  if (session) {
-    THERAPIST_ID = session.user.id;
-    loadClientData();
-  } else {
-    // Session expired or direct URL access â redirect to main sign-in
-    // TODO: replace with actual sign-in page URL when auth is fully wired
-    window.location.href = '/signin.html';
-  }
-}
-
-init();
 function showInviteModal() {
   const modal = document.getElementById('invite-modal');
   modal.style.display = 'flex';
@@ -701,6 +684,7 @@ const WORD_COLORS = {
 /* ââ State ââââââââââââââââââââââââââââââââââââââââââââââââ */
 let allEntries = [];
 let chartInstance = null;
+let realtimeChannel = null;
 
 /* ââ Helpers ââââââââââââââââââââââââââââââââââââââââââââââ */
 function formatDate(iso) {
@@ -738,6 +722,16 @@ function isThisWeek(iso) {
   return d >= startOfWeek;
 }
 
+/* ââ XSS helper âââââââââââââââââââââââââââââââââââââââââââ */
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 /* ââ Load sidebar client list ââââââââââââââââââââââââââââââ */
 async function loadClientList() {
   const { data, error } = await db
@@ -756,12 +750,12 @@ async function loadClientList() {
   }
 
   el.innerHTML = data.map((c, i) => {
-    const initials = c.client_email.slice(0,2).toUpperCase();
-    const name     = c.client_email.split('@')[0];
+    const initials = escapeHtml(c.client_email.slice(0,2).toUpperCase());
+    const name     = escapeHtml(c.client_email.split('@')[0]);
     const accepted = !!c.accepted_at;
     const isActive = c.client_id === CLIENT_ID;
     return `<div class="client-item${isActive ? ' active' : ''}"
-      onclick="selectClient('${c.client_id || ''}')"
+      onclick="selectClient('${escapeHtml(c.client_id || '')}', this)"
       style="${!accepted ? 'opacity:0.5;' : ''}">
       <div class="client-avatar">${initials}</div>
       <span class="client-name">${name}${!accepted ? ' (pending)' : ''}</span>
@@ -774,9 +768,9 @@ function setTab(i) {
 }
 
 /* ââ Sidebar client switching âââââââââââââââââââââââââââââ */
-function selectClient(id) {
-  document.querySelectorAll('.client-item').forEach(el => el.classList.remove('active'));
-  event.currentTarget.classList.add('active');
+function selectClient(id, el) {
+  document.querySelectorAll('.client-item').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
   CLIENT_ID = id;
   loadClientData();
 }
@@ -802,7 +796,8 @@ async function loadClientData() {
   renderSessionPrep(allEntries);
 
   // Subscribe to realtime updates (new shares/flags)
-  db.channel(`journal:${CLIENT_ID}`)
+  if (realtimeChannel) db.removeChannel(realtimeChannel);
+  realtimeChannel = db.channel(`journal:${CLIENT_ID}`)
     .on('postgres_changes', {
       event: '*', schema: 'public', table: 'journal_entries',
       filter: `client_id=eq.${CLIENT_ID}`

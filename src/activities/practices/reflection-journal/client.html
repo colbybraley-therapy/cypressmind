@@ -1430,6 +1430,7 @@ async function finalizeAndReturn() {
 
   // Reset state for next entry
   state.selectedWords   = [];
+  state.customWords     = [];
   state.pathway         = null;
   state.theme           = null;
   state.prompt          = null;
@@ -1644,9 +1645,12 @@ function resetAuthForm() {
   btn.disabled    = false;
 }
 
+let journalStarted = false;
 function proceedToJournal(session) {
+  if (journalStarted) return;
+  journalStarted = true;
   // Override CLIENT_ID with real auth UUID
-  window.CLIENT_ID = session.user.id;
+  CLIENT_ID = session.user.id;
 
   // Set returning-user welcome copy
   db.from('journal_entries')
