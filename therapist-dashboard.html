@@ -1693,21 +1693,33 @@
     const base = window.location.origin;
     _cbClientUrl = base + '/adventure/index.html';
 
-    const { data: session, error } = await db.from('sessions').insert({
+    // Show the panel immediately with the code
+    document.getElementById('cb-code-display').textContent = code;
+    document.getElementById('cb-client-url').textContent   = _cbClientUrl;
+    document.getElementById('cb-status').textContent       = '⏳ Setting up session…';
+    document.getElementById('cb-copy-btn').textContent     = 'Copy';
+    document.getElementById('char-builder-panel').style.display = 'flex';
+
+    // Insert session (same pattern as createSession — no .select() chain)
+    const { error: insertError } = await db.from('sessions').insert({
       client_id:     currentClient.id,
       code,
       status:        'waiting',
       activity_type: 'home',
-    }).select().single();
+    });
 
-    if (error || !session) { console.error('character_builder session error:', error); return; }
+    if (insertError) {
+      document.getElementById('cb-status').textContent = '⚠️ Error creating session — try closing and relaunching.';
+      console.error('character_builder session error:', insertError);
+      return;
+    }
+
+    // Fetch the session id so we can filter the Realtime subscription
+    const { data: session } = await db.from('sessions').select('id').eq('code', code).single();
+    if (!session) { document.getElementById('cb-status').textContent = '⚠️ Could not retrieve session. Try again.'; return; }
     _cbSessionId = session.id;
 
-    document.getElementById('cb-code-display').textContent = code;
-    document.getElementById('cb-client-url').textContent   = _cbClientUrl;
-    document.getElementById('cb-status').textContent       = '⏳ Waiting for client to join…';
-    document.getElementById('cb-copy-btn').textContent     = 'Copy';
-    document.getElementById('char-builder-panel').style.display = 'flex';
+    document.getElementById('cb-status').textContent = '⏳ Waiting for client to join…';
 
     if (_cbChannel) db.removeChannel(_cbChannel);
     _cbChannel = db.channel('cb-' + session.id)
