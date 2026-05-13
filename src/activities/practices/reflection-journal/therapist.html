@@ -390,19 +390,8 @@
   <aside class="sidebar">
     <div class="sidebar-wordmark">Cypress Mind</div>
     <div class="sidebar-label">Clients â Journal</div>
-
-    <div class="client-item active" onclick="selectClient(this, 'jordan')">
-      <div class="client-avatar">JM</div>
-      <span class="client-name">Jordan M.</span>
-      <div class="client-flag" title="Flagged entry"></div>
-    </div>
-    <div class="client-item" onclick="selectClient(this, 'alex')">
-      <div class="client-avatar">AR</div>
-      <span class="client-name">Alex R.</span>
-    </div>
-    <div class="client-item" onclick="selectClient(this, 'sam')">
-      <div class="client-avatar">SC</div>
-      <span class="client-name">Sam C.</span>
+    <div id="client-list">
+      <div style="padding:8px 20px; font-size:12px; color:rgba(255,255,255,0.3);">Loadingâ¦</div>
     </div>
 
     <div class="sidebar-footer">
@@ -577,6 +566,23 @@ const params = new URLSearchParams(window.location.search);
 let CLIENT_ID    = params.get('client_id') || null;
 let THERAPIST_ID = null;  // set from session on auth
 
+/* ââ Init âââââââââââââââââââââââââââââââââââââââââââââââââ */
+async function init() {
+  // Therapist is already authenticated via the main Cypress Mind dashboard.
+  // Just read the existing session â don't prompt for login here.
+  const { data: { session } } = await db.auth.getSession();
+
+  if (session) {
+    THERAPIST_ID = session.user.id;
+    loadClientData();
+  } else {
+    // Session expired or direct URL access â redirect to main sign-in
+    // TODO: replace with actual sign-in page URL when auth is fully wired
+    window.location.href = '/signin.html';
+  }
+}
+
+init();
 function showInviteModal() {
   const modal = document.getElementById('invite-modal');
   modal.style.display = 'flex';
@@ -695,11 +701,6 @@ const WORD_COLORS = {
 /* ââ State ââââââââââââââââââââââââââââââââââââââââââââââââ */
 let allEntries = [];
 let chartInstance = null;
-let realtimeChannel = null;
-
-function escapeHtml(str) {
-  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-}
 
 /* ââ Helpers ââââââââââââââââââââââââââââââââââââââââââââââ */
 function formatDate(iso) {
@@ -737,16 +738,45 @@ function isThisWeek(iso) {
   return d >= startOfWeek;
 }
 
-/* ââ Tab switching ââââââââââââââââââââââââââââââââââââââââ */
+/* ââ Load sidebar client list ââââââââââââââââââââââââââââââ */
+async function loadClientList() {
+  const { data, error } = await db
+    .from('therapist_clients')
+    .select('client_id, client_email, accepted_at')
+    .eq('therapist_id', THERAPIST_ID)
+    .order('invited_at', { ascending: false });
+
+  const el = document.getElementById('client-list');
+
+  if (error || !data || !data.length) {
+    el.innerHTML = `<div style="padding:8px 20px; font-size:12px; color:rgba(255,255,255,0.3); line-height:1.5;">
+      No clients yet.<br>Use + Invite client to get started.
+    </div>`;
+    return;
+  }
+
+  el.innerHTML = data.map((c, i) => {
+    const initials = c.client_email.slice(0,2).toUpperCase();
+    const name     = c.client_email.split('@')[0];
+    const accepted = !!c.accepted_at;
+    const isActive = c.client_id === CLIENT_ID;
+    return `<div class="client-item${isActive ? ' active' : ''}"
+      onclick="selectClient('${c.client_id || ''}')"
+      style="${!accepted ? 'opacity:0.5;' : ''}">
+      <div class="client-avatar">${initials}</div>
+      <span class="client-name">${name}${!accepted ? ' (pending)' : ''}</span>
+    </div>`;
+  }).join('');
+}
 function setTab(i) {
   document.querySelectorAll('.tab').forEach((t, idx) => t.classList.toggle('active', idx === i));
   document.querySelectorAll('.panel').forEach((p, idx) => p.classList.toggle('active', idx === i));
 }
 
 /* ââ Sidebar client switching âââââââââââââââââââââââââââââ */
-function selectClient(el, id) {
-  document.querySelectorAll('.client-item').forEach(item => item.classList.remove('active'));
-  el.classList.add('active');
+function selectClient(id) {
+  document.querySelectorAll('.client-item').forEach(el => el.classList.remove('active'));
+  event.currentTarget.classList.add('active');
   CLIENT_ID = id;
   loadClientData();
 }
@@ -772,8 +802,7 @@ async function loadClientData() {
   renderSessionPrep(allEntries);
 
   // Subscribe to realtime updates (new shares/flags)
-  if (realtimeChannel) db.removeChannel(realtimeChannel);
-  realtimeChannel = db.channel(`journal:${CLIENT_ID}`)
+  db.channel(`journal:${CLIENT_ID}`)
     .on('postgres_changes', {
       event: '*', schema: 'public', table: 'journal_entries',
       filter: `client_id=eq.${CLIENT_ID}`
@@ -782,7 +811,7 @@ async function loadClientData() {
 }
 
 /* ââ Render: Overview âââââââââââââââââââââââââââââââââââââ */
-function renderOverview(entries) {
+async function renderOverview(entries) {
   const thisWeek   = entries.filter(e => isThisWeek(e.created_at));
   const withMood   = thisWeek.filter(e => e.mood_words && e.mood_words.length > 0);
   const shared     = thisWeek.filter(e => e.shared);
@@ -827,7 +856,7 @@ function renderOverview(entries) {
     const color  = WORD_COLORS[family] || '#888';
     const pct    = Math.round((count / maxCount) * 95);
     return `<div class="word-row">
-      <div class="word-name">${escapeHtml(word)}</div>
+      <div class="word-name">${word}</div>
       <div class="word-bar-bg"><div class="word-bar" style="width:${pct}%;background:${color};"></div></div>
       <div class="word-count">${count}</div>
     </div>`;
@@ -891,10 +920,28 @@ function renderOverview(entries) {
   });
 
   // Adventure activity â query session_activity for this client
-  // TODO: join session_activity when adventures are integrated
-  // For now show placeholder
-  document.getElementById('adventure-card').innerHTML =
-    `<span style="font-size:13px;color:var(--text-tertiary);">Adventure data loads from session_activity table. Wire after adventures integration.</span>`;
+  const { data: adventures } = await db
+    .from('session_activity')
+    .select('adventure_id, theme_tag, completed_at')
+    .eq('client_id', CLIENT_ID)
+    .order('completed_at', { ascending: false })
+    .limit(3);
+
+  const adventureEl = document.getElementById('adventure-card');
+  if (adventures && adventures.length) {
+    adventureEl.innerHTML = adventures.map(a => {
+      const name    = a.adventure_id.charAt(0).toUpperCase() + a.adventure_id.slice(1);
+      const daysAgo = Math.floor((Date.now() - new Date(a.completed_at)) / 86400000);
+      const when    = daysAgo === 0 ? 'today' : daysAgo === 1 ? 'yesterday' : `${daysAgo} days ago`;
+      return `<span class="adventure-pill">â¬¡ ${name} completed â ${when}</span>
+        <span style="font-size:12px; color:var(--text-tertiary);">
+          Theme: ${a.theme_tag || 'untagged'}
+        </span>`;
+    }).join('<br style="margin:6px 0;">');
+  } else {
+    adventureEl.innerHTML =
+      '<span style="font-size:13px;color:var(--text-tertiary);">No adventure activity yet.</span>';
+  }
 }
 
 /* ââ Render: Shared entries âââââââââââââââââââââââââââââââ */
@@ -925,10 +972,10 @@ function renderEntries(entries) {
       </div>
       ${(e.mood_words && e.mood_words.length) ? `
         <div class="mood-chips">
-          ${e.mood_words.map(m => `<span class="mood-chip">${escapeHtml(m)}</span>`).join('')}
+          ${e.mood_words.map(m => `<span class="mood-chip">${m}</span>`).join('')}
         </div>` : ''}
       ${visible && e.entry_text
-        ? `<div class="entry-text">${escapeHtml(e.entry_text)}</div>`
+        ? `<div class="entry-text">${e.entry_text}</div>`
         : `<div class="entry-private">Entry content is private. Mood check-in only.</div>`}
       ${pathway ? `<div class="entry-pathway">${pathway}</div>` : ''}
     </div>`;
@@ -959,11 +1006,11 @@ function renderSessionPrep(entries) {
   // Suggested entry points (rule-based)
   const entryPoints = [];
   if (flagged.length > 0) {
-    const excerpt = flagged[0].entry_text ? escapeHtml(flagged[0].entry_text.slice(0,80)) + 'â¦' : 'flagged entry';
+    const excerpt = flagged[0].entry_text ? flagged[0].entry_text.slice(0,80) + 'â¦' : 'flagged entry';
     entryPoints.push(`What the client flagged: "${excerpt}"`);
   }
   if (topWords.length >= 2) {
-    entryPoints.push(`The co-occurrence of "${escapeHtml(topWords[0][0])}" and "${escapeHtml(topWords[1][0])}" this week â what's connecting them`);
+    entryPoints.push(`The co-occurrence of "${topWords[0][0]}" and "${topWords[1][0]}" this week â what's connecting them`);
   }
   if (topFamilies.length > 0) {
     entryPoints.push(`The ${topFamilies[0]} family has been most present this week â where it's showing up and what it's connected to`);
@@ -975,8 +1022,8 @@ function renderSessionPrep(entries) {
     ${flagged.length ? flagged.map(e => `
       <div class="flag-card">
         <div class="flag-title">"I want to talk about this" â ${formatDate(e.created_at)}</div>
-        ${e.entry_text ? `<div style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-bottom:10px;">"${escapeHtml(e.entry_text.slice(0,120))}â¦"</div>` : ''}
-        <div class="mood-chips">${(e.mood_words||[]).map(m=>`<span class="mood-chip">${escapeHtml(m)}</span>`).join('')}</div>
+        ${e.entry_text ? `<div style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-bottom:10px;">"${e.entry_text.slice(0,120)}â¦"</div>` : ''}
+        <div class="mood-chips">${(e.mood_words||[]).map(m=>`<span class="mood-chip">${m}</span>`).join('')}</div>
       </div>`).join('') :
       '<p style="font-size:13px;color:var(--text-tertiary);margin-bottom:16px;">Nothing flagged this week.</p>'
     }
@@ -1014,6 +1061,7 @@ async function init() {
 
   if (session) {
     THERAPIST_ID = session.user.id;
+    loadClientList();
     loadClientData();
   } else {
     // Session expired or direct URL access â redirect to main sign-in

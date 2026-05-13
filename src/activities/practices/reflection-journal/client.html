@@ -575,16 +575,6 @@
     border-radius: var(--radius-md);
     border-left: 2px solid var(--green-mid);
   }
-  .todo-banner {
-    background: #fff8ec;
-    border: 1px dashed #BA7517;
-    border-radius: 8px;
-    padding: 10px 14px;
-    font-size: 12px;
-    color: #854F0B;
-    line-height: 1.6;
-    margin-bottom: 20px;
-  }
 </style>
 </head>
 <body>
@@ -671,10 +661,6 @@
     <button class="top-btn" onclick="showScreen('screen-welcome')">â Back</button>
   </div>
   <div class="screen-inner">
-
-    <div class="todo-banner">
-      â ï¸ TODO: Stub library â currently 3 families (Joy, Fear, Sadness). Expand to all 8 families + Other tab before launch. Full 84-word library in Phase 1 content artifacts.
-    </div>
 
     <div class="eyebrow">Mood check-in</div>
     <h2>How are you feeling right now?</h2>
@@ -892,13 +878,8 @@ const ADVENTURE   = params.get('adventure')   || null;
 const THEME_TAG   = params.get('theme')       || null;
 
 /* âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-   PLUTCHIK WORD LIBRARY
-   ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
-   TODO: Expand to full 84-word library before launch.
-   Full library (8 families + Other) is in Phase 1 content
-   design artifacts. Currently stubbed to 3 families.
-
-   Structure per word: { word, intensity (1-3), stretch? }
+   PLUTCHIK WORD LIBRARY â full library, 84 words
+   8 families + Other tab. Stretch words marked stretch:true.
    Intensity: 1 = low, 2 = mid, 3 = high
 âââââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ */
 const WORD_LIBRARY = {
@@ -906,37 +887,136 @@ const WORD_LIBRARY = {
   joy: {
     label: 'Joy',
     words: [
-      { word: 'content',  intensity: 1 },
-      { word: 'grateful', intensity: 1 },
-      { word: 'happy',    intensity: 2 },
-      { word: 'excited',  intensity: 2 },
-      { word: 'elated',   intensity: 3 },
+      { word: 'content',   intensity: 1 },
+      { word: 'peaceful',  intensity: 1 },
+      { word: 'grateful',  intensity: 1 },
+      { word: 'happy',     intensity: 2 },
+      { word: 'playful',   intensity: 2 },
+      { word: 'relieved',  intensity: 2 },
+      { word: 'joyful',    intensity: 2 },
+      { word: 'excited',   intensity: 2 },
+      { word: 'elated',    intensity: 3 },
+      { word: 'blissful',  intensity: 3 },
+    ]
+  },
+  trust: {
+    label: 'Trust',
+    words: [
+      { word: 'open',          intensity: 1 },
+      { word: 'accepted',      intensity: 1 },
+      { word: 'safe',          intensity: 1 },
+      { word: 'supported',     intensity: 2 },
+      { word: 'connected',     intensity: 2 },
+      { word: 'valued',        intensity: 2 },
+      { word: 'appreciated',   intensity: 2 },
+      { word: 'secure',        intensity: 2 },
+      { word: 'belonging',     intensity: 3 },
+      { word: 'admired',       intensity: 3 },
+      { word: 'unseen',        intensity: 1, stretch: true },
     ]
   },
   fear: {
     label: 'Fear',
     words: [
       { word: 'uneasy',      intensity: 1 },
+      { word: 'unsure',      intensity: 1 },
       { word: 'nervous',     intensity: 1 },
+      { word: 'worried',     intensity: 2 },
       { word: 'anxious',     intensity: 2 },
       { word: 'overwhelmed', intensity: 2 },
+      { word: 'scared',      intensity: 2 },
+      { word: 'afraid',      intensity: 2 },
+      { word: 'dread',       intensity: 3 },
       { word: 'terrified',   intensity: 3 },
+    ]
+  },
+  surprise: {
+    label: 'Surprise',
+    words: [
+      { word: 'curious',          intensity: 1 },
+      { word: 'uncertain',        intensity: 1 },
+      { word: 'confused',         intensity: 2 },
+      { word: 'startled',         intensity: 2 },
+      { word: 'caught off guard', intensity: 2 },
+      { word: 'disoriented',      intensity: 2 },
+      { word: 'overwhelmed',      intensity: 2 },
+      { word: 'shocked',          intensity: 3 },
+      { word: 'stunned',          intensity: 3 },
+      { word: 'astonished',       intensity: 3 },
     ]
   },
   sadness: {
     label: 'Sadness',
     words: [
-      { word: 'pensive',     intensity: 1 },
-      { word: 'disappointed',intensity: 1 },
-      { word: 'lonely',      intensity: 2 },
-      { word: 'sad',         intensity: 2 },
-      { word: 'heartbroken', intensity: 3 },
+      { word: 'pensive',      intensity: 1 },
+      { word: 'disappointed', intensity: 1 },
+      { word: 'lonely',       intensity: 2 },
+      { word: 'hurt',         intensity: 2 },
+      { word: 'sad',          intensity: 2 },
+      { word: 'empty',        intensity: 2 },
+      { word: 'lost',         intensity: 2 },
+      { word: 'heartbroken',  intensity: 3 },
+      { word: 'grieving',     intensity: 3 },
+      { word: 'devastated',   intensity: 3 },
+      { word: 'hopeless',     intensity: 3, stretch: true },
+    ]
+  },
+  disgust: {
+    label: 'Disgust',
+    words: [
+      { word: 'bored',         intensity: 1 },
+      { word: 'bothered',      intensity: 1 },
+      { word: 'uncomfortable', intensity: 2 },
+      { word: 'unsettled',     intensity: 2 },
+      { word: 'grossed out',   intensity: 2 },
+      { word: 'turned off',    intensity: 2 },
+      { word: 'disgusted',     intensity: 3 },
+      { word: 'repulsed',      intensity: 3 },
+      { word: 'sick',          intensity: 3 },
+      { word: 'ashamed',       intensity: 2, stretch: true },
+      { word: 'guilty',        intensity: 2, stretch: true },
+    ]
+  },
+  anger: {
+    label: 'Anger',
+    words: [
+      { word: 'annoyed',    intensity: 1 },
+      { word: 'irritated',  intensity: 1 },
+      { word: 'bothered',   intensity: 1 },
+      { word: 'frustrated', intensity: 2 },
+      { word: 'resentful',  intensity: 2 },
+      { word: 'mad',        intensity: 2 },
+      { word: 'betrayed',   intensity: 2 },
+      { word: 'angry',      intensity: 2 },
+      { word: 'furious',    intensity: 3 },
+      { word: 'enraged',    intensity: 3 },
+      { word: 'jealous',    intensity: 2, stretch: true },
+    ]
+  },
+  anticipation: {
+    label: 'Anticipation',
+    words: [
+      { word: 'interested',        intensity: 1 },
+      { word: 'hopeful',           intensity: 1 },
+      { word: 'curious',           intensity: 1 },
+      { word: 'eager',             intensity: 2 },
+      { word: 'restless',          intensity: 2 },
+      { word: 'excited',           intensity: 2 },
+      { word: 'impatient',         intensity: 2 },
+      { word: 'anxious (excited)', intensity: 2 },
+      { word: 'on edge',           intensity: 3 },
+      { word: 'alert',             intensity: 3 },
+      { word: 'stuck',             intensity: 1, stretch: true },
+    ]
+  },
+  other: {
+    label: 'Other',
+    words: [
+      { word: 'numb',         intensity: 1, stretch: true },
+      { word: 'disconnected', intensity: 1, stretch: true },
+      { word: 'invisible',    intensity: 2, stretch: true },
     ]
   }
-  /*
-  TODO â add remaining families:
-  trust, surprise, disgust, anger, anticipation, other
-  */
 };
 // Build 'all' family
 WORD_LIBRARY.all = {
@@ -1070,10 +1150,6 @@ let state = {
 
 /* ââ Entry cache â populated by loadEntries() âââââââââââââââ */
 let ENTRIES_CACHE = [];
-
-function escapeHtml(str) {
-  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-}
 
 /* ââââââââââââââââââââââââââââââââââââââââââââââââââââââââââ
    SCREEN NAVIGATION
@@ -1354,7 +1430,6 @@ async function finalizeAndReturn() {
 
   // Reset state for next entry
   state.selectedWords   = [];
-  state.customWords     = [];
   state.pathway         = null;
   state.theme           = null;
   state.prompt          = null;
@@ -1433,9 +1508,9 @@ async function renderEntries() {
         </div>
         ${e.mood_words && e.mood_words.length ? `
           <div class="entry-mood-chips">
-            ${e.mood_words.map(m => `<span class="entry-mood-chip">${escapeHtml(m)}</span>`).join('')}
+            ${e.mood_words.map(m => `<span class="entry-mood-chip">${m}</span>`).join('')}
           </div>` : ''}
-        ${excerpt ? `<div class="entry-excerpt">${escapeHtml(excerpt)}</div>` : ''}
+        ${excerpt ? `<div class="entry-excerpt">${excerpt}</div>` : ''}
         <div class="entry-pathway">${formatPathwayLabel(e)}</div>
       </div>`;
   }).join('');
@@ -1463,7 +1538,7 @@ function openEntry(id) {
   }
 
   document.getElementById('detail-mood-chips').innerHTML =
-    (entry.mood_words || []).map(m => `<span class="entry-mood-chip">${escapeHtml(m)}</span>`).join('');
+    (entry.mood_words || []).map(m => `<span class="entry-mood-chip">${m}</span>`).join('');
 
   const promptsEl = document.getElementById('detail-prompts');
   if (entry.prompt_used) {
@@ -1569,12 +1644,9 @@ function resetAuthForm() {
   btn.disabled    = false;
 }
 
-let journalStarted = false;
-
 function proceedToJournal(session) {
-  if (journalStarted) return;
-  journalStarted = true;
-  CLIENT_ID = session.user.id;
+  // Override CLIENT_ID with real auth UUID
+  window.CLIENT_ID = session.user.id;
 
   // Set returning-user welcome copy
   db.from('journal_entries')
