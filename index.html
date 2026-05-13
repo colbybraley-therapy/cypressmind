@@ -1473,7 +1473,10 @@
   const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
   db.auth.getSession().then(({ data: { session } }) => {
-    if (session) window.location.replace('/therapist-dashboard.html');
+    // If URL has auth tokens it's a magic-link callback — don't redirect here
+    const isAuthCallback = window.location.hash.includes('access_token') ||
+                           window.location.search.includes('code=');
+    if (session && !isAuthCallback) window.location.replace('/therapist-dashboard.html');
   });
 
   function showPage(id) {

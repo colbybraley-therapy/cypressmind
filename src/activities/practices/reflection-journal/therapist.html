@@ -605,7 +605,7 @@ async function sendClientInvite() {
   const { error: otpError } = await db.auth.signInWithOtp({
     email,
     options: {
-      emailRedirectTo: window.location.origin + '/journal',
+      emailRedirectTo: 'https://cypressmind.com/journal',
     }
   });
 
