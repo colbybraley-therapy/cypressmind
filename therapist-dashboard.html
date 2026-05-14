@@ -2469,30 +2469,18 @@
       return;
     }
 
-    // Journal entries are keyed by the client's Supabase auth UID, not the clients-table row ID.
-    // Resolve it via therapist_clients using the client's email.
-    const { data: tc, error: tcError } = await db
-      .from('therapist_clients')
-      .select('client_id')
-      .eq('client_email', jClientEmail)
-      .maybeSingle();
+    // Look up the client's Supabase auth UID by email via a SECURITY DEFINER RPC
+    const { data: clientAuthId, error: rpcError } = await db.rpc('get_client_id_by_email', { p_email: jClientEmail });
 
-    if (tcError) {
-      jShowStatus(`DB error looking up client: ${tcError.message}`, true);
+    if (rpcError) {
+      jShowStatus(`Error looking up client: ${rpcError.message}`, true);
       return;
     }
 
-    if (!tc) {
-      jShowStatus(`No invite record found for ${jClientEmail}. Send the sign-in link first.`, false);
-      jRenderOverview([]); jRenderEntries([]); jRenderSessionPrep([]);
-      if (jRealtimeChannel) { db.removeChannel(jRealtimeChannel); jRealtimeChannel = null; }
-      return;
-    }
-
-    jClientAuthId = tc.client_id || null;
+    jClientAuthId = clientAuthId || null;
 
     if (!jClientAuthId) {
-      jShowStatus(`Invite sent to ${jClientEmail} — waiting for them to log in for the first time.`, false);
+      jShowStatus(`${jClientEmail} hasn't logged in yet. Send the sign-in link and have them open it.`, false);
       jRenderOverview([]); jRenderEntries([]); jRenderSessionPrep([]);
       if (jRealtimeChannel) { db.removeChannel(jRealtimeChannel); jRealtimeChannel = null; }
       return;
