@@ -1000,6 +1000,7 @@
             <div style="display:flex; align-items:center; gap:8px; margin-top:8px;">
               <input id="j-email-input" type="email" placeholder="Client email address"
                 oninput="jClientEmail=this.value.trim()"
+                onblur="if(this.value.trim()) loadJournalTab()"
                 style="flex:1; font-family:var(--sans); font-size:12px; padding:6px 10px;
                 border:1px solid #ddd; border-radius:6px; outline:none; color:var(--ink);" />
               <button id="j-send-link-btn" onclick="jSendMagicLink()"
@@ -1591,6 +1592,10 @@
     const { data: client } = await db.from('clients').select('*').eq('id', id).single();
     if (!client) return;
     currentClient = client;
+    jClientEmail = client.email || null;
+    jClientAuthId = null;
+    const jei = document.getElementById('j-email-input');
+    if (jei) jei.value = client.email || '';
 
     document.getElementById('cp-av').textContent   = client.avatar || '🌿';
     document.getElementById('cp-name').textContent = client.name;
@@ -2537,8 +2542,11 @@
     } else {
       status.textContent = `✓ Sign-in link sent to ${jClientEmail}`;
       status.style.background = 'var(--green-light)'; status.style.color = 'var(--hunter-green)';
+      status.style.display = 'block';
+      loadJournalTab();
+    } else {
+      status.style.display = 'block';
     }
-    status.style.display = 'block';
     btn.textContent = '✉ Send sign-in link';
     btn.disabled = false;
   }
