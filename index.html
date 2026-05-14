@@ -1529,16 +1529,11 @@
     showPage('pg-landing');
   }
 
-  db.auth.onAuthStateChange((event, session) => {
-    if (event === 'SIGNED_IN' && session?.user) {
-      window.location.replace('/therapist-dashboard.html');
-    }
-  });
-
   db.auth.getSession().then(({ data: { session } }) => {
-    if (session?.user) {
-      currentUser = session.user;
-      loadApp();
+    const isAuthCallback = window.location.hash.includes('access_token') ||
+                           window.location.search.includes('code=');
+    if (session?.user && !isAuthCallback) {
+      window.location.replace('/therapist-dashboard.html');
     }
   });
 
