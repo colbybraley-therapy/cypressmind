@@ -1490,10 +1490,11 @@
     const { data: client } = await db.from('clients').select('*').eq('id', id).single();
     if (!client) return;
     currentClient = client;
-    // Reset journal state for new client
-    jClientEmail = null; jClientAuthId = null;
+    // Reset journal state for new client; restore saved email if any
+    jClientAuthId = null;
+    jClientEmail = localStorage.getItem('j_email_' + client.id) || null;
     const jei = document.getElementById('j-email-input');
-    if (jei) jei.value = '';
+    if (jei) jei.value = jClientEmail || '';
 
     document.getElementById('cp-av').textContent   = client.avatar || '🌿';
     document.getElementById('cp-name').textContent = client.name;
@@ -2315,6 +2316,7 @@
       return;
     }
     if (emailInput && !emailInput.value) emailInput.value = jClientEmail;
+    localStorage.setItem('j_email_' + currentClient.id, jClientEmail);
 
     // Look up client's auth UID by email
     const { data: authId, error: rpcErr } = await db.rpc('get_client_id_by_email', { p_email: jClientEmail });
