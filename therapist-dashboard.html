@@ -900,6 +900,7 @@
           <div class="tab" onclick="switchTab('tab-homework', this)">Outside Work</div>
           <div class="tab" onclick="switchTab('tab-responses', this)">Session Responses</div>
           <div class="tab" onclick="switchTab('tab-history', this)">Session History</div>
+          <div class="tab" onclick="switchTab('tab-journal', this); loadJournalTab()">Journal</div>
         </div>
 
         <!-- Activities Tab -->
@@ -946,6 +947,33 @@
             <span class="section-head-title">Session History</span>
           </div>
           <div id="session-history-list"></div>
+        </div>
+
+        <!-- Journal Tab -->
+        <div id="tab-journal" class="tab-panel" style="display:none; padding:18px 20px;">
+          <div style="margin-bottom:14px;">
+            <div style="font-size:13px;font-weight:600;color:var(--ink);margin-bottom:8px;" id="j-client-label">Journal</div>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <input id="j-email-input" type="email" placeholder="Client email address"
+                oninput="jClientEmail=this.value.trim()"
+                style="flex:1;font-family:var(--sans);font-size:12px;padding:6px 10px;border:1px solid #ddd;border-radius:6px;outline:none;color:var(--ink);" />
+              <button onclick="jClientEmail=document.getElementById('j-email-input').value.trim();loadJournalTab()"
+                style="font-family:var(--sans);font-size:12px;font-weight:500;color:#555;background:#f0f0eb;border:1px solid #ddd;border-radius:6px;padding:6px 10px;cursor:pointer;white-space:nowrap;">Load</button>
+              <button id="j-send-btn" onclick="jSendMagicLink()"
+                style="font-family:var(--sans);font-size:12px;font-weight:500;color:var(--hunter-green);background:var(--green-light);border:0.5px solid var(--hunter-green);border-radius:6px;padding:6px 12px;cursor:pointer;white-space:nowrap;">✉ Send link</button>
+            </div>
+          </div>
+          <div id="j-status" style="display:none;font-size:12px;padding:8px 12px;border-radius:6px;margin-bottom:12px;"></div>
+          <div id="j-stat-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
+            <div style="background:#f8f8f5;border-radius:8px;padding:10px 12px;"><div style="font-size:10px;color:var(--slate-light);margin-bottom:4px;">Last entry</div><div id="j-s-last" style="font-size:14px;font-weight:600;color:var(--ink);">—</div></div>
+            <div style="background:#f8f8f5;border-radius:8px;padding:10px 12px;"><div style="font-size:10px;color:var(--slate-light);margin-bottom:4px;">This week</div><div id="j-s-week" style="font-size:14px;font-weight:600;color:var(--ink);">—</div></div>
+            <div style="background:#f8f8f5;border-radius:8px;padding:10px 12px;"><div style="font-size:10px;color:var(--slate-light);margin-bottom:4px;">Shared with you</div><div id="j-s-shared" style="font-size:14px;font-weight:600;color:var(--ink);">—</div></div>
+            <div style="background:#f8f8f5;border-radius:8px;padding:10px 12px;"><div style="font-size:10px;color:var(--slate-light);margin-bottom:4px;">Flagged</div><div id="j-s-flagged" style="font-size:14px;font-weight:600;color:var(--ink);">—</div></div>
+          </div>
+          <canvas id="j-chart" height="120" style="margin-bottom:14px;display:none;"></canvas>
+          <div id="j-words" style="margin-bottom:14px;"></div>
+          <div id="j-entries"></div>
+          <div id="j-prep"></div>
         </div>
 
       </div>
@@ -1121,7 +1149,13 @@
   const SUPABASE_URL = 'https://vfpxovpwwabisfjjqkpm.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_-cIPFr0xt1CfC8fwh0e_ew_Q6LIbcX5';
   const { createClient } = supabase;
-  const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+  const db = createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: { storageKey: 'therapist-dashboard-session' }
+  });
+  // Isolated client for OTPs — no session storage, won't pollute therapist auth
+  const otpClient = createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
+  });
   let currentUser = null;
 
   function esc(s) {
@@ -1170,7 +1204,10 @@
   }
 
   db.auth.onAuthStateChange((event, session) => {
-    if (session) loadApp();
+    if (!session) return;
+    // Ignore foreign sessions (e.g. client processing magic link in same browser)
+    if (currentUser && session.user.id !== currentUser.id) return;
+    loadApp();
   });
 
   /* ─────────────────────────────────────────
@@ -1453,6 +1490,10 @@
     const { data: client } = await db.from('clients').select('*').eq('id', id).single();
     if (!client) return;
     currentClient = client;
+    // Reset journal state for new client
+    jClientEmail = null; jClientAuthId = null;
+    const jei = document.getElementById('j-email-input');
+    if (jei) jei.value = '';
 
     document.getElementById('cp-av').textContent   = client.avatar || '🌿';
     document.getElementById('cp-name').textContent = client.name;
@@ -1866,8 +1907,7 @@
 
   function launchJournal(actId, e) {
     e.stopPropagation();
-    const url = `${window.location.origin}/src/activities/practices/reflection-journal/therapist.html?client_id=${currentClient.id}`;
-    window.open(url, '_blank');
+    switchTabByName('tab-journal');
   }
 
   async function launchWillowmere(actId, e) {
@@ -2196,6 +2236,7 @@
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
     const panel = document.getElementById(panelId);
     if (panel) panel.style.display = 'block';
+    if (panelId === 'tab-journal') { loadJournalTab(); return; }
     const idx = ['tab-activities','tab-homework','tab-responses','tab-history'].indexOf(panelId);
     const tabs = document.querySelectorAll('.tab');
     if (tabs[idx]) tabs[idx].classList.add('active');
@@ -2219,6 +2260,172 @@
   function formatDate(iso) {
     if (!iso) return '—';
     return new Date(iso).toLocaleDateString('en-US', { month:'short', day:'numeric', year:'numeric' });
+  }
+
+  /* ─────────────────────────────────────────
+     JOURNAL TAB
+  ───────────────────────────────────────── */
+  let jAllEntries = [], jChartInstance = null, jRealtimeChannel = null;
+  let jClientEmail = null, jClientAuthId = null;
+
+  const PLUTCHIK_COLORS = {
+    joy:'#f6c84b', trust:'#8bc34a', fear:'#b5cc18', surprise:'#26c6da',
+    sadness:'#5c9bd4', disgust:'#9c27b0', anger:'#ef5350', anticipation:'#ff9800'
+  };
+
+  function jFmtDate(iso) {
+    if (!iso) return '—';
+    const d = new Date(iso), now = new Date();
+    const diff = Math.floor((now - d) / 86400000);
+    const time = d.toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' });
+    if (diff === 0) return `Today, ${time}`;
+    if (diff === 1) return `Yesterday, ${time}`;
+    return d.toLocaleDateString('en-US', { weekday:'short', month:'short', day:'numeric' }) + ` · ${time}`;
+  }
+  function jIsThisWeek(iso) {
+    if (!iso) return false;
+    const d = new Date(iso), now = new Date();
+    const s = new Date(now); s.setDate(now.getDate() - now.getDay()); s.setHours(0,0,0,0);
+    return d >= s;
+  }
+
+  function jShowStatus(msg, isError) {
+    const el = document.getElementById('j-status');
+    if (!el) return;
+    el.textContent = msg;
+    el.style.background = isError ? '#fdecea' : '#f5f5f0';
+    el.style.color = isError ? '#b04040' : 'var(--slate-light)';
+    el.style.display = 'block';
+  }
+  function jHideStatus() {
+    const el = document.getElementById('j-status');
+    if (el) el.style.display = 'none';
+  }
+
+  async function loadJournalTab() {
+    if (!currentClient) return;
+    jHideStatus();
+    document.getElementById('j-client-label').textContent = `${currentClient.name}'s Journal`;
+
+    const emailInput = document.getElementById('j-email-input');
+    if (!jClientEmail && emailInput?.value.trim()) jClientEmail = emailInput.value.trim();
+
+    if (!jClientEmail) {
+      jShowStatus('Enter the client\'s email above and click Load.', false);
+      return;
+    }
+    if (emailInput && !emailInput.value) emailInput.value = jClientEmail;
+
+    // Look up client's auth UID by email
+    const { data: authId, error: rpcErr } = await db.rpc('get_client_id_by_email', { p_email: jClientEmail });
+    if (rpcErr) { jShowStatus(`Lookup error: ${rpcErr.message}`, true); return; }
+
+    jClientAuthId = authId || null;
+    if (!jClientAuthId) {
+      jShowStatus(`${jClientEmail} hasn't logged in yet — send them the sign-in link first.`, false);
+      return;
+    }
+
+    const { data, error } = await db
+      .from('journal_entries').select('*')
+      .eq('client_id', jClientAuthId)
+      .order('created_at', { ascending: false });
+    if (error) { jShowStatus(`Error loading entries: ${error.message}`, true); return; }
+
+    jAllEntries = data || [];
+    jHideStatus();
+    jRenderStats(jAllEntries);
+    jRenderEntries(jAllEntries);
+    jRenderPrep(jAllEntries);
+
+    // Realtime
+    if (jRealtimeChannel) db.removeChannel(jRealtimeChannel);
+    jRealtimeChannel = db.channel(`jdash:${jClientAuthId}`)
+      .on('postgres_changes', { event:'*', schema:'public', table:'journal_entries', filter:`client_id=eq.${jClientAuthId}` },
+        () => loadJournalTab())
+      .subscribe();
+  }
+
+  async function jSendMagicLink() {
+    const btn = document.getElementById('j-send-btn');
+    if (!jClientEmail) { jShowStatus('Enter the client email first.', true); return; }
+    btn.textContent = 'Sending…'; btn.disabled = true;
+    // Ensure therapist_clients record exists so the client's login can link their UID
+    await db.from('therapist_clients').upsert(
+      { therapist_id: currentUser.id, client_email: jClientEmail, client_name: currentClient.name || null },
+      { onConflict: 'therapist_id,client_email' }
+    );
+    const { error } = await otpClient.auth.signInWithOtp({
+      email: jClientEmail,
+      options: { emailRedirectTo: 'https://cypressmind.com/journal' }
+    });
+    if (error) {
+      jShowStatus('Could not send link — try again.', true);
+    } else {
+      jShowStatus(`✓ Sign-in link sent to ${jClientEmail}`, false);
+    }
+    btn.textContent = '✉ Send link'; btn.disabled = false;
+  }
+
+  function jRenderStats(entries) {
+    const week = entries.filter(e => jIsThisWeek(e.created_at));
+    document.getElementById('j-s-last').textContent    = entries.length ? jFmtDate(entries[0].created_at) : '—';
+    document.getElementById('j-s-week').textContent    = week.length;
+    document.getElementById('j-s-shared').textContent  = entries.filter(e => e.shared).length;
+    document.getElementById('j-s-flagged').textContent = entries.filter(e => e.flagged_for_session).length;
+
+    // Word frequency
+    const freq = {};
+    entries.forEach(e => (e.mood_words||[]).forEach(w => { freq[w] = (freq[w]||0)+1; }));
+    const top = Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,8);
+    const maxF = top[0]?.[1] || 1;
+    document.getElementById('j-words').innerHTML = top.length ? `
+      <div style="font-size:11px;font-weight:500;color:var(--ink);margin-bottom:6px;">Top words</div>
+      ${top.map(([w,c])=>`
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+          <span style="font-size:11px;color:var(--ink);min-width:80px;">${esc(w)}</span>
+          <div style="flex:1;background:#eee;border-radius:3px;height:6px;">
+            <div style="width:${Math.round(c/maxF*100)}%;background:var(--hunter-green);height:6px;border-radius:3px;"></div>
+          </div>
+          <span style="font-size:10px;color:var(--slate-light);">${c}×</span>
+        </div>`).join('')}` : '';
+  }
+
+  function jRenderEntries(entries) {
+    const el = document.getElementById('j-entries');
+    if (!entries.length) { el.innerHTML = '<p style="font-size:12px;color:var(--slate-light);">No entries yet.</p>'; return; }
+    el.innerHTML = `<div style="font-size:11px;font-weight:500;color:var(--ink);margin-bottom:8px;">${entries.length} entr${entries.length===1?'y':'ies'}</div>` +
+      entries.map(e => `
+        <div style="border:1px solid #e8e8e4;border-radius:8px;padding:10px 12px;margin-bottom:8px;">
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <span style="font-size:11px;color:var(--slate-light);">${jFmtDate(e.created_at)}</span>
+            <div style="display:flex;gap:4px;">
+              ${e.shared ? '<span style="font-size:10px;background:var(--green-light);color:var(--hunter-green);padding:2px 6px;border-radius:10px;">Shared</span>' : ''}
+              ${e.flagged_for_session ? '<span style="font-size:10px;background:#fff3e0;color:#e65100;padding:2px 6px;border-radius:10px;">Flagged</span>' : ''}
+            </div>
+          </div>
+          ${(e.mood_words||[]).length ? `<div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:6px;">${e.mood_words.map(w=>`<span style="font-size:10px;background:#f0f0eb;color:var(--ink);padding:2px 7px;border-radius:10px;">${esc(w)}</span>`).join('')}</div>` : ''}
+          ${e.entry_text ? `<p style="font-size:12px;color:var(--ink);line-height:1.5;margin:0;">"${esc(e.entry_text.slice(0,200))}${e.entry_text.length>200?'…':''}"</p>` : ''}
+        </div>`).join('');
+  }
+
+  function jRenderPrep(entries) {
+    const flagged = entries.filter(e => e.flagged_for_session);
+    const freq = {};
+    entries.forEach(e => (e.mood_words||[]).forEach(w => { freq[w] = (freq[w]||0)+1; }));
+    const topWords = Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,3);
+    const el = document.getElementById('j-prep');
+    if (!flagged.length && !topWords.length) { el.innerHTML = ''; return; }
+    el.innerHTML = `
+      <div style="margin-top:14px;border-top:1px solid #e8e8e4;padding-top:14px;">
+        <div style="font-size:11px;font-weight:500;color:var(--ink);margin-bottom:8px;">Session prep</div>
+        ${flagged.length ? flagged.map(e=>`
+          <div style="background:#fff8f0;border:1px solid #ffe0b2;border-radius:8px;padding:10px 12px;margin-bottom:8px;">
+            <div style="font-size:10px;font-weight:500;color:#e65100;margin-bottom:4px;">Flagged · ${jFmtDate(e.created_at)}</div>
+            ${e.entry_text ? `<p style="font-size:12px;color:var(--ink);margin:0;">"${esc(e.entry_text.slice(0,150))}…"</p>` : ''}
+          </div>`).join('') : ''}
+        ${topWords.length ? `<div style="font-size:11px;color:var(--slate-light);">Most used words: ${topWords.map(([w,c])=>`<strong>${esc(w)}</strong> (${c}×)`).join(', ')}</div>` : ''}
+      </div>`;
   }
   </script>
 
