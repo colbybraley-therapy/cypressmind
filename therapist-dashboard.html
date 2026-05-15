@@ -965,9 +965,9 @@
           </div>
           <div id="j-status" style="display:none;font-size:12px;padding:8px 12px;border-radius:6px;margin-bottom:12px;"></div>
           <div id="j-stat-grid" style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;">
-            <div style="background:#f8f8f5;border-radius:8px;padding:10px 12px;"><div style="font-size:10px;color:var(--slate-light);margin-bottom:4px;">Last entry</div><div id="j-s-last" style="font-size:14px;font-weight:600;color:var(--ink);">—</div></div>
+            <div style="background:#f8f8f5;border-radius:8px;padding:10px 12px;"><div style="font-size:10px;color:var(--slate-light);margin-bottom:4px;">Last shared</div><div id="j-s-last" style="font-size:14px;font-weight:600;color:var(--ink);">—</div></div>
             <div style="background:#f8f8f5;border-radius:8px;padding:10px 12px;"><div style="font-size:10px;color:var(--slate-light);margin-bottom:4px;">This week</div><div id="j-s-week" style="font-size:14px;font-weight:600;color:var(--ink);">—</div></div>
-            <div style="background:#f8f8f5;border-radius:8px;padding:10px 12px;"><div style="font-size:10px;color:var(--slate-light);margin-bottom:4px;">Shared with you</div><div id="j-s-shared" style="font-size:14px;font-weight:600;color:var(--ink);">—</div></div>
+            <div style="background:#f8f8f5;border-radius:8px;padding:10px 12px;"><div style="font-size:10px;color:var(--slate-light);margin-bottom:4px;">Total shared</div><div id="j-s-shared" style="font-size:14px;font-weight:600;color:var(--ink);">—</div></div>
             <div style="background:#f8f8f5;border-radius:8px;padding:10px 12px;"><div style="font-size:10px;color:var(--slate-light);margin-bottom:4px;">Flagged</div><div id="j-s-flagged" style="font-size:14px;font-weight:600;color:var(--ink);">—</div></div>
           </div>
           <canvas id="j-chart" height="120" style="margin-bottom:14px;display:none;"></canvas>
@@ -2368,7 +2368,7 @@
     const week = entries.filter(e => jIsThisWeek(e.created_at));
     document.getElementById('j-s-last').textContent    = entries.length ? jFmtDate(entries[0].created_at) : '—';
     document.getElementById('j-s-week').textContent    = week.length;
-    document.getElementById('j-s-shared').textContent  = entries.filter(e => e.shared).length;
+    document.getElementById('j-s-shared').textContent  = entries.length;
     document.getElementById('j-s-flagged').textContent = entries.filter(e => e.flagged_for_session).length;
 
     // Word frequency
