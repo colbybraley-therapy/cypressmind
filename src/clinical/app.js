@@ -55,7 +55,7 @@ const ARCHETYPE_MODULE_SLOTS = {
 };
 
 const ACTIVITY_TYPES = [
-  { id: 'quiz',      icon: '', name: 'Coping Skills Quiz'  },
+  { id: 'quiz',      icon: '🧭', name: 'Coping Skills Quiz'  },
   { id: 'breathing', icon: '⚓', name: 'Breathing Garden'    },
   { id: 'journal',   icon: '📜', name: 'Reflection Journal'  },
   { id: 'emotions',  icon: '🏮', name: 'Emotion Explorer'    },
@@ -69,6 +69,7 @@ let viewingClient        = null;   // full client row object
 let scoringActivity      = null;   // activity uuid string
 let _clients             = [];     // active clients cache
 let _pastClients         = [];     // archived clients cache
+let _activityMap         = {};     // activityId → name, for safe onclick lookup
 
 /* ── Page navigation ── */
 function showPage(id) {
@@ -533,7 +534,9 @@ async function renderActivities() {
     return;
   }
 
+  _activityMap = {};
   list.innerHTML = activities.map(a => {
+    _activityMap[a.id] = a.name;
     const sortedScores = (a.scores || []).sort((x, y) => new Date(y.logged_at) - new Date(x.logged_at));
     const lastScore    = sortedScores.length ? sortedScores[0].score : null;
     const lastDate     = sortedScores.length
@@ -541,7 +544,6 @@ async function renderActivities() {
       : a.completed_at
         ? new Date(a.completed_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })
         : null;
-    const safeName = a.name.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
     return `
       <div class="lesson-row${a.done ? ' done' : ''}">
         <div class="check${a.done ? ' done' : ''}" onclick="toggleActivity('${a.id}', ${a.done})">
@@ -557,8 +559,8 @@ async function renderActivities() {
           </div>
         </div>
         <div class="lesson-actions">
-          <button class="start-session-btn" onclick="startLiveSession('${viewingClient.id}', '${viewingClient.name.replace(/'/g,"\\'")}', '${a.activity_type}', '${a.activity_icon || '✦'}')">▶ Start</button>
-          <span class="lesson-score" onclick="openScore('${a.id}', '${safeName}')">Score</span>
+          <button class="start-session-btn" onclick="startLiveSession('${viewingClient.id}', '${a.activity_type}', '${a.activity_icon || '✦'}')">▶ Start</button>
+          <span class="lesson-score" onclick="openScore('${a.id}')">Score</span>
           <button class="del-lesson" onclick="deleteActivity('${a.id}')" title="Remove activity">✕</button>
         </div>
       </div>`;
@@ -630,8 +632,9 @@ async function saveLesson() {
 }
 
 /* ── Score logging ── */
-async function openScore(activityId, activityName) {
+async function openScore(activityId) {
   scoringActivity = activityId;
+  const activityName = _activityMap[activityId] || 'Activity';
   document.getElementById('score-modal-title').textContent = 'Score — ' + activityName.substring(0, 30);
   document.getElementById('score-input').value = '';
 
@@ -664,7 +667,9 @@ async function saveScore() {
   const val = parseInt(document.getElementById('score-input').value, 10);
   if (isNaN(val) || val < 0 || val > 100) { document.getElementById('score-input').focus(); return; }
 
-  await db.from('scores').insert({ activity_id: scoringActivity, score: val });
+  const { error } = await db.from('scores').insert({ activity_id: scoringActivity, score: val });
+  if (error) { console.error('Error saving score:', error); return; }
+
   await db.from('activities').update({ done: true, completed_at: new Date().toISOString() }).eq('id', scoringActivity);
 
   closeOverlay('score-overlay');
@@ -711,7 +716,8 @@ function generateCode() {
 }
 
 /* Therapist starts a live session with a client */
-async function startLiveSession(clientId, clientName, activityType, activityIcon) {
+async function startLiveSession(clientId, activityType, activityIcon) {
+  const clientName = viewingClient?.name || '';
   const code = generateCode();
 
   const { data: session, error } = await db.from('sessions').insert({
@@ -741,7 +747,7 @@ function showSessionPanel(code, clientName, activityType, activityIcon, sessionI
       <div class="session-panel-header">
         <div class="session-panel-title">
           <span>${activityIcon}</span>
-          <span>Live Session — ${clientName}</span>
+          <span>Live Session — ${esc(clientName)}</span>
         </div>
         <button class="session-close-btn" onclick="endSession()">End Session</button>
       </div>
@@ -1022,10 +1028,12 @@ async function endSession(skipConfirm = false) {
     .eq('session_id', activeSession.id)
     .order('created_at', { ascending: true });
 
-  // Calculate score from responses
+  // Calculate score from responses — only quiz activities produce a meaningful numeric score
   const total    = (responses || []).length;
   const correct  = (responses || []).filter(r => r.response_data?.correct === true).length;
-  const score    = total > 0 ? Math.round((correct / total) * 100) : null;
+  const score    = activeSession.activity_type === 'quiz' && total > 0
+    ? Math.round((correct / total) * 100)
+    : null;
 
   // Find the matching activity and update it with score + completion
   const { data: activities } = await db

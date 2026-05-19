@@ -374,18 +374,6 @@
   }
 
   /* ââ Writing area âââââââââââââââââââââââââââââââââââââââââââ */
-  .prompt-display {
-    font-family: 'Playfair Display', serif;
-    font-size: 17px;
-    font-style: italic;
-    color: var(--text-secondary);
-    line-height: 1.6;
-    padding: 16px 18px;
-    background: var(--green-light);
-    border-radius: var(--radius-md);
-    margin-bottom: 16px;
-  }
-
   .write-area {
     width: 100%;
     min-height: 220px;
@@ -870,6 +858,10 @@ const SUPABASE_KEY = 'sb_publishable_-cIPFr0xt1CfC8fwh0e_ew_Q6LIbcX5';
 const { createClient } = supabase;
 const db = createClient(SUPABASE_URL, SUPABASE_KEY);
 
+function esc(s) {
+  return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+}
+
 /* ââ URL params (session context) âââââââââââââââââââââââââââ */
 const params = new URLSearchParams(window.location.search);
 const SESSION_ID  = params.get('session_id')  || null;
@@ -1195,7 +1187,10 @@ function setFamily(key) {
 
 function renderWords() {
   const family = WORD_LIBRARY[state.activeFamily];
-  const allWords = [...family.words, ...state.customWords.map(w => ({ word: w, custom: true }))];
+  const customEntries = state.activeFamily === 'other'
+    ? state.customWords.map(w => ({ word: w, custom: true }))
+    : [];
+  const allWords = [...family.words, ...customEntries];
   document.getElementById('words-grid').innerHTML = allWords.map(w =>
     `<button class="word-chip${state.selectedWords.includes(w.word) ? ' selected' : ''}"
       onclick="toggleWord('${w.word}')">${w.word}</button>`
@@ -1504,7 +1499,8 @@ async function renderEntries() {
   }
 
   el.innerHTML = ENTRIES_CACHE.map(e => {
-    const excerpt = e.entry_text ? e.entry_text.slice(0, 120) + (e.entry_text.length > 120 ? '…' : '') : null;
+    const rawExcerpt = e.entry_text ? e.entry_text.slice(0, 120) + (e.entry_text.length > 120 ? '…' : '') : null;
+    const excerpt    = rawExcerpt ? esc(rawExcerpt) : null;
     return `
       <div class="entry-item" onclick="openEntry('${e.id}')">
         <div class="entry-meta-row">
@@ -1515,7 +1511,7 @@ async function renderEntries() {
         </div>
         ${e.mood_words && e.mood_words.length ? `
           <div class="entry-mood-chips">
-            ${e.mood_words.map(m => `<span class="entry-mood-chip">${m}</span>`).join('')}
+            ${e.mood_words.map(m => `<span class="entry-mood-chip">${esc(m)}</span>`).join('')}
           </div>` : ''}
         ${excerpt ? `<div class="entry-excerpt">${excerpt}</div>` : ''}
         <div class="entry-pathway">${formatPathwayLabel(e)}</div>
@@ -1545,7 +1541,7 @@ function openEntry(id) {
   }
 
   document.getElementById('detail-mood-chips').innerHTML =
-    (entry.mood_words || []).map(m => `<span class="entry-mood-chip">${m}</span>`).join('');
+    (entry.mood_words || []).map(m => `<span class="entry-mood-chip">${esc(m)}</span>`).join('');
 
   const promptsEl = document.getElementById('detail-prompts');
   if (entry.prompt_used) {

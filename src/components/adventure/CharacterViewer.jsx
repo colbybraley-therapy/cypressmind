@@ -1,14 +1,25 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-// Import character assets (or map them to a URL/Path)
-import Scout from '../../assets/characters/The Scout.png';
-import Voyager from '../../assets/characters/The Voyager.png';
+// Import character assets
+import Scout    from '../../assets/characters/The Scout.png';
+import Voyager  from '../../assets/characters/The Voyager.png';
+import Warden   from '../../assets/characters/The Warden.png';
+import Gardener from '../../assets/characters/The Gardener.png';
+import Dreamer  from '../../assets/characters/The Dreamer.png';
+import Weaver   from '../../assets/characters/The Weaver.png';
+import Anchor   from '../../assets/characters/The Anchor.png';
+import Sage     from '../../assets/characters/The Sage.png';
 
 const characterMap = {
-  scout: Scout,
-  voyager: Voyager,
-  // Add others as you import them
+  scout:    Scout,
+  voyager:  Voyager,
+  warden:   Warden,
+  gardener: Gardener,
+  dreamer:  Dreamer,
+  weaver:   Weaver,
+  anchor:   Anchor,
+  sage:     Sage,
 };
 
 const CharacterViewer = ({ characterId }) => {

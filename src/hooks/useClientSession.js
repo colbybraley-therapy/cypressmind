@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 
 /**
  * useClientSession — manages the active live session between
@@ -7,9 +7,9 @@ import { useState, useCallback } from 'react';
  * Returns session state, a start fn, and an end fn.
  */
 export function useClientSession(db) {
-  const [session, setSession]     = useState(null);
-  const [elapsed, setElapsed]     = useState(0);
-  const [timerRef, setTimerRef]   = useState(null);
+  const [session, setSession] = useState(null);
+  const [elapsed, setElapsed] = useState(0);
+  const timerRef = useRef(null);
 
   const startSession = useCallback(async ({ clientId, activityType }) => {
     // Generate a 6-char join code
@@ -29,15 +29,15 @@ export function useClientSession(db) {
     setSession(data);
     setElapsed(0);
 
-    const ref = setInterval(() => setElapsed(s => s + 1), 1000);
-    setTimerRef(ref);
+    timerRef.current = setInterval(() => setElapsed(s => s + 1), 1000);
 
     return data;
   }, [db]);
 
   const endSession = useCallback(async () => {
     if (!session) return;
-    clearInterval(timerRef);
+    clearInterval(timerRef.current);
+    timerRef.current = null;
 
     await db.from('sessions')
       .update({ status: 'completed' })
@@ -46,7 +46,7 @@ export function useClientSession(db) {
     const snapshot = { ...session, duration: elapsed };
     setSession(null);
     return snapshot;
-  }, [db, session, elapsed, timerRef]);
+  }, [db, session, elapsed]);
 
   return { session, elapsed, startSession, endSession };
 }
