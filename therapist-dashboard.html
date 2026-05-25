@@ -354,7 +354,7 @@
       background: var(--border);
     }
     .activity-item.quiz::before { background: var(--purple); }
-    .activity-item.breathing::before { background: var(--royal-blue); }
+    .activity-item.zen-breathing::before { background: var(--royal-blue); }
     .activity-item.journal::before { background: var(--hunter-green); }
     .activity-item.emotions::before { background: #E67E22; }
     .activity-item.homework::before { background: #8B5E3C; }
@@ -1504,7 +1504,7 @@
 
   const ACTIVITY_META = {
     quiz:      { icon:'🧠', label:'Coping Skills Quiz',      color:'purple' },
-    breathing: { icon:'🌬️', label:'Breathing Garden',        color:'teal'   },
+    'zen-breathing': { icon:'🌿', label:'Zen Breathing Garden', color:'teal'   },
     journal:   { icon:'📓', label:'Reflection Journal',      color:'green'  },
     emotions:  { icon:'🎭', label:'Emotion Explorer',        color:'amber'  },
     custom:                { icon:'✏️', label:'Custom Activity',         color:'slate'  },
@@ -1729,7 +1729,7 @@
 
   const ACTIVITY_TYPES = [
     { type:'quiz',      icon:'🧠', label:'Coping Skills Quiz',   sub:'Test knowledge with guided questions' },
-    { type:'breathing', icon:'🌬️', label:'Breathing Garden',     sub:'Guided breathwork exercises' },
+    { type:'zen-breathing', icon:'🌿', label:'Zen Breathing Garden', sub:'Guided breathing and grounding exercises' },
     { type:'journal',   icon:'📓', label:'Reflection Journal',   sub:'Prompted journaling for self-discovery' },
     { type:'emotions',  icon:'🎭', label:'Emotion Explorer',     sub:'Name feelings and find coping tools' },
     { type:'custom',                icon:'✏️', label:'Custom Activity',            sub:'Add your own activity' },
