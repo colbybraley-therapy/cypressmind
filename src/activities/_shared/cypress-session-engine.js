@@ -1,21 +1,21 @@
 /* ============================================================================
-   Cypress Mind — Shared Session Engine
+   Cypress Mind â Shared Session Engine
    Intended home: src/activities/_shared/cypress-session-engine.js
 
    One engine, two roles, one event timeline:
-     • role:'client'    — the activity (Breathing Garden, Willowmere, …).
+     â¢ role:'client'    â the activity (Breathing Garden, Willowmere, â¦).
                           Emits events. Builds the authoritative session model.
-     • role:'therapist' — the dashboard drawer. Subscribes to events, mirrors the
+     â¢ role:'therapist' â the dashboard drawer. Subscribes to events, mirrors the
                           same session model, sends controls back to the client.
 
    The TRANSPORT is the only networking seam. Both roles join a channel keyed to
    the session code and exchange three message kinds: 'hello', 'event', 'control'.
 
-     Today  → BroadcastChannelTransport  (same-origin tabs, zero infrastructure)
-     Later  → SupabaseTransport          (same 3 methods: send / onMessage / close)
+     Today  â BroadcastChannelTransport  (same-origin tabs, zero infrastructure)
+     Later  â SupabaseTransport          (same 3 methods: send / onMessage / close)
 
    Because both roles reduce the SAME event stream through applyEvent(), the
-   summary rollup is identical on either side — the client computes it as it
+   summary rollup is identical on either side â the client computes it as it
    plays, the therapist reconstructs it from what arrives.
    ========================================================================== */
 (function (global) {
@@ -51,9 +51,8 @@
     return { send: function () {}, onMessage: function () {}, close: function () {} };
   }
 
-  /* Cross-device transport via Supabase Realtime broadcast.
-     Preferred when opts.supabase is supplied to join(); falls back to
-     BroadcastChannel (same-origin tabs) or NullTransport automatically.     */
+  /* Real cross-device transport. supabase = a supabase-js v2 client.
+     Same interface as the others; queues outbound msgs until SUBSCRIBED. */
   function SupabaseTransport(code, supabase) {
     var channel = supabase.channel('cypress-session:' + code, {
       config: { broadcast: { self: false, ack: false } },
@@ -80,6 +79,8 @@
     };
   }
 
+  /* Prefer Supabase when a client is supplied via join({ supabase }); fall back
+     to BroadcastChannel (same-origin tabs), then a no-op. */
   function pickTransport(code, opts) {
     try { if (opts && opts.supabase) return SupabaseTransport(code, opts.supabase); } catch (e) {}
     try { if (typeof BroadcastChannel !== 'undefined') return BroadcastChannelTransport(code); } catch (e) {}
@@ -96,8 +97,8 @@
       paced: false,                       // self-guided until the therapist drives pacing
       client: (opts && opts.client) || 'J.M.',
       activity: (opts && opts.activity) || 'breathing-garden',
-      rooms: [],                          // one entry per room visit → summary
-      events: [],                         // flat timeline             → live feed
+      rooms: [],                          // one entry per room visit â summary
+      events: [],                         // flat timeline             â live feed
     };
   }
 
@@ -173,7 +174,7 @@
     var code = opts.code || newCode();
     var transport = opts.transport || pickTransport(code, opts);
 
-    var listeners = { event: [], control: [], presence: [] };
+    var listeners = { event: [], control: [], presence: [], phase: [] };
     function on(kind, fn) { (listeners[kind] || (listeners[kind] = [])).push(fn); return api; }
     function fire(kind, payload) {
       (listeners[kind] || []).forEach(function (fn) { try { fn(payload); } catch (e) {} });
@@ -186,6 +187,8 @@
       if (msg.kind === 'event' && role === 'therapist') {
         applyEvent(state, msg.payload);
         fire('event', msg.payload);
+      } else if (msg.kind === 'phase' && role === 'therapist') {
+        fire('phase', msg.payload);          // ephemeral live state â NOT stored
       } else if (msg.kind === 'control' && role === 'client') {
         fire('control', msg.payload);
       } else if (msg.kind === 'hello') {
@@ -209,6 +212,8 @@
       fire('event', e);       // and to any in-page listener
       return e;
     }
+    // Ephemeral live phase telemetry â broadcast for the now-card, never stored.
+    function emitPhase(payload) { send('phase', payload || {}); }
     function end() {
       emit('system', null, { ended: true });
       return summarize(state);
@@ -226,7 +231,7 @@
       code: code,
       role: role,
       // client
-      start: start, emit: emit, end: end,
+      start: start, emit: emit, emitPhase: emitPhase, end: end,
       // therapist
       sendControl: sendControl,
       // both
@@ -234,6 +239,7 @@
       onEvent: function (fn) { return on('event', fn); },
       onControl: function (fn) { return on('control', fn); },
       onPresence: function (fn) { return on('presence', fn); },
+      onPhase: function (fn) { return on('phase', fn); },
       state: function () { return state; },
       summary: function () { return summarize(state); },
       close: function () { transport.close(); },

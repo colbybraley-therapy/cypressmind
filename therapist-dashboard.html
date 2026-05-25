@@ -1168,6 +1168,8 @@
   <!-- ══════════════════════════════════════════
        JAVASCRIPT
   ══════════════════════════════════════════ -->
+  <script src="src/activities/_shared/cypress-session-engine.js"></script>
+  <script src="src/activities/_shared/live-session-drawer.js"></script>
   <script>
   /* ─────────────────────────────────────────
      PAGE & AUTH SETUP  (unchanged from original)
@@ -1183,6 +1185,10 @@
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
   });
   let currentUser = null;
+
+  CypressDrawer.onSave(function(summary) {
+    console.log('[CypressDrawer] save:', summary);
+  });
 
   function esc(s) {
     return String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
@@ -1941,7 +1947,11 @@
 
   function launchZenBreathing(actId, e) {
     e.stopPropagation();
-    window.open(window.location.origin + '/src/activities/Zen%20Breathing%20Garden/cypress-dashboard.html', '_blank');
+    CypressDrawer.launch({
+      activityLabel: 'Zen Breathing Garden',
+      client: currentClient ? currentClient.name : 'Client',
+      clientView: window.location.origin + '/src/activities/Zen%20Breathing%20Garden/breathing-garden-v31.html',
+    });
   }
 
   async function launchWillowmere(actId, e) {
