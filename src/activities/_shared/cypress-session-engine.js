@@ -51,15 +51,38 @@
     return { send: function () {}, onMessage: function () {}, close: function () {} };
   }
 
-  /* TODO (step: real sync) — SupabaseTransport(code, supabase):
-       const ch = supabase.channel('cypress-session:' + code);
-       ch.on('broadcast', { event: 'msg' }, p => cb(p.payload)).subscribe();
-       send: msg => ch.send({ type:'broadcast', event:'msg', payload: msg });
-     Same three methods — nothing else in this file changes.                  */
+  /* Cross-device transport via Supabase Realtime broadcast.
+     Preferred when opts.supabase is supplied to join(); falls back to
+     BroadcastChannel (same-origin tabs) or NullTransport automatically.     */
+  function SupabaseTransport(code, supabase) {
+    var channel = supabase.channel('cypress-session:' + code, {
+      config: { broadcast: { self: false, ack: false } },
+    });
+    var handler = null, ready = false, queue = [];
+    channel.on('broadcast', { event: 'msg' }, function (p) {
+      if (handler && p && p.payload) handler(p.payload);
+    });
+    channel.subscribe(function (status) {
+      if (status === 'SUBSCRIBED') {
+        ready = true;
+        while (queue.length) channel.send({ type: 'broadcast', event: 'msg', payload: queue.shift() });
+      } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+        console.warn('[SupabaseTransport] channel ' + status + ' for ' + code);
+      }
+    });
+    return {
+      send: function (msg) {
+        if (ready) channel.send({ type: 'broadcast', event: 'msg', payload: msg });
+        else queue.push(msg);
+      },
+      onMessage: function (cb) { handler = cb; },
+      close: function () { try { supabase.removeChannel(channel); } catch (e) {} },
+    };
+  }
 
-  function pickTransport(code) {
-    try { if (typeof BroadcastChannel !== 'undefined') return BroadcastChannelTransport(code); }
-    catch (e) {}
+  function pickTransport(code, opts) {
+    try { if (opts && opts.supabase) return SupabaseTransport(code, opts.supabase); } catch (e) {}
+    try { if (typeof BroadcastChannel !== 'undefined') return BroadcastChannelTransport(code); } catch (e) {}
     return NullTransport();
   }
 
@@ -148,7 +171,7 @@
     opts = opts || {};
     var role = opts.role || 'client';
     var code = opts.code || newCode();
-    var transport = opts.transport || pickTransport(code);
+    var transport = opts.transport || pickTransport(code, opts);
 
     var listeners = { event: [], control: [], presence: [] };
     function on(kind, fn) { (listeners[kind] || (listeners[kind] = [])).push(fn); return api; }

@@ -1013,6 +1013,10 @@
 </div>
 
 </div><!-- /app -->
+<!-- Optional Supabase real-time transport (cross-device).
+     Activate: add ?supabase=1 to the URL and fill in the project URL + anon key below. -->
+<script>if(new URLSearchParams(location.search).get('supabase')==='1'){document.write('<scr'+'ipt src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"><\/scr'+'ipt>');}</script>
+<script>if(window.supabase){window._supabaseClient=window.supabase.createClient('https://YOUR_PROJECT.supabase.co','YOUR_ANON_PUBLIC_KEY');}</script>
 <!-- Shared session engine (src/activities/_shared/). Loads before the game script. -->
 <script src="../_shared/cypress-session-engine.js"></script>
 <script>
@@ -2731,7 +2735,7 @@ const CypressSession = (function () {
 
   function start() {
     if (E) {
-      engine = E.join({ role: 'client', code: code });
+      engine = E.join({ role: 'client', code: code, supabase: window._supabaseClient });
       engine.start();
       engine.onControl(handleControl);
       console.log('%c[client] session ' + code, 'color:#355E3B;font-weight:700');
