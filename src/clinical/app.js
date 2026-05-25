@@ -56,7 +56,7 @@ const ARCHETYPE_MODULE_SLOTS = {
 
 const ACTIVITY_TYPES = [
   { id: 'quiz',      icon: '🧭', name: 'Coping Skills Quiz'  },
-  { id: 'breathing', icon: '⚓', name: 'Breathing Garden'    },
+  { id: 'zen-breathing', icon: '🌿', name: 'Zen Breathing Garden' },
   { id: 'journal',   icon: '📜', name: 'Reflection Journal'  },
   { id: 'emotions',  icon: '🏮', name: 'Emotion Explorer'    },
   { id: 'custom',    icon: '✦', name: 'Custom'              },
@@ -467,7 +467,7 @@ async function renderSessionHistory() {
 
   const activityIcons = {
     quiz:      '🧭',
-    breathing: '⚓',
+    'zen-breathing': '🌿',
     journal:   '📜',
     emotions:  '🏮',
   };
@@ -862,7 +862,7 @@ const THERAPIST_PROMPTS = {
     "Reflect: \"Which question felt hardest? Why do you think that is?\"",
     "Wrap up: \"What's one thing from this quiz you want to remember this week?\""
   ],
-  breathing: [
+  'zen-breathing': [
     "Before starting: \"Where do you feel stress most in your body right now?\"",
     "They're beginning to breathe. Gently say: \"Just follow the circle — no pressure.\"",
     "Mid-exercise: \"Notice anything shifting? Even a tiny bit of calm counts.\"",
@@ -1132,7 +1132,7 @@ function generateNarrative(summary, activityType) {
     else narrative += `Several concepts to revisit — consider reviewing coping strategies together.`;
   }
 
-  else if (activityType === 'breathing') {
+  else if (activityType === 'zen-breathing') {
     if (summary.breathingCompleted) {
       narrative += `Client completed the full breathing exercise. `;
       narrative += `This suggests good ability to follow guided regulation techniques.`;
