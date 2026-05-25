@@ -98,7 +98,7 @@
       aspect-ratio:2752 / 1536;
       min-width:100%;
       min-height:100%;
-      background-image:url("images/hub.png");
+      background-image:url("images/hub.jpg");
       background-size:100% 100%;
       background-position:center;
     }
@@ -393,14 +393,14 @@
     .placeholder-bg p  { font-size:0.9rem; color:rgba(245,213,160,0.55); max-width:300px; line-height:1.65; }
 
     /* Room backgrounds */
-    #room-koi .room-bg     { background-image:url("images/koi-pond.png"); }
-    #room-flower .room-bg  { background-image: url("images/flower-garden.png"); background-size: cover; background-position: center; }
-    #room-sand .room-bg    { background-image: url("images/sand-garden.png"); background-size: cover; background-position: center; }
-    #room-bamboo .room-bg  { background-image: url("images/bamboo-grove.png"); background-size: cover; background-position: center; }
-    #room-lantern .room-bg { background-image: url("images/lantern-alcove.png"); background-size: cover; background-position: center; }
+    #room-koi .room-bg     { background-image:url("images/koi-pond.jpg"); }
+    #room-flower .room-bg  { background-image: url("images/flower-garden.jpg"); background-size: cover; background-position: center; }
+    #room-sand .room-bg    { background-image: url("images/sand-garden.jpg"); background-size: cover; background-position: center; }
+    #room-bamboo .room-bg  { background-image: url("images/bamboo-grove.jpg"); background-size: cover; background-position: center; }
+    #room-lantern .room-bg { background-image: url("images/lantern-alcove.jpg"); background-size: cover; background-position: center; }
     #room-lantern .room-vignette { background: radial-gradient(ellipse at center, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.5) 100%); }
-    #room-sky .room-bg     { background-image: url("images/sky-platform.png"); background-size: cover; background-position: center; }
-    #room-tea .room-bg     { background-image: url("images/tea-room.png"); background-size: cover; background-position: center; }
+    #room-sky .room-bg     { background-image: url("images/sky-platform.jpg"); background-size: cover; background-position: center; }
+    #room-tea .room-bg     { background-image: url("images/tea-room.jpg"); background-size: cover; background-position: center; }
     /* Sky platform: region label at top, instruction below */
     .sky-region-label {
       position: absolute;
@@ -1043,14 +1043,14 @@
     s.onload = function () {
       window.CYPRESS_SUPABASE = window.supabase.createClient(
         'https://vfpxovpwwabisfjjqkpm.supabase.co',
-        'YOUR_ANON_PUBLIC_KEY'   // anon/public key only â never the service key
+        'sb_publishable_-cIPFr0xt1CfC8fwh0e_ew_Q6LIbcX5'
       );
       document.dispatchEvent(new Event('cypress-supabase-ready'));
     };
     document.head.appendChild(s);
   })();
 </script>
-<script src="../_shared/cypress-session-engine.js"></script>
+<script src="cypress-session-engine.js"></script>
 <script>
 // ââââââââââââââââââââââââââââââââââââââââââââââââââââââ
 //  MACRO-PACING â shared game clock (therapist Pause/Resume)
@@ -1888,24 +1888,35 @@ let bambooMotes = [];
 const HAND_CENTER = { x: 0.5, y: 0.55 };
 const HAND_NATURAL = 480;  // natural unit space, scaled to viewport
 
+// Real hand artwork (images/hand-trace.png). Drawn in the SAME design-space frame
+// as the tracer, mapped onto the HAND_PATH bounding box so fingers line up.
+// Tune these three if the tracer drifts from the artwork's fingers, then commit.
+const HAND_IMG = { scale: 1.0, dx: 0, dy: 0, alpha: 0.62 };
+const HAND_IMG_ASPECT = 1113 / 1295;        // asset w/h (fingertipâwrist crop)
+const HAND_BBOX = { x0: -215, y0: -225, x1: 208 };   // design-space hand extents
+const bambooHandImg = new Image();
+let bambooHandReady = false;
+bambooHandImg.onload = () => { bambooHandReady = true; };
+bambooHandImg.src = 'images/hand-trace.png';
+
 // Finger path data: each finger has inhale (out â tip) and exhale (tip â in) quadratic bezier curves
 // Order matches typical hand trace: thumb, index, middle, ring, pinky
 const HAND_PATH = [
-  // Thumb (extends down-left at angle)
-  { inhale: { from: { x: -130, y: 110 }, ctrl: { x: -210, y: 50 },  to: { x: -215, y: -25 } },
-    exhale: { from: { x: -215, y: -25 }, ctrl: { x: -160, y: 0 },   to: { x: -115, y: 35 } } },
+  // Thumb
+  { inhale: { from: { x: -120, y: 72 }, ctrl: { x: -157, y: 33 }, to: { x: -194, y: -5 } },
+    exhale: { from: { x: -194, y: -5 }, ctrl: { x: -153, y: 33 }, to: { x: -112, y: 66 } } },
   // Index
-  { inhale: { from: { x: -90, y: 10 },   ctrl: { x: -98, y: -110 }, to: { x: -78, y: -185 } },
-    exhale: { from: { x: -78, y: -185 }, ctrl: { x: -50, y: -110 }, to: { x: -38, y: 0 } } },
-  // Middle (tallest)
-  { inhale: { from: { x: -10, y: -10 },  ctrl: { x: -2, y: -130 },  to: { x: 12, y: -225 } },
-    exhale: { from: { x: 12, y: -225 },  ctrl: { x: 42, y: -130 },  to: { x: 48, y: -10 } } },
+  { inhale: { from: { x: -80, y: 28 }, ctrl: { x: -81, y: -84 }, to: { x: -82, y: -195 } },
+    exhale: { from: { x: -82, y: -195 }, ctrl: { x: -77, y: -84 }, to: { x: -72, y: 22 } } },
+  // Middle
+  { inhale: { from: { x: 20, y: 8 }, ctrl: { x: 22, y: -108 }, to: { x: 25, y: -225 } },
+    exhale: { from: { x: 25, y: -225 }, ctrl: { x: 18, y: -108 }, to: { x: 12, y: 2 } } },
   // Ring
-  { inhale: { from: { x: 75, y: -5 },    ctrl: { x: 88, y: -110 },  to: { x: 105, y: -200 } },
-    exhale: { from: { x: 105, y: -200 }, ctrl: { x: 130, y: -110 }, to: { x: 138, y: 0 } } },
-  // Pinky (shortest)
-  { inhale: { from: { x: 160, y: 25 },   ctrl: { x: 178, y: -45 },  to: { x: 188, y: -110 } },
-    exhale: { from: { x: 188, y: -110 }, ctrl: { x: 208, y: -30 },  to: { x: 198, y: 55 } } },
+  { inhale: { from: { x: 108, y: 8 }, ctrl: { x: 110, y: -90 }, to: { x: 111, y: -188 } },
+    exhale: { from: { x: 111, y: -188 }, ctrl: { x: 106, y: -90 }, to: { x: 100, y: 2 } } },
+  // Pinky
+  { inhale: { from: { x: 178, y: 34 }, ctrl: { x: 185, y: -33 }, to: { x: 192, y: -99 } },
+    exhale: { from: { x: 192, y: -99 }, ctrl: { x: 181, y: -33 }, to: { x: 170, y: 28 } } },
 ];
 
 function bezierAt(p1, ctrl, p2, t) {
@@ -1971,12 +1982,31 @@ function drawBambooLoop() {
     const cy = HAND_CENTER.y * H;
     const scale = (0.42 * H) / HAND_NATURAL;
 
-    drawHandOutline(ctx, cx, cy, scale, 0.32);
+    if (bambooHandReady) drawHandImage(ctx, cx, cy, scale);
+    else                 drawHandOutline(ctx, cx, cy, scale, 0.32);
     drawTracedTrail(ctx, cx, cy, scale);
     drawTracer(ctx, cx, cy, scale, t);
   }
 
   bambooAF = requestAnimationFrame(drawBambooLoop);
+}
+
+function drawHandImage(ctx, cx, cy, scale) {
+  // Map the artwork onto the HAND_PATH bounding box (preserve aspect), in the
+  // same translate/scale frame the tracer uses, so fingers align by construction.
+  const wDesign = (HAND_BBOX.x1 - HAND_BBOX.x0) * HAND_IMG.scale;   // thumbâpinky span
+  const hDesign = wDesign / HAND_IMG_ASPECT;
+  const xMid = (HAND_BBOX.x0 + HAND_BBOX.x1) / 2 + HAND_IMG.dx;
+  const x0 = xMid - wDesign / 2;
+  const y0 = HAND_BBOX.y0 + HAND_IMG.dy;                            // anchor at fingertips
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(scale, scale);
+  ctx.globalAlpha = HAND_IMG.alpha;
+  ctx.shadowColor = 'rgba(255, 200, 110, 0.45)';
+  ctx.shadowBlur = 18 / scale;
+  ctx.drawImage(bambooHandImg, x0, y0, wDesign, hDesign);
+  ctx.restore();
 }
 
 function drawHandOutline(ctx, cx, cy, scale, opacity) {
