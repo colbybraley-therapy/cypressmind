@@ -1,0 +1,2865 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Breathing Garden — Cypress Mind</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --amber:       #E8A855;
+      --amber-light: #F5D5A0;
+      --amber-dark:  #C4843A;
+      --green:       #4A7C59;
+      --stone:       #8B7D6B;
+      --wood:        #3D2B1F;
+      --off-white:   #F8FAF9;
+      --font-head:   "Playfair Display", Georgia, serif;
+      --font-body:   "DM Sans", system-ui, sans-serif;
+      --ease-calm:   cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    html, body { width:100%; height:100%; overflow:hidden; background:#0d0a05; font-family:var(--font-body); color:var(--off-white); }
+
+    /* ─── SCENE SYSTEM ─── */
+    #app { position:relative; width:100vw; height:100vh; }
+    .scene {
+      position:absolute; inset:0;
+      opacity:0; pointer-events:none;
+      transition: opacity 1.3s var(--ease-calm), transform 1.3s var(--ease-calm);
+      transform: scale(1.04);
+    }
+    .scene.active  { opacity:1; pointer-events:all; transform:scale(1); }
+    .scene.exiting { opacity:0; transform:scale(0.96); }
+    /* Inactive scenes are invisible but opacity:0 does NOT stop click detection,
+       and children (e.g. .begin-overlay) set pointer-events:all, which overrides
+       the scene's pointer-events:none. Force every descendant of an inactive scene
+       inert so off-screen "Begin" panels can't swallow clicks on the hub. */
+    .scene:not(.active) * { pointer-events:none !important; }
+
+    /* ─── HUB ─── */
+    #hub { background:#0d0a05; }
+    .hub-overlay {
+      position:absolute; inset:0;
+      background: linear-gradient(to top, rgba(15,10,5,0.5) 0%, transparent 30%, transparent 75%, rgba(15,10,5,0.2) 100%);
+      pointer-events:none;
+      z-index:12;
+    }
+    .zone-label { position:absolute; pointer-events:none; opacity:0; transition:opacity 0.3s ease; transform:translateX(-50%); }
+    .zone-label .label-inner {
+      background:rgba(15,10,5,0.78); border:1px solid rgba(232,168,85,0.4);
+      border-radius:20px; padding:6px 18px;
+      font-family:var(--font-body); font-size:0.75rem; font-weight:500;
+      letter-spacing:0.09em; color:var(--amber-light); white-space:nowrap;
+      backdrop-filter:blur(10px);
+    }
+    .zone-wrap:hover .zone-label { opacity:1; }
+    #lantern {
+      position:absolute; width:46px; height:62px;
+      left:50%; top:8%; transform:translateX(-50%);
+      pointer-events:none;
+      animation:lanternFloat 4s ease-in-out infinite;
+      filter:drop-shadow(0 0 20px rgba(255,210,120,0.85));
+      z-index:10;
+      transition: left 2s var(--ease-calm), top 2s var(--ease-calm);
+    }
+    @keyframes lanternFloat {
+      0%,100% { transform:translateX(-50%) translateY(0) rotate(-1.5deg); }
+      50%      { transform:translateX(-50%) translateY(-10px) rotate(1.5deg); }
+    }
+    .hub-text {
+      position:absolute; bottom:6%; left:50%; transform:translateX(-50%);
+      text-align:center; z-index:5;
+      pointer-events:none;
+    }
+    .hub-text p {
+      font-family:var(--font-head); font-style:italic;
+      font-size:clamp(0.88rem,1.5vw,1.1rem); color:var(--amber-light);
+      text-shadow:0 2px 14px rgba(0,0,0,0.75); letter-spacing:0.04em; line-height:1.75;
+    }
+
+
+    /* Hub cover-container: holds image + hit zones in shared coordinate space,
+       scaled to cover the viewport exactly like background-size:cover */
+    #hub-cover {
+      position:absolute;
+      top:50%; left:50%;
+      transform:translate(-50%,-50%);
+      /* Sized to cover: use max of width/height scaling via min dimensions */
+      width:100%; height:100%;
+      overflow:hidden;
+      z-index:1;
+    }
+    #hub-cover-inner {
+      position:absolute;
+      top:50%; left:50%;
+      transform:translate(-50%,-50%);
+      /* Aspect-ratio box that covers the viewport */
+      aspect-ratio:2752 / 1536;
+      min-width:100%;
+      min-height:100%;
+      background-image:url("images/hub.png");
+      background-size:100% 100%;
+      background-position:center;
+    }
+    .hub-zone {
+      position:absolute;
+      cursor:pointer;
+      z-index:15;
+      border-radius:6px;
+      transition:background 0.4s ease;
+      background:transparent;
+    }
+    .hub-zone:hover { background:rgba(232,168,85,0.15); }
+    .hub-zone.ellipse { border-radius:50%; }
+    .hub-zone-label {
+      position:absolute;
+      bottom:100%; left:50%;
+      transform:translateX(-50%);
+      margin-bottom:8px;
+      background:rgba(15,10,5,0.78); border:1px solid rgba(232,168,85,0.4);
+      border-radius:20px; padding:6px 18px;
+      font-family:var(--font-body); font-size:0.75rem; font-weight:500;
+      letter-spacing:0.09em; color:var(--amber-light); white-space:nowrap;
+      backdrop-filter:blur(10px);
+      opacity:0; pointer-events:none; transition:opacity 0.3s ease;
+    }
+    .hub-zone:hover .hub-zone-label { opacity:1; }
+
+    /* ─── HUB ZONE CALIBRATION (press "c" on the hub, or open with ?calibrate=1) ─── */
+    body.calibrating .hub-zone {
+      background:rgba(232,168,85,0.20) !important;
+      outline:2px solid rgba(232,168,85,0.95);
+      outline-offset:-2px;
+    }
+    body.calibrating .hub-zone::after {
+      content:attr(data-room);
+      position:absolute; top:4px; left:6px;
+      font:600 11px/1 var(--font-body); letter-spacing:0.08em;
+      color:#fff; text-shadow:0 1px 3px #000; pointer-events:none;
+    }
+    body.calibrating .hub-zone-label { display:none; }
+    body.calibrating .hub-zone { cursor:move; }
+    .calib-handle {
+      position:absolute; right:-8px; bottom:-8px;
+      width:16px; height:16px; border-radius:50%;
+      background:#E8A855; border:2px solid #1a1209;
+      cursor:nwse-resize; display:none; z-index:30;
+    }
+    body.calibrating .calib-handle { display:block; }
+    #calib-panel {
+      display:none; position:fixed; right:14px; bottom:14px; z-index:9999;
+      width:300px; max-height:64vh; overflow:auto;
+      background:rgba(15,12,7,0.94); border:1px solid rgba(232,168,85,0.4);
+      border-radius:12px; padding:14px; color:#F5D5A0;
+      font:12px/1.5 var(--font-body); box-shadow:0 12px 44px rgba(0,0,0,0.6);
+      backdrop-filter:blur(10px);
+    }
+    #calib-panel h4 { font:600 13px var(--font-body); margin-bottom:6px; letter-spacing:0.06em; }
+    #calib-panel .calib-hint { opacity:0.65; font-size:11px; margin-bottom:10px; }
+    #calib-list .calib-row { padding:3px 0; border-bottom:1px solid rgba(232,168,85,0.12); }
+    #calib-list .calib-row b { color:#E8A855; text-transform:capitalize; }
+    #calib-panel button {
+      margin-top:10px; width:100%; padding:9px; cursor:pointer;
+      background:#C4843A; color:#1a1209; border:none; border-radius:8px;
+      font:600 12px var(--font-body); letter-spacing:0.05em;
+    }
+    #calib-panel button:hover { background:#E8A855; }
+
+    /* ─── ROOM CHROME ─── */
+    .room-bg {
+      position:absolute; inset:0;
+      background-size:cover; background-position:center;
+    }
+    .room-canvas { position:absolute; inset:0; width:100%; height:100%; display:block; z-index:2; }
+    .room-vignette {
+      position:absolute; inset:0; z-index:3; pointer-events:none;
+      background: radial-gradient(ellipse at center, transparent 40%, rgba(0,0,0,0.35) 100%);
+    }
+
+    .room-chrome {
+      position:absolute; inset:0; z-index:20;
+      pointer-events:none;
+      display:flex; flex-direction:column; align-items:center;
+    }
+    .room-top {
+      width:100%; display:flex; align-items:flex-start;
+      justify-content:space-between; padding:22px 28px 0;
+      pointer-events:all;
+    }
+    .back-btn {
+      background:rgba(10,7,3,0.6); border:1px solid rgba(232,168,85,0.3);
+      border-radius:50px; padding:8px 20px;
+      color:var(--amber-light); font-family:var(--font-body); font-size:0.78rem;
+      letter-spacing:0.08em; cursor:pointer; display:flex; align-items:center; gap:7px;
+      backdrop-filter:blur(12px); transition:background 0.3s,border-color 0.3s;
+    }
+    .back-btn:hover { background:rgba(232,168,85,0.18); border-color:rgba(232,168,85,0.55); }
+    .back-btn::before { content:"←"; font-size:1rem; }
+    .room-label {
+      font-family:var(--font-head); font-size:0.85rem; font-weight:400;
+      color:rgba(245,213,160,0.7); letter-spacing:0.1em; font-style:italic;
+      padding-top:10px;
+      text-shadow:0 2px 12px rgba(0,0,0,0.6);
+    }
+
+    /* Floating instruction */
+    .float-instruction {
+      position:absolute; top:50%; left:50%;
+      transform:translate(-50%,-50%);
+      text-align:center; pointer-events:none;
+      transition:opacity 0.7s ease;
+      z-index: 15;
+    }
+    .float-instruction .instr-text {
+      font-family:var(--font-head); font-style:italic;
+      font-size:clamp(1.1rem,2.4vw,1.7rem);
+      color:rgba(255,255,255,0.95);
+      text-shadow:0 2px 24px rgba(0,0,0,0.8), 0 0 60px rgba(0,0,0,0.6);
+      letter-spacing:0.04em; line-height:1.5; margin-bottom:6px;
+    }
+    .float-instruction .instr-count {
+      font-family:var(--font-head);
+      font-size:clamp(3.5rem,8vw,6rem);
+      color:rgba(245,213,160,0.85);
+      text-shadow:0 4px 50px rgba(0,0,0,0.85), 0 0 80px rgba(0,0,0,0.5);
+      line-height:1; margin-top:4px;
+    }
+    .float-instruction.hidden { opacity:0; }
+
+    /* Begin overlay */
+    .begin-overlay {
+      position:absolute; top:50%; left:50%;
+      transform:translate(-50%,-50%);
+      text-align:center; z-index:25; pointer-events:all;
+      transition:opacity 0.6s ease;
+    }
+    .begin-overlay.hidden { opacity:0; pointer-events:none; }
+    .begin-intro {
+      font-family:var(--font-head); font-style:italic;
+      font-size:clamp(1rem,2vw,1.35rem);
+      color:rgba(255,255,255,0.95);
+      text-shadow:0 2px 24px rgba(0,0,0,0.8), 0 0 50px rgba(0,0,0,0.5);
+      line-height:1.65; margin-bottom:28px; max-width:480px;
+    }
+    .begin-btn {
+      background:linear-gradient(135deg, var(--amber-dark), var(--amber));
+      border:none; border-radius:50px; padding:13px 40px;
+      font-family:var(--font-body); font-size:0.88rem; font-weight:500;
+      letter-spacing:0.12em; color:var(--wood); cursor:pointer;
+      box-shadow:0 6px 28px rgba(0,0,0,0.5), 0 0 40px rgba(196,132,58,0.4);
+      transition:transform 0.2s, box-shadow 0.2s;
+    }
+    .begin-btn:hover { transform:translateY(-2px); box-shadow:0 10px 36px rgba(0,0,0,0.6), 0 0 50px rgba(196,132,58,0.55); }
+
+    /* Progress dots */
+    .float-dots {
+      position:absolute; bottom:28%; left:50%;
+      transform:translateX(-50%);
+      display:flex; gap:10px; pointer-events:none;
+      z-index: 15;
+    }
+    .dot {
+      width:7px; height:7px; border-radius:50%;
+      background:rgba(232,168,85,0.3);
+      box-shadow:0 0 8px rgba(0,0,0,0.5);
+      transition:background 0.5s, transform 0.5s;
+    }
+    .dot.active { background:var(--amber); transform:scale(1.5); box-shadow:0 0 14px rgba(232,168,85,0.6); }
+    .dot.done   { background:rgba(232,168,85,0.6); }
+
+    /* Reflection */
+    .reflect-panel {
+      position:absolute; bottom:0; left:50%;
+      transform:translateX(-50%) translateY(100%);
+      width:min(540px,94vw);
+      background:rgba(12,8,4,0.78);
+      backdrop-filter:blur(28px);
+      border:1px solid rgba(232,168,85,0.22); border-bottom:none;
+      border-radius:28px 28px 0 0;
+      padding:34px 38px 40px;
+      z-index:40; pointer-events:all;
+      transition:transform 0.7s var(--ease-calm);
+    }
+    .reflect-panel.visible { transform:translateX(-50%) translateY(0); }
+    .reflect-q {
+      font-family:var(--font-head); font-style:italic;
+      font-size:clamp(1rem,1.9vw,1.22rem);
+      color:var(--amber-light); text-align:center; margin-bottom:22px;
+    }
+    .reflect-opts {
+      display:flex; justify-content:center; gap:14px; margin-bottom:18px;
+    }
+    .reflect-opt {
+      background:rgba(255,255,255,0.04); border:1px solid rgba(232,168,85,0.18);
+      border-radius:18px; padding:14px 16px; cursor:pointer; text-align:center;
+      min-width:100px; transition:background 0.3s,border-color 0.3s,transform 0.2s;
+    }
+    .reflect-opt:hover { background:rgba(232,168,85,0.1); border-color:rgba(232,168,85,0.38); transform:translateY(-2px); }
+    .reflect-opt.selected { background:rgba(232,168,85,0.18); border-color:var(--amber); }
+    .reflect-opt .opt-icon  { font-size:1.5rem; margin-bottom:6px; }
+    .reflect-opt .opt-label { font-size:0.73rem; color:var(--amber-light); letter-spacing:0.06em; }
+    .reflect-note {
+      width:100%; background:rgba(255,255,255,0.04);
+      border:1px solid rgba(232,168,85,0.18); border-radius:12px;
+      padding:12px 16px; color:var(--off-white); font-family:var(--font-body);
+      font-size:0.87rem; resize:none; outline:none; height:68px;
+      transition:border-color 0.3s; margin-bottom:18px;
+    }
+    .reflect-note:focus { border-color:rgba(232,168,85,0.45); }
+    .reflect-note::placeholder { color:rgba(245,213,160,0.3); }
+    .return-btn {
+      display:block; margin:0 auto;
+      background:linear-gradient(135deg,var(--amber-dark),var(--amber));
+      border:none; border-radius:50px; padding:12px 36px;
+      font-family:var(--font-body); font-size:0.85rem; font-weight:500;
+      letter-spacing:0.1em; color:var(--wood); cursor:pointer;
+      box-shadow:0 4px 20px rgba(196,132,58,0.4);
+      transition:transform 0.2s, box-shadow 0.2s;
+    }
+    .return-btn:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(196,132,58,0.5); }
+    .sensory-stack .advance-link {
+      position: relative;
+      bottom: auto; left: auto;
+      transform: none;
+      align-self: center;
+      margin-top: 6px;
+    }
+    .advance-link {
+      position:absolute;
+      bottom:8%; left:50%;
+      transform:translateX(-50%);
+      z-index:18;
+      background:rgba(10,7,3,0.55);
+      border:1px solid rgba(232,168,85,0.3);
+      border-radius:50px;
+      padding:9px 22px;
+      font-family:var(--font-body); font-size:0.78rem;
+      color:var(--amber-light); letter-spacing:0.08em;
+      cursor:pointer;
+      backdrop-filter:blur(12px);
+      opacity:0; pointer-events:none;
+      transition:opacity 0.6s ease, background 0.3s, border-color 0.3s;
+    }
+    .advance-link:hover { background:rgba(232,168,85,0.18); border-color:rgba(232,168,85,0.55); }
+    .advance-link.visible { opacity:1; pointer-events:all; }
+
+    /* 5-4-3-2-1 sensory overlay */
+    .sensory-overlay {
+      position:absolute; inset:0; z-index:25;
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:flex-end;
+      padding-bottom:max(4vh,28px);
+      pointer-events:none;
+      transition:opacity 0.6s ease;
+    }
+    .sensory-overlay.hidden { opacity:0; pointer-events:none; }
+    .sensory-stack {
+      width:min(520px,92vw);
+      display:flex; flex-direction:column; gap:8px;
+      pointer-events:all;
+    }
+    .sensory-step {
+      display:flex; align-items:center; gap:14px;
+      padding:13px 18px; border-radius:16px;
+      background:rgba(10,7,3,0.65);
+      border:1px solid rgba(232,168,85,0.12);
+      backdrop-filter:blur(14px);
+      opacity:0.35; transition:all 0.5s ease;
+    }
+    .sensory-step.active { opacity:1; border-color:rgba(232,168,85,0.42); background:rgba(10,7,3,0.8); }
+    .sensory-step.done   { opacity:0.55; }
+    .sensory-num    { font-family:var(--font-head); font-size:1.6rem; color:var(--amber); min-width:30px; text-align:center; line-height:1; }
+    .sensory-body   { flex:1; }
+    .sense-label    { font-size:0.66rem; letter-spacing:0.13em; text-transform:uppercase; color:var(--amber); margin-bottom:2px; }
+    .sense-prompt   { font-family:var(--font-head); font-style:italic; font-size:0.92rem; color:var(--amber-light); line-height:1.4; }
+    .sensory-check  {
+      width:30px; height:30px; border-radius:50%;
+      border:1.5px solid rgba(232,168,85,0.4); cursor:pointer;
+      display:flex; align-items:center; justify-content:center;
+      color:var(--amber); font-size:0.85rem; flex-shrink:0;
+      transition:background 0.3s,border-color 0.3s;
+    }
+    .sensory-check:hover { background:rgba(232,168,85,0.18); }
+    .sensory-check.checked { background:rgba(232,168,85,0.22); border-color:var(--amber); }
+
+    /* Placeholder rooms */
+    .placeholder-bg {
+      position:absolute; inset:0;
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      text-align:center; padding:40px; z-index:5;
+    }
+    .placeholder-bg h3 { font-family:var(--font-head); font-size:1.8rem; color:var(--amber-light); margin-bottom:12px; }
+    .placeholder-bg p  { font-size:0.9rem; color:rgba(245,213,160,0.55); max-width:300px; line-height:1.65; }
+
+    /* Room backgrounds */
+    #room-koi .room-bg     { background-image:url("images/koi-pond.png"); }
+    #room-flower .room-bg  { background-image: url("images/flower-garden.png"); background-size: cover; background-position: center; }
+    #room-sand .room-bg    { background-image: url("images/sand-garden.png"); background-size: cover; background-position: center; }
+    #room-bamboo .room-bg  { background-image: url("images/bamboo-grove.png"); background-size: cover; background-position: center; }
+    #room-lantern .room-bg { background-image: url("images/lantern-alcove.png"); background-size: cover; background-position: center; }
+    #room-lantern .room-vignette { background: radial-gradient(ellipse at center, rgba(0,0,0,0.15) 50%, rgba(0,0,0,0.5) 100%); }
+    #room-sky .room-bg     { background-image: url("images/sky-platform.png"); background-size: cover; background-position: center; }
+    #room-tea .room-bg     { background-image: url("images/tea-room.png"); background-size: cover; background-position: center; }
+    /* Sky platform: region label at top, instruction below */
+    .sky-region-label {
+      position: absolute;
+      top: 13%;
+      left: 50%;
+      transform: translateX(-50%);
+      font-family: var(--font-head);
+      font-style: italic;
+      font-size: clamp(1.4rem, 3.2vw, 2rem);
+      color: rgba(255, 255, 255, 0.92);
+      text-shadow: 0 2px 24px rgba(0,0,0,0.75), 0 0 50px rgba(0,0,0,0.4);
+      letter-spacing: 0.05em;
+      text-align: center;
+      z-index: 18;
+      pointer-events: none;
+      transition: opacity 0.8s ease, transform 0.8s ease;
+      opacity: 0;
+      white-space: nowrap;
+    }
+    .sky-region-label.visible { opacity: 1; }
+    #room-sky .float-instruction { top: 45%; }
+    #room-sky .float-dots { bottom: 20%; }
+    /* Bamboo: move instruction to top so it doesn't overlap the hand */
+    #room-bamboo .float-instruction { top: 14%; transform: translate(-50%, 0); }
+    #room-bamboo .float-dots { bottom: 18%; }
+
+    /* Color picker for lantern room */
+    .color-picker {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 26;
+      background: rgba(12, 8, 4, 0.78);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(232, 168, 85, 0.3);
+      border-radius: 24px;
+      padding: 36px 40px;
+      width: min(480px, 92vw);
+      text-align: center;
+      transition: opacity 0.5s ease;
+    }
+    .color-picker.hidden { opacity: 0; pointer-events: none; }
+    .picker-prompt {
+      font-family: var(--font-head);
+      font-style: italic;
+      font-size: clamp(1.05rem, 2vw, 1.3rem);
+      color: var(--amber-light);
+      margin-bottom: 24px;
+      line-height: 1.5;
+    }
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 16px;
+      justify-items: center;
+    }
+    .color-swatch {
+      width: 62px; height: 62px;
+      border-radius: 50%;
+      border: 2px solid rgba(255, 255, 255, 0.18);
+      cursor: pointer;
+      padding: 0;
+      transition: transform 0.2s, box-shadow 0.3s, border-color 0.3s;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35), inset 0 -8px 14px rgba(0, 0, 0, 0.2);
+    }
+    .color-swatch:hover {
+      transform: scale(1.1);
+      border-color: rgba(232, 168, 85, 0.6);
+      box-shadow: 0 6px 22px rgba(0, 0, 0, 0.45), inset 0 -8px 14px rgba(0, 0, 0, 0.2);
+    }
+    .color-swatch:active { transform: scale(1.05); }
+
+
+    /* Tea room: shift UI up to visually balance with the tea table in the lower portion */
+    #room-tea .begin-overlay,
+    #room-tea .color-picker,
+    #room-tea .tea-alphabet {
+      top: 42%;
+    }
+
+    /* Tea room: category picker reuses .color-picker styling */
+    #room-tea .color-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
+    .category-tile {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(232, 168, 85, 0.25);
+      border-radius: 14px;
+      padding: 14px 18px;
+      font-family: var(--font-body);
+      font-size: 0.92rem;
+      color: var(--amber-light);
+      cursor: pointer;
+      transition: background 0.3s, border-color 0.3s, transform 0.2s;
+      text-align: center;
+    }
+    .category-tile:hover {
+      background: rgba(232, 168, 85, 0.15);
+      border-color: rgba(232, 168, 85, 0.55);
+      transform: translateY(-2px);
+    }
+    .custom-cat-input {
+      width: 100%;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(232,168,85,0.3);
+      border-radius: 12px;
+      padding: 12px 16px;
+      color: var(--off-white);
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.3s;
+      margin: 14px 0 18px;
+    }
+    .custom-cat-input:focus { border-color: rgba(232,168,85,0.6); }
+
+    /* Alphabet exercise UI */
+    .tea-alphabet {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 22;
+      width: min(540px, 92vw);
+      text-align: center;
+      pointer-events: all;
+    }
+    .tea-alphabet.hidden { display: none; }
+    .tea-progress {
+      display: flex; justify-content: center; gap: 4px;
+      margin-bottom: 28px;
+      flex-wrap: wrap;
+    }
+    .tea-progress-dot {
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      background: rgba(232,168,85,0.18);
+      transition: background 0.4s, transform 0.4s;
+    }
+    .tea-progress-dot.done { background: rgba(232,168,85,0.7); }
+    .tea-progress-dot.active { background: var(--amber); transform: scale(1.4); }
+    .tea-letter {
+      font-family: var(--font-head);
+      font-size: clamp(5rem, 13vw, 9rem);
+      font-weight: 400;
+      color: rgba(255, 250, 220, 0.95);
+      text-shadow: 0 4px 40px rgba(0,0,0,0.7), 0 0 80px rgba(255,200,120,0.4);
+      line-height: 1;
+      margin-bottom: 22px;
+      letter-spacing: 0.04em;
+      transition: opacity 0.3s ease, transform 0.3s ease;
+    }
+    .tea-category-display {
+      font-family: var(--font-head);
+      font-style: italic;
+      font-size: 0.85rem;
+      color: rgba(245, 213, 160, 0.65);
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .tea-input-wrap {
+      background: rgba(10, 7, 3, 0.65);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(232, 168, 85, 0.25);
+      border-radius: 18px;
+      padding: 14px 20px;
+      margin-bottom: 18px;
+    }
+    .tea-input {
+      width: 100%;
+      background: transparent;
+      border: none;
+      color: var(--off-white);
+      font-family: var(--font-body);
+      font-size: 1.05rem;
+      outline: none;
+      text-align: center;
+    }
+    .tea-input::placeholder { color: rgba(245, 213, 160, 0.4); font-style: italic; }
+    .tea-buttons {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+    .tea-btn {
+      background: linear-gradient(135deg, var(--amber-dark), var(--amber));
+      border: none;
+      border-radius: 50px;
+      padding: 11px 32px;
+      font-family: var(--font-body);
+      font-size: 0.85rem;
+      font-weight: 500;
+      letter-spacing: 0.1em;
+      color: var(--wood);
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      box-shadow: 0 4px 18px rgba(196, 132, 58, 0.4);
+    }
+    .tea-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 26px rgba(196, 132, 58, 0.5); }
+    .tea-btn.secondary {
+      background: transparent;
+      border: 1px solid rgba(232, 168, 85, 0.4);
+      color: var(--amber-light);
+      box-shadow: none;
+    }
+    .tea-btn.secondary:hover {
+      background: rgba(232, 168, 85, 0.15);
+      box-shadow: none;
+    }
+    .tea-done {
+      display: inline-block;
+      font-family: var(--font-body);
+      font-size: 0.78rem;
+      color: rgba(245, 213, 160, 0.55);
+      letter-spacing: 0.08em;
+      cursor: pointer;
+      transition: color 0.3s;
+      padding: 4px 12px;
+    }
+    .tea-done:hover { color: var(--amber-light); }
+
+    /* ─── Session-state debug readout (press "s" on the hub or in any room) ─── */
+    #cs-debug {
+      position:fixed; left:14px; bottom:14px; z-index:9998; display:none;
+      width:360px; max-width:46vw; max-height:70vh; overflow:auto;
+      background:rgba(15,12,7,0.95); border:1px solid rgba(127,224,160,0.35);
+      border-radius:12px; box-shadow:0 14px 44px rgba(0,0,0,0.6);
+      font-family:ui-monospace,SFMono-Regular,Menlo,monospace; color:#cfe9d6;
+    }
+    #cs-debug .dbg-head {
+      position:sticky; top:0; display:flex; align-items:center; gap:10px;
+      padding:10px 12px; background:rgba(38,67,44,0.96);
+      border-bottom:1px solid rgba(127,224,160,0.25);
+    }
+    #cs-debug .dbg-head b { color:#9FE3B6; font:700 12px var(--font-body); letter-spacing:0.08em; }
+    #cs-debug .dbg-hint { font:500 10px var(--font-body); color:rgba(207,233,214,0.5); letter-spacing:0.04em; }
+    #cs-debug .dbg-end {
+      margin-left:auto; cursor:pointer; border:1px solid rgba(127,224,160,0.4);
+      background:rgba(127,224,160,0.12); color:#9FE3B6; border-radius:7px;
+      padding:5px 10px; font:600 11px var(--font-body);
+    }
+    #cs-debug .dbg-end:hover { background:rgba(127,224,160,0.22); }
+    #cs-debug .dbg-body { margin:0; padding:12px; font-size:11px; line-height:1.5; white-space:pre-wrap; word-break:break-word; }
+
+    /* gentle on-screen prompt when the therapist sends a control */
+    #cs-nudge {
+      position:fixed; left:50%; bottom:38px; transform:translateX(-50%) translateY(16px);
+      z-index:9999; max-width:80vw; text-align:center;
+      background:rgba(20,15,8,0.92); border:1px solid rgba(232,168,85,0.5);
+      color:#F5D5A0; font-family:var(--font-head); font-style:italic; font-size:1.05rem;
+      padding:14px 26px; border-radius:16px; box-shadow:0 12px 40px rgba(0,0,0,0.55);
+      opacity:0; pointer-events:none; transition:opacity .5s var(--ease-calm), transform .5s var(--ease-calm);
+    }
+    #cs-nudge.show { opacity:1; transform:translateX(-50%) translateY(0); }
+  </style>
+</head>
+<body>
+<div id="app">
+
+<!-- ═══════════════════════════════════════════ HUB ═══ -->
+<div class="scene active" id="hub">
+  <div class="hub-overlay"></div>
+  <div id="lantern">
+    <svg viewBox="0 0 48 64" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+      <line x1="24" y1="0" x2="24" y2="8" stroke="#D4956A" stroke-width="2"/>
+      <ellipse cx="24" cy="10" rx="10" ry="3" fill="#C4843A"/>
+      <rect x="14" y="10" width="20" height="40" rx="3" fill="rgba(255,220,140,0.12)" stroke="#E8A855" stroke-width="1.5"/>
+      <rect x="16" y="12" width="7" height="36" rx="2" fill="rgba(255,210,100,0.28)"/>
+      <rect x="25" y="12" width="7" height="36" rx="2" fill="rgba(255,210,100,0.22)"/>
+      <line x1="14" y1="22" x2="34" y2="22" stroke="#E8A855" stroke-width="0.8" opacity="0.5"/>
+      <line x1="14" y1="36" x2="34" y2="36" stroke="#E8A855" stroke-width="0.8" opacity="0.5"/>
+      <ellipse cx="24" cy="50" rx="10" ry="3" fill="#C4843A"/>
+      <line x1="24" y1="53" x2="24" y2="62" stroke="#D4956A" stroke-width="1.5"/>
+      <ellipse cx="24" cy="62" rx="3" ry="2" fill="#C4843A" opacity="0.8"/>
+      <ellipse cx="24" cy="31" rx="7" ry="15" fill="rgba(255,200,80,0.22)"/>
+    </svg>
+  </div>
+  <div id="hub-cover">
+    <div id="hub-cover-inner">
+      <div class="hub-zone" data-room="koi" style="left:3.67%;top:21.88%;width:12.94%;height:67.58%" onclick="goRoom('koi')"><span class="hub-zone-label">Koi Courtyard · 4-7-8 Breathing</span></div>
+      <div class="hub-zone ellipse" data-room="flower" style="left:24.82%;top:37.96%;width:15.55%;height:28.26%" onclick="goRoom('flower')"><span class="hub-zone-label">Flower Garden · 5-4-3-2-1 Grounding</span></div>
+      <div class="hub-zone" data-room="sand" style="left:41.97%;top:27.99%;width:15.99%;height:52.08%" onclick="goRoom('sand')"><span class="hub-zone-label">Sand Garden · Box Breathing</span></div>
+      <div class="hub-zone" data-room="bamboo" style="left:59.16%;top:40.17%;width:11.16%;height:33.27%" onclick="goRoom('bamboo')"><span class="hub-zone-label">Bamboo Grove · Finger Tracing</span></div>
+      <div class="hub-zone" data-room="lantern" style="left:73.69%;top:29.3%;width:8.5%;height:38.93%" onclick="goRoom('lantern')"><span class="hub-zone-label">Lantern Alcove · Color Breathing</span></div>
+      <div class="hub-zone" data-room="sky" style="left:85.47%;top:14.91%;width:11.45%;height:39.19%" onclick="goRoom('sky')"><span class="hub-zone-label">Sky Platform · Muscle Relaxation</span></div>
+      <div class="hub-zone" data-room="tea" style="left:85.97%;top:54.43%;width:10.9%;height:31.18%" onclick="goRoom('tea')"><span class="hub-zone-label">Tea Room · Alphabet Grounding</span></div>
+    </div>
+  </div>
+  <div class="hub-text">
+    <p>Find a comfortable position. Take a breath.<br>When you're ready, follow the light — or choose your own path.</p>
+  </div>
+</div>
+
+<!-- ═══════════════════════════ KOI COURTYARD ═══ -->
+<div class="scene" id="room-koi">
+  <div class="room-bg"></div>
+  <canvas class="room-canvas" id="koi-canvas"></canvas>
+  <div class="room-vignette"></div>
+  <div class="room-chrome">
+    <div class="room-top">
+      <button class="back-btn" onclick="goHub()">Return to Garden</button>
+      <span class="room-label">Koi Courtyard</span>
+    </div>
+  </div>
+  <div class="begin-overlay" id="koi-begin">
+    <p class="begin-intro">Watch the water.<br>When the ripple moves, breathe with it.</p>
+    <button class="begin-btn" onclick="beginKoi()">Begin</button>
+  </div>
+  <div class="float-instruction hidden" id="koi-instr">
+    <div class="instr-text" id="koi-instr-text"></div>
+    <div class="instr-count" id="koi-instr-count"></div>
+  </div>
+  <div class="float-dots" id="koi-dots"></div>
+  <div class="advance-link" id="koi-advance" onclick="showReflect('koi')">Move to reflection →</div>
+  <div class="reflect-panel" id="koi-reflect">
+    <p class="reflect-q">How do you feel right now?</p>
+    <div class="reflect-opts">
+      <div class="reflect-opt" onclick="selectReflect(this,'koi','calmer')"><div class="opt-icon">🌿</div><div class="opt-label">Calmer</div></div>
+      <div class="reflect-opt" onclick="selectReflect(this,'koi','same')"><div class="opt-icon">〰️</div><div class="opt-label">About the same</div></div>
+      <div class="reflect-opt" onclick="selectReflect(this,'koi','unsettled')"><div class="opt-icon">☁️</div><div class="opt-label">Still unsettled</div></div>
+    </div>
+    <textarea class="reflect-note" placeholder="Anything you want to share? (optional)"></textarea>
+    <button class="return-btn" onclick="goHub()">Return to Garden</button>
+  </div>
+</div>
+
+<!-- Other rooms unchanged (will get images soon) -->
+<div class="scene" id="room-flower">
+  <div class="room-bg"></div>
+  <canvas class="room-canvas" id="flower-canvas"></canvas>
+  <div class="room-vignette"></div>
+  <div class="room-chrome">
+    <div class="room-top">
+      <button class="back-btn" onclick="goHub()">Return to Garden</button>
+      <span class="room-label">Flower Garden</span>
+    </div>
+  </div>
+  <div class="begin-overlay" id="flower-begin">
+    <p class="begin-intro">Look around you.<br>This space was made to be noticed.</p>
+    <button class="begin-btn" onclick="beginFlower()">Begin</button>
+  </div>
+  <div class="sensory-overlay hidden" id="flower-sensory">
+    <div class="sensory-stack">
+      <div class="sensory-step active" data-step="0">
+        <div class="sensory-num">5</div>
+        <div class="sensory-body"><div class="sense-label">See</div><div class="sense-prompt">Name 5 things you can see right now</div></div>
+        <div class="sensory-check" onclick="checkSense(this,0)">✓</div>
+      </div>
+      <div class="sensory-step" data-step="1">
+        <div class="sensory-num">4</div>
+        <div class="sensory-body"><div class="sense-label">Touch</div><div class="sense-prompt">Notice 4 things you could reach out and touch</div></div>
+        <div class="sensory-check" onclick="checkSense(this,1)">✓</div>
+      </div>
+      <div class="sensory-step" data-step="2">
+        <div class="sensory-num">3</div>
+        <div class="sensory-body"><div class="sense-label">Hear</div><div class="sense-prompt">Listen for 3 sounds around you right now</div></div>
+        <div class="sensory-check" onclick="checkSense(this,2)">✓</div>
+      </div>
+      <div class="sensory-step" data-step="3">
+        <div class="sensory-num">2</div>
+        <div class="sensory-body"><div class="sense-label">Smell</div><div class="sense-prompt">Notice 2 things you can smell — or imagine</div></div>
+        <div class="sensory-check" onclick="checkSense(this,3)">✓</div>
+      </div>
+      <div class="sensory-step" data-step="4">
+        <div class="sensory-num">1</div>
+        <div class="sensory-body"><div class="sense-label">Taste</div><div class="sense-prompt">Take one breath and notice what you taste</div></div>
+        <div class="sensory-check" onclick="checkSense(this,4)">✓</div>
+      </div>
+      <div class="advance-link" id="flower-advance" onclick="showReflect('flower')">Move to reflection →</div>
+    </div>
+  </div>
+  <div class="reflect-panel" id="flower-reflect">
+    <p class="reflect-q">How do you feel right now?</p>
+    <div class="reflect-opts">
+      <div class="reflect-opt" onclick="selectReflect(this,'flower','calmer')"><div class="opt-icon">🌿</div><div class="opt-label">Calmer</div></div>
+      <div class="reflect-opt" onclick="selectReflect(this,'flower','same')"><div class="opt-icon">〰️</div><div class="opt-label">About the same</div></div>
+      <div class="reflect-opt" onclick="selectReflect(this,'flower','unsettled')"><div class="opt-icon">☁️</div><div class="opt-label">Still unsettled</div></div>
+    </div>
+    <textarea class="reflect-note" placeholder="Anything you want to share? (optional)"></textarea>
+    <button class="return-btn" onclick="goHub()">Return to Garden</button>
+  </div>
+</div>
+<div class="scene" id="room-sand">
+  <div class="room-bg"></div>
+  <canvas class="room-canvas" id="sand-canvas"></canvas>
+  <div class="room-vignette"></div>
+  <div class="room-chrome">
+    <div class="room-top">
+      <button class="back-btn" onclick="goHub()">Return to Garden</button>
+      <span class="room-label">Raked Sand Garden</span>
+    </div>
+  </div>
+  <div class="begin-overlay" id="sand-begin">
+    <p class="begin-intro">Watch the rake.<br>Let your breath follow its path.</p>
+    <button class="begin-btn" onclick="beginSand()">Begin</button>
+  </div>
+  <div class="float-instruction hidden" id="sand-instr">
+    <div class="instr-text" id="sand-instr-text"></div>
+    <div class="instr-count" id="sand-instr-count"></div>
+  </div>
+  <div class="float-dots" id="sand-dots"></div>
+  <div class="advance-link" id="sand-advance" onclick="showReflect('sand')">Move to reflection →</div>
+  <div class="reflect-panel" id="sand-reflect">
+    <p class="reflect-q">How do you feel right now?</p>
+    <div class="reflect-opts">
+      <div class="reflect-opt" onclick="selectReflect(this,'sand','calmer')"><div class="opt-icon">🌿</div><div class="opt-label">Calmer</div></div>
+      <div class="reflect-opt" onclick="selectReflect(this,'sand','same')"><div class="opt-icon">〰️</div><div class="opt-label">About the same</div></div>
+      <div class="reflect-opt" onclick="selectReflect(this,'sand','unsettled')"><div class="opt-icon">☁️</div><div class="opt-label">Still unsettled</div></div>
+    </div>
+    <textarea class="reflect-note" placeholder="Anything you want to share? (optional)"></textarea>
+    <button class="return-btn" onclick="goHub()">Return to Garden</button>
+  </div>
+</div>
+<div class="scene" id="room-bamboo">
+  <div class="room-bg"></div>
+  <canvas class="room-canvas" id="bamboo-canvas"></canvas>
+  <div class="room-vignette"></div>
+  <div class="room-chrome">
+    <div class="room-top">
+      <button class="back-btn" onclick="goHub()">Return to Garden</button>
+      <span class="room-label">Bamboo Grove</span>
+    </div>
+  </div>
+  <div class="begin-overlay" id="bamboo-begin">
+    <p class="begin-intro">Hold up one hand, fingers spread.<br>Trace the glowing path with your other finger — or just your eyes.</p>
+    <button class="begin-btn" onclick="beginBamboo()">Begin</button>
+  </div>
+  <div class="float-instruction hidden" id="bamboo-instr">
+    <div class="instr-text" id="bamboo-instr-text"></div>
+    <div class="instr-count" id="bamboo-instr-count"></div>
+  </div>
+  <div class="float-dots" id="bamboo-dots"></div>
+  <div class="advance-link" id="bamboo-advance" onclick="showReflect('bamboo')">Move to reflection →</div>
+  <div class="reflect-panel" id="bamboo-reflect">
+    <p class="reflect-q">How do you feel right now?</p>
+    <div class="reflect-opts">
+      <div class="reflect-opt" onclick="selectReflect(this,'bamboo','calmer')"><div class="opt-icon">🌿</div><div class="opt-label">Calmer</div></div>
+      <div class="reflect-opt" onclick="selectReflect(this,'bamboo','same')"><div class="opt-icon">〰️</div><div class="opt-label">About the same</div></div>
+      <div class="reflect-opt" onclick="selectReflect(this,'bamboo','unsettled')"><div class="opt-icon">☁️</div><div class="opt-label">Still unsettled</div></div>
+    </div>
+    <textarea class="reflect-note" placeholder="Anything you want to share? (optional)"></textarea>
+    <button class="return-btn" onclick="goHub()">Return to Garden</button>
+  </div>
+</div>
+<div class="scene" id="room-lantern">
+  <div class="room-bg"></div>
+  <canvas class="room-canvas" id="lantern-canvas"></canvas>
+  <div class="room-vignette"></div>
+  <div class="room-chrome">
+    <div class="room-top">
+      <button class="back-btn" onclick="goHub()">Return to Garden</button>
+      <span class="room-label">Lantern Alcove</span>
+    </div>
+  </div>
+
+  <!-- Begin overlay -->
+  <div class="begin-overlay" id="lantern-begin">
+    <p class="begin-intro">This space is yours to imagine in.<br>Settle in. When you're ready, begin.</p>
+    <button class="begin-btn" onclick="beginLantern()">Begin</button>
+  </div>
+
+  <!-- Color picker: calm color -->
+  <div class="color-picker hidden" id="lantern-picker-calm">
+    <p class="picker-prompt">Choose a color that feels calm to you</p>
+    <div class="color-grid">
+      <button class="color-swatch" style="background:#87CEEB" onclick="pickCalmColor('#87CEEB')" aria-label="sky blue"></button>
+      <button class="color-swatch" style="background:#9DB99D" onclick="pickCalmColor('#9DB99D')" aria-label="sage green"></button>
+      <button class="color-swatch" style="background:#C8B6E0" onclick="pickCalmColor('#C8B6E0')" aria-label="lavender"></button>
+      <button class="color-swatch" style="background:#F0D89C" onclick="pickCalmColor('#F0D89C')" aria-label="soft gold"></button>
+      <button class="color-swatch" style="background:#F0A0A0" onclick="pickCalmColor('#F0A0A0')" aria-label="coral"></button>
+      <button class="color-swatch" style="background:#A85070" onclick="pickCalmColor('#A85070')" aria-label="deep rose"></button>
+      <button class="color-swatch" style="background:#7868A0" onclick="pickCalmColor('#7868A0')" aria-label="storm purple"></button>
+      <button class="color-swatch" style="background:#9D9890" onclick="pickCalmColor('#9D9890')" aria-label="stone gray"></button>
+    </div>
+  </div>
+
+  <!-- Color picker: release color -->
+  <div class="color-picker hidden" id="lantern-picker-release">
+    <p class="picker-prompt">Choose a color that holds<br>something you want to release</p>
+    <div class="color-grid">
+      <button class="color-swatch" style="background:#87CEEB" onclick="pickReleaseColor('#87CEEB')" aria-label="sky blue"></button>
+      <button class="color-swatch" style="background:#9DB99D" onclick="pickReleaseColor('#9DB99D')" aria-label="sage green"></button>
+      <button class="color-swatch" style="background:#C8B6E0" onclick="pickReleaseColor('#C8B6E0')" aria-label="lavender"></button>
+      <button class="color-swatch" style="background:#F0D89C" onclick="pickReleaseColor('#F0D89C')" aria-label="soft gold"></button>
+      <button class="color-swatch" style="background:#F0A0A0" onclick="pickReleaseColor('#F0A0A0')" aria-label="coral"></button>
+      <button class="color-swatch" style="background:#A85070" onclick="pickReleaseColor('#A85070')" aria-label="deep rose"></button>
+      <button class="color-swatch" style="background:#7868A0" onclick="pickReleaseColor('#7868A0')" aria-label="storm purple"></button>
+      <button class="color-swatch" style="background:#9D9890" onclick="pickReleaseColor('#9D9890')" aria-label="stone gray"></button>
+    </div>
+  </div>
+
+  <!-- Floating instruction during breathing -->
+  <div class="float-instruction hidden" id="lantern-instr">
+    <div class="instr-text" id="lantern-instr-text"></div>
+    <div class="instr-count" id="lantern-instr-count"></div>
+  </div>
+  <div class="float-dots" id="lantern-dots"></div>
+  <div class="advance-link" id="lantern-advance" onclick="showReflect('lantern')">Move to reflection →</div>
+
+  <!-- Reflection panel with extra prompt unique to this room -->
+  <div class="reflect-panel" id="lantern-reflect">
+    <p class="reflect-q">What did you imagine letting go of?</p>
+    <textarea class="reflect-note" id="lantern-letgo" placeholder="Optional — you can skip this" style="margin-bottom:18px"></textarea>
+    <p class="reflect-q">How do you feel right now?</p>
+    <div class="reflect-opts">
+      <div class="reflect-opt" onclick="selectReflect(this,'lantern','calmer')"><div class="opt-icon">🌿</div><div class="opt-label">Calmer</div></div>
+      <div class="reflect-opt" onclick="selectReflect(this,'lantern','same')"><div class="opt-icon">〰️</div><div class="opt-label">About the same</div></div>
+      <div class="reflect-opt" onclick="selectReflect(this,'lantern','unsettled')"><div class="opt-icon">☁️</div><div class="opt-label">Still unsettled</div></div>
+    </div>
+    <textarea class="reflect-note" placeholder="Anything else you want to share? (optional)"></textarea>
+    <button class="return-btn" onclick="goHub()">Return to Garden</button>
+  </div>
+</div>
+<div class="scene" id="room-sky">
+  <div class="room-bg"></div>
+  <canvas class="room-canvas" id="sky-canvas"></canvas>
+  <div class="room-vignette"></div>
+  <div class="room-chrome">
+    <div class="room-top">
+      <button class="back-btn" onclick="goHub()">Return to Garden</button>
+      <span class="room-label">Sky Platform</span>
+    </div>
+  </div>
+  <div class="begin-overlay" id="sky-begin">
+    <p class="begin-intro">Find a comfortable position.<br>We’ll move through your body together, one part at a time.</p>
+    <button class="begin-btn" onclick="beginSky()">Begin</button>
+  </div>
+  <div class="sky-region-label" id="sky-region-label"></div>
+  <div class="float-instruction hidden" id="sky-instr">
+    <div class="instr-text" id="sky-instr-text"></div>
+    <div class="instr-count" id="sky-instr-count"></div>
+  </div>
+  <div class="float-dots" id="sky-dots"></div>
+  <div class="advance-link" id="sky-advance" onclick="showReflect('sky')">Move to reflection →</div>
+  <div class="reflect-panel" id="sky-reflect">
+    <p class="reflect-q">How do you feel right now?</p>
+    <div class="reflect-opts">
+      <div class="reflect-opt" onclick="selectReflect(this,'sky','calmer')"><div class="opt-icon">🌿</div><div class="opt-label">Calmer</div></div>
+      <div class="reflect-opt" onclick="selectReflect(this,'sky','same')"><div class="opt-icon">〰️</div><div class="opt-label">About the same</div></div>
+      <div class="reflect-opt" onclick="selectReflect(this,'sky','unsettled')"><div class="opt-icon">☁️</div><div class="opt-label">Still unsettled</div></div>
+    </div>
+    <textarea class="reflect-note" placeholder="Anything you want to share? (optional)"></textarea>
+    <button class="return-btn" onclick="goHub()">Return to Garden</button>
+  </div>
+</div>
+<div class="scene" id="room-tea">
+  <div class="room-bg"></div>
+  <canvas class="room-canvas" id="tea-canvas"></canvas>
+  <div class="room-vignette"></div>
+  <div class="room-chrome">
+    <div class="room-top">
+      <button class="back-btn" onclick="goHub()">Return to Garden</button>
+      <span class="room-label">Tea Room</span>
+    </div>
+  </div>
+
+  <!-- Begin overlay -->
+  <div class="begin-overlay" id="tea-begin">
+    <p class="begin-intro">This is your quiet space.<br>Pick a category, then move through the alphabet — at your own pace.</p>
+    <button class="begin-btn" onclick="beginTea()">Begin</button>
+  </div>
+
+  <!-- Category picker -->
+  <div class="color-picker hidden" id="tea-categories">
+    <p class="picker-prompt">Choose something to think about</p>
+    <div class="color-grid">
+      <button class="category-tile" onclick="selectTeaCategory('Animals')">Animals</button>
+      <button class="category-tile" onclick="selectTeaCategory('Foods')">Foods</button>
+      <button class="category-tile" onclick="selectTeaCategory('Places')">Places</button>
+      <button class="category-tile" onclick="selectTeaCategory('Songs')">Songs</button>
+      <button class="category-tile" onclick="selectTeaCategory('Sports')">Sports</button>
+      <button class="category-tile" onclick="selectTeaCategory('Movies')">Movies</button>
+      <button class="category-tile" onclick="selectTeaCategory('Things in nature')">Things in nature</button>
+      <button class="category-tile" onclick="selectTeaCategory('Your own')">Your own</button>
+    </div>
+  </div>
+
+  <!-- Custom category input -->
+  <div class="color-picker hidden" id="tea-custom-cat">
+    <p class="picker-prompt">What would you like to think about?</p>
+    <input type="text" class="custom-cat-input" id="tea-custom-input" placeholder="Type a category..." maxlength="40" />
+    <button class="begin-btn" onclick="confirmCustomCategory()">Continue</button>
+  </div>
+
+  <!-- Alphabet exercise -->
+  <div class="tea-alphabet hidden" id="tea-alphabet">
+    <div class="tea-progress" id="tea-progress"></div>
+    <div class="tea-category-display" id="tea-category-display"></div>
+    <div class="tea-letter" id="tea-letter">A</div>
+    <div class="tea-input-wrap">
+      <input type="text" class="tea-input" id="tea-input" placeholder="Type something that starts with this letter..." maxlength="60" />
+    </div>
+    <div class="tea-buttons">
+      <button class="tea-btn secondary" onclick="skipTeaLetter()">Skip</button>
+      <button class="tea-btn" onclick="nextTeaLetter()">Next</button>
+    </div>
+    <span class="tea-done" onclick="endTeaAlphabet()">I’m done →</span>
+  </div>
+
+  <!-- Reflection -->
+  <div class="reflect-panel" id="tea-reflect">
+    <p class="reflect-q">How do you feel right now?</p>
+    <div class="reflect-opts">
+      <div class="reflect-opt" onclick="selectReflect(this,'tea','calmer')"><div class="opt-icon">🌿</div><div class="opt-label">Calmer</div></div>
+      <div class="reflect-opt" onclick="selectReflect(this,'tea','same')"><div class="opt-icon">〰️</div><div class="opt-label">About the same</div></div>
+      <div class="reflect-opt" onclick="selectReflect(this,'tea','unsettled')"><div class="opt-icon">☁️</div><div class="opt-label">Still unsettled</div></div>
+    </div>
+    <textarea class="reflect-note" placeholder="Anything you want to share? (optional)"></textarea>
+    <button class="return-btn" onclick="goHub()">Return to Garden</button>
+  </div>
+</div>
+
+</div><!-- /app -->
+<!-- Shared session engine (src/activities/_shared/). Loads before the game script. -->
+<script src="../_shared/cypress-session-engine.js"></script>
+<script>
+// ══════════════════════════════════════════════════════
+//  SCENE MANAGEMENT
+// ══════════════════════════════════════════════════════
+let currentScene = 'hub';
+const lanternPos = {
+  hub:     { left:'50%', top:'8%'  },
+  koi:     { left:'8%',  top:'14%' },
+  flower:  { left:'33%', top:'14%' },
+  sand:    { left:'49%', top:'14%' },
+  bamboo:  { left:'62%', top:'14%' },
+  lantern: { left:'74%', top:'14%' },
+  sky:     { left:'89%', top:'14%' },
+  tea:     { left:'89%', top:'14%' },
+};
+function goRoom(id) {
+  const curEl = document.getElementById(currentScene === 'hub' ? 'hub' : 'room-'+currentScene);
+  const nxtEl = document.getElementById(id === 'hub' ? 'hub' : 'room-'+id);
+  if (!nxtEl || currentScene === id) return;
+  // ── Cypress Mind session capture ──
+  try { if (currentScene && currentScene !== 'hub') CypressSession.leaveRoom(); } catch (e) {}
+  try { if (id && id !== 'hub') CypressSession.enterRoom(id); } catch (e) {}
+  curEl.classList.add('exiting');
+  setTimeout(() => curEl.classList.remove('active','exiting'), 800);
+  nxtEl.classList.add('active');
+  currentScene = id;
+  const pos = lanternPos[id] || lanternPos.hub;
+  const l = document.getElementById('lantern');
+  l.style.left = pos.left; l.style.top = pos.top;
+  if (id === 'koi') { resizeKoi(); if (!koiRunning) drawKoiLoop(); }
+  if (id === 'flower') { resizeFlower(); if (!flowerRunning) drawFlowerLoop(); }
+  if (id === 'sand') { resizeSand(); if (!sandRunning) drawSandLoop(); }
+  if (id === 'bamboo') { resizeBamboo(); if (!bambooRunning) drawBambooLoop(); }
+  if (id === 'lantern') { resizeLantern(); if (!lanternRunning) drawLanternLoop(); }
+  if (id === 'sky') { resizeSky(); if (!skyRunning) drawSkyLoop(); }
+  if (id === 'tea') { resizeTea(); if (!teaRunning) drawTeaLoop(); }
+}
+function goHub() {
+  goRoom('hub');
+  resetKoi();
+  resetFlower();
+  resetSand();
+  resetBamboo();
+  resetLantern();
+  resetSky();
+  resetTea();
+}
+
+// ══════════════════════════════════════════════════════
+//  HUB COVER SIZING + ZONE CALIBRATION
+// ══════════════════════════════════════════════════════
+// Deterministic "cover" sizing: the inner box is sized in px to exactly
+// cover the viewport at the image's true ratio, then centered. Zones are
+// % children of this box, so they stay locked to image pixels at any size.
+const HUB_IMG_RATIO = 2752 / 1536;
+function resizeHubCover() {
+  const cover = document.getElementById('hub-cover');
+  const inner = document.getElementById('hub-cover-inner');
+  if (!cover || !inner) return;
+  const W = cover.clientWidth, H = cover.clientHeight;
+  if (!W || !H) return;
+  let w, h;
+  if (W / H > HUB_IMG_RATIO) { w = W; h = W / HUB_IMG_RATIO; }
+  else                       { h = H; w = H * HUB_IMG_RATIO; }
+  inner.style.width  = w + 'px';
+  inner.style.height = h + 'px';
+}
+
+let calibrating = false;
+function hubZones() { return Array.from(document.querySelectorAll('#hub-cover-inner .hub-zone')); }
+function ensureHandles() {
+  hubZones().forEach(z => {
+    if (!z.querySelector('.calib-handle')) {
+      const h = document.createElement('div');
+      h.className = 'calib-handle';
+      z.appendChild(h);
+    }
+  });
+}
+function refreshCalibReadout() {
+  const out = document.getElementById('calib-list');
+  if (!out) return;
+  out.innerHTML = hubZones().map(z => {
+    const s = z.style;
+    return '<div class="calib-row"><b>' + z.dataset.room + '</b> ' +
+      'L:' + parseFloat(s.left).toFixed(2) + '% ' +
+      'T:' + parseFloat(s.top).toFixed(2) + '% ' +
+      'W:' + parseFloat(s.width).toFixed(2) + '% ' +
+      'H:' + parseFloat(s.height).toFixed(2) + '%</div>';
+  }).join('');
+}
+function copyZoneStyles() {
+  const html = hubZones().map(z => {
+    const s = z.style;
+    const cls = z.classList.contains('ellipse') ? 'hub-zone ellipse' : 'hub-zone';
+    const label = z.querySelector('.hub-zone-label') ? z.querySelector('.hub-zone-label').textContent : '';
+    return '<div class="' + cls + '" data-room="' + z.dataset.room + '" style="left:' +
+      parseFloat(s.left).toFixed(2) + '%;top:' + parseFloat(s.top).toFixed(2) + '%;width:' +
+      parseFloat(s.width).toFixed(2) + '%;height:' + parseFloat(s.height).toFixed(2) +
+      '%" onclick="goRoom(\'' + z.dataset.room + '\')"><span class="hub-zone-label">' +
+      label + '</span></div>';
+  }).join('\n');
+  const btn = document.getElementById('calib-copy');
+  const done = () => { if (btn) { const t = btn.textContent; btn.textContent = 'Copied to clipboard!'; setTimeout(() => btn.textContent = t, 1300); } };
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(html).then(done).catch(() => { console.log(html); done(); });
+  } else { console.log(html); done(); }
+}
+function toggleCalibrate(force) {
+  calibrating = (typeof force === 'boolean') ? force : !calibrating;
+  document.body.classList.toggle('calibrating', calibrating);
+  const panel = document.getElementById('calib-panel');
+  if (panel) panel.style.display = calibrating ? 'block' : 'none';
+  if (calibrating) { ensureHandles(); refreshCalibReadout(); }
+}
+function buildCalibPanel() {
+  if (document.getElementById('calib-panel')) return;
+  const p = document.createElement('div');
+  p.id = 'calib-panel';
+  p.innerHTML =
+    '<h4>Hub Zone Calibration</h4>' +
+    '<div class="calib-hint">Drag a zone to move it · drag the amber dot to resize · press \u201Cc\u201D to exit.</div>' +
+    '<div id="calib-list"></div>' +
+    '<button id="calib-copy">Copy zone HTML</button>';
+  document.body.appendChild(p);
+  document.getElementById('calib-copy').addEventListener('click', copyZoneStyles);
+}
+function initCalibInteractions() {
+  const inner = document.getElementById('hub-cover-inner');
+  if (!inner) return;
+  let drag = null;
+  inner.addEventListener('pointerdown', e => {
+    if (!calibrating) return;
+    const zone = e.target.closest('.hub-zone');
+    if (!zone) return;
+    e.preventDefault();
+    const rect = inner.getBoundingClientRect();
+    drag = {
+      zone, isHandle: e.target.classList.contains('calib-handle'),
+      iw: rect.width, ih: rect.height,
+      sx: e.clientX, sy: e.clientY,
+      sl: parseFloat(zone.style.left), st: parseFloat(zone.style.top),
+      sw: parseFloat(zone.style.width), sh: parseFloat(zone.style.height),
+    };
+    inner.setPointerCapture(e.pointerId);
+  });
+  inner.addEventListener('pointermove', e => {
+    if (!drag) return;
+    const dx = (e.clientX - drag.sx) / drag.iw * 100;
+    const dy = (e.clientY - drag.sy) / drag.ih * 100;
+    if (drag.isHandle) {
+      drag.zone.style.width  = Math.max(2, drag.sw + dx).toFixed(2) + '%';
+      drag.zone.style.height = Math.max(2, drag.sh + dy).toFixed(2) + '%';
+    } else {
+      drag.zone.style.left = (drag.sl + dx).toFixed(2) + '%';
+      drag.zone.style.top  = (drag.st + dy).toFixed(2) + '%';
+    }
+    refreshCalibReadout();
+  });
+  const endDrag = () => { drag = null; };
+  inner.addEventListener('pointerup', endDrag);
+  inner.addEventListener('pointercancel', endDrag);
+  // Block navigation while calibrating (capture phase, before inline onclick).
+  inner.addEventListener('click', e => {
+    if (calibrating) { e.preventDefault(); e.stopPropagation(); }
+  }, true);
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  // Hub zones are now plain divs with inline onclick + CSS hover labels.
+  initDots('koi-dots', KOI_CYCLES);
+  initDots('sand-dots', SAND_CYCLES);
+  initDots('bamboo-dots', BAMBOO_CYCLES);
+  initDots('lantern-dots', LANTERN_CYCLES);
+  initDots('sky-dots', SKY_CYCLES);
+  resizeKoi(); drawKoiLoop();
+  resizeFlower(); drawFlowerLoop();
+  resizeSand(); drawSandLoop();
+  resizeBamboo(); drawBambooLoop();
+  resizeLantern(); drawLanternLoop();
+  resizeSky(); drawSkyLoop();
+  resizeTea(); drawTeaLoop();
+  buildTeaProgress();
+  resizeHubCover();
+  buildCalibPanel();
+  ensureHandles();
+  initCalibInteractions();
+  if (new URLSearchParams(location.search).get('calibrate') === '1') toggleCalibrate(true);
+  window.addEventListener('resize', () => { resizeHubCover(); resizeKoi(); resizeFlower(); resizeSand(); resizeBamboo(); resizeLantern(); resizeSky(); resizeTea(); });
+});
+
+// Toggle calibration with the "c" key while on the hub (ignored while typing).
+document.addEventListener('keydown', e => {
+  if (currentScene !== 'hub') return;
+  const tag = (e.target.tagName || '').toLowerCase();
+  if (tag === 'input' || tag === 'textarea') return;
+  if (e.key === 'c' || e.key === 'C') toggleCalibrate();
+});
+
+// ══════════════════════════════════════════════════════
+//  KOI POND — IMAGE BG + RIPPLE + SHIMMER OVERLAYS
+// ══════════════════════════════════════════════════════
+const KOI_CYCLES = 3;
+const KOI_PHASES = [
+  { label:'Breathe in...', dur:4 },
+  { label:'Hold...',        dur:7 },
+  { label:'Breathe out...', dur:8 },
+];
+let koiRunning=false, koiPhase=0, koiCount=0, koiCycle=0;
+let koiTimer=null, koiAF=null, koiActive=false;
+let koiRippleR=0, koiPulseAmp=0;
+let koiPhaseStartTime=null;
+let koiCtx, koiW, koiH;
+const easeInOutSine = t => -(Math.cos(Math.PI * t) - 1) / 2;
+
+// Maple leaf image (preloaded once)
+const leafImg = new Image();
+leafImg.src = 'images/maple-leaf.png';
+let leafReady = false;
+leafImg.onload = () => { leafReady = true; };
+
+// Ripple center as % of canvas (open water area in image)
+const RIPPLE_CX = 0.55, RIPPLE_CY = 0.52;
+
+// Surface shimmer points — random sparkles on water
+let shimmerPoints = [];
+function seedShimmer() {
+  shimmerPoints = [];
+  for (let i = 0; i < 18; i++) {
+    shimmerPoints.push({
+      x: 0.2 + Math.random() * 0.65,
+      y: 0.2 + Math.random() * 0.6,
+      phase: Math.random() * Math.PI * 2,
+      speed: 0.6 + Math.random() * 0.8,
+      size: 1 + Math.random() * 2,
+    });
+  }
+}
+
+// Drifting leaves floating on the water surface
+let leaves = [];
+function seedLeaves() {
+  leaves = [];
+  for (let i = 0; i < 3; i++) {
+    leaves.push({
+      x: Math.random(),
+      y: 0.25 + Math.random() * 0.55,
+      angle: Math.random() * Math.PI * 2,
+      angleSpeed: (Math.random() - 0.5) * 0.012,   // gentle rotation
+      driftX: 0.0018 + Math.random() * 0.0025,    // slow horizontal drift
+      driftY: (Math.random() - 0.5) * 0.0008,     // very slight vertical wander
+      size: 55 + Math.random() * 35,              // bigger — real leaf is detailed
+      bobPhase: Math.random() * Math.PI * 2,      // independent bob rhythm
+    });
+  }
+}
+
+function resizeKoi() {
+  const c = document.getElementById('koi-canvas');
+  c.width = c.offsetWidth; c.height = c.offsetHeight;
+  koiCtx = c.getContext('2d'); koiW = c.width; koiH = c.height;
+  seedShimmer(); seedLeaves();
+}
+
+function drawKoiLoop() {
+  koiRunning = true;
+  if (!koiCtx) { koiAF = requestAnimationFrame(drawKoiLoop); return; }
+  const ctx = koiCtx, W = koiW, H = koiH;
+  const t = Date.now() / 1000;
+  ctx.clearRect(0, 0, W, H);
+
+  // ── Moving caustic light overlay (very subtle additional shimmer on top of image's existing caustics)
+  ctx.save();
+  ctx.globalAlpha = 0.06;
+  ctx.globalCompositeOperation = 'screen';
+  for (let i = 0; i < 14; i++) {
+    const px = W * 0.5 + Math.sin(t * 0.22 + i * 1.73) * W * 0.45;
+    const py = H * 0.5 + Math.cos(t * 0.17 + i * 2.19) * H * 0.42;
+    const r  = (40 + Math.sin(t * 0.4 + i) * 18) * Math.min(W, H) / 1000;
+    const cg = ctx.createRadialGradient(px, py, 0, px, py, r);
+    cg.addColorStop(0, 'rgba(220,240,255,0.9)');
+    cg.addColorStop(1, 'rgba(220,240,255,0)');
+    ctx.beginPath(); ctx.arc(px, py, r, 0, Math.PI*2); ctx.fillStyle = cg; ctx.fill();
+  }
+  ctx.restore();
+
+  // ── Drifting maple leaves on the water surface
+  if (leafReady) {
+    leaves.forEach(lf => {
+      // Update position
+      lf.x += lf.driftX * 0.01;
+      lf.y += lf.driftY * 0.01 + Math.sin(t * 0.4 + lf.bobPhase) * 0.00025;
+      lf.angle += lf.angleSpeed * 0.6 + Math.sin(t * 0.3 + lf.bobPhase) * 0.0008;
+      // Wrap around when it drifts off the right edge
+      if (lf.x > 1.08) { lf.x = -0.08; lf.y = 0.25 + Math.random() * 0.55; }
+
+      const lx = lf.x * W, ly = lf.y * H;
+      const ratio = leafImg.naturalWidth / leafImg.naturalHeight;
+      const lh = lf.size, lw = lh * ratio;
+
+      ctx.save();
+      ctx.translate(lx, ly);
+      ctx.rotate(lf.angle);
+
+      // Soft shadow on the water under the leaf (gives a floating-on-surface feel)
+      ctx.save();
+      ctx.translate(lw * 0.06, lh * 0.06);
+      ctx.scale(1.02, 1.02);
+      ctx.globalAlpha = 0.28;
+      ctx.filter = 'blur(4px)';
+      ctx.drawImage(leafImg, -lw/2, -lh/2, lw, lh);
+      ctx.restore();
+
+      // The leaf itself
+      ctx.globalAlpha = 0.9;
+      ctx.drawImage(leafImg, -lw/2, -lh/2, lw, lh);
+
+      ctx.restore();
+    });
+  }
+
+  // ── Breathing ripple (the main centerpiece) — tied to phase elapsed time
+  if (koiActive && koiPhaseStartTime !== null) {
+    const cx = W * RIPPLE_CX, cy = H * RIPPLE_CY;
+    const maxR = Math.min(W, H) * 0.34;
+    const minR = maxR * 0.14;
+
+    // Calculate exact phase progress 0..1 based on elapsed time
+    const phaseDurMs = KOI_PHASES[koiPhase].dur * 1000;
+    const elapsed = Date.now() - koiPhaseStartTime;
+    const phaseProgress = Math.min(1, Math.max(0, elapsed / phaseDurMs));
+    const eased = easeInOutSine(phaseProgress);
+
+    if (koiPhase === 0) {
+      // Inhale: expand from minR to maxR over the full 4 counts
+      koiRippleR = minR + eased * (maxR - minR);
+    } else if (koiPhase === 1) {
+      // Hold: stay at full size for all 7 counts
+      koiRippleR = maxR;
+    } else {
+      // Exhale: contract from maxR to minR over the full 8 counts
+      koiRippleR = maxR - eased * (maxR - minR);
+    }
+
+    // Subtle alive pulse on the brightness
+    koiPulseAmp = 0.85 + Math.sin(t * 1.4) * 0.15;
+
+    // ── 1. Big outer soft halo (very visible)
+    const haloR = koiRippleR + 60;
+    const halo = ctx.createRadialGradient(cx, cy, koiRippleR * 0.5, cx, cy, haloR);
+    halo.addColorStop(0, 'rgba(255,200,120,0)');
+    halo.addColorStop(0.4, 'rgba(255,200,120,' + (0.30 * koiPulseAmp) + ')');
+    halo.addColorStop(1, 'rgba(255,200,120,0)');
+    ctx.beginPath(); ctx.arc(cx, cy, haloR, 0, Math.PI * 2);
+    ctx.fillStyle = halo; ctx.fill();
+
+    // ── 2. Wide soft glow band
+    const rgrad = ctx.createRadialGradient(cx, cy, koiRippleR * 0.75, cx, cy, koiRippleR + 18);
+    rgrad.addColorStop(0, 'rgba(255,210,140,0)');
+    rgrad.addColorStop(0.5, 'rgba(255,210,140,' + (0.85 * koiPulseAmp) + ')');
+    rgrad.addColorStop(1, 'rgba(255,210,140,0)');
+    ctx.beginPath(); ctx.arc(cx, cy, koiRippleR, 0, Math.PI * 2);
+    ctx.strokeStyle = rgrad; ctx.lineWidth = 26; ctx.stroke();
+
+    // ── 3. Crisp bright leading edge with shadow glow
+    ctx.save();
+    ctx.shadowColor = 'rgba(255,200,100,0.9)';
+    ctx.shadowBlur = 30;
+    ctx.beginPath(); ctx.arc(cx, cy, koiRippleR, 0, Math.PI * 2);
+    ctx.strokeStyle = 'rgba(255,235,170,' + (0.95 * koiPulseAmp) + ')';
+    ctx.lineWidth = 3.5; ctx.stroke();
+    ctx.restore();
+
+    // ── 4. Trailing inner rings (concentric)
+    [0.72, 0.48, 0.26].forEach((scale, idx) => {
+      const innerR = koiRippleR * scale;
+      if (innerR > 4) {
+        ctx.beginPath(); ctx.arc(cx, cy, innerR, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(255,215,150,' + ((0.35 - idx * 0.08) * koiPulseAmp) + ')';
+        ctx.lineWidth = 1.6;
+        ctx.stroke();
+      }
+    });
+
+    // ── 5. Center bright dot
+    ctx.beginPath(); ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,245,210,' + (0.85 * koiPulseAmp) + ')';
+    ctx.fill();
+  }
+
+  // ── Surface shimmer sparkles
+  shimmerPoints.forEach(sp => {
+    const pulse = Math.sin(t * sp.speed + sp.phase);
+    if (pulse > 0.7) {
+      const alpha = (pulse - 0.7) / 0.3;
+      ctx.save();
+      ctx.globalCompositeOperation = 'screen';
+      ctx.beginPath();
+      ctx.arc(sp.x * W, sp.y * H, sp.size, 0, Math.PI * 2);
+      const sgrad = ctx.createRadialGradient(sp.x * W, sp.y * H, 0, sp.x * W, sp.y * H, sp.size * 4);
+      sgrad.addColorStop(0, 'rgba(255,240,200,' + (alpha * 0.85) + ')');
+      sgrad.addColorStop(1, 'rgba(255,240,200,0)');
+      ctx.fillStyle = sgrad;
+      ctx.fillRect(sp.x * W - sp.size * 4, sp.y * H - sp.size * 4, sp.size * 8, sp.size * 8);
+      ctx.restore();
+    }
+  });
+
+  koiAF = requestAnimationFrame(drawKoiLoop);
+}
+
+function beginKoi() {
+  document.getElementById('koi-begin').classList.add('hidden');
+  document.getElementById('koi-instr').classList.remove('hidden');
+  koiActive = true; koiPhase = 0; koiCycle = 0;
+  startKoiPhase();
+}
+function startKoiPhase() {
+  const p = KOI_PHASES[koiPhase];
+  document.getElementById('koi-instr-text').textContent = p.label;
+  koiCount = p.dur;
+  document.getElementById('koi-instr-count').textContent = koiCount;
+  koiPhaseStartTime = Date.now();
+  koiTimer = setInterval(() => {
+    koiCount--;
+    document.getElementById('koi-instr-count').textContent = Math.max(0, koiCount);
+    if (koiCount <= 0) { clearInterval(koiTimer); nextKoiPhase(); }
+  }, 1000);
+}
+function nextKoiPhase() {
+  koiPhase++;
+  if (koiPhase >= KOI_PHASES.length) { koiPhase = 0; koiCycle++; updateDots('koi-dots', koiCycle, KOI_CYCLES); }
+  if (koiCycle >= KOI_CYCLES) { finishKoi(); return; }
+  startKoiPhase();
+}
+function finishKoi() {
+  clearInterval(koiTimer);
+  document.getElementById('koi-instr-text').textContent = 'Well done. Rest in the stillness.';
+  document.getElementById('koi-instr-count').textContent = '';
+  document.getElementById('koi-advance').classList.add('visible');
+}
+function resetKoi() {
+  clearInterval(koiTimer);
+  koiActive = false; koiPhase = 0; koiCount = 0; koiCycle = 0; koiRippleR = 0;
+  koiPhaseStartTime = null;
+  ['koi-begin','koi-instr','koi-reflect','koi-advance'].forEach(id => {
+    const el = document.getElementById(id); if (!el) return;
+    if (id === 'koi-begin')   el.classList.remove('hidden');
+    if (id === 'koi-instr')   el.classList.add('hidden');
+    if (id === 'koi-reflect') el.classList.remove('visible');
+    if (id === 'koi-advance') el.classList.remove('visible');
+  });
+  initDots('koi-dots', KOI_CYCLES);
+}
+
+
+// ══════════════════════════════════════════════════════
+//  FLOWER GARDEN — IMAGE BG + PETALS + FOUNTAIN + SUN PULSE
+// ══════════════════════════════════════════════════════
+let flowerCtx, flowerW, flowerH;
+let flowerAF = null, flowerRunning = false;
+let fountainSparkles = [];
+let sensoryCount = 0;
+
+// Fountain water area (calibrated to flower-garden.png)
+const FOUNTAIN_BOUNDS = { x: 0.32, y: 0.46, w: 0.36, h: 0.22 };
+// Sun position on horizon
+const SUN_POS = { x: 0.60, y: 0.38 };
+
+
+
+function seedFountainSparkles() {
+  fountainSparkles = [];
+  for (let i = 0; i < 16; i++) {
+    fountainSparkles.push({
+      x: FOUNTAIN_BOUNDS.x + Math.random() * FOUNTAIN_BOUNDS.w,
+      y: FOUNTAIN_BOUNDS.y + Math.random() * FOUNTAIN_BOUNDS.h,
+      phase: Math.random() * Math.PI * 2,
+      speed: 0.9 + Math.random() * 1.1,
+      size: 1.2 + Math.random() * 1.8,
+    });
+  }
+}
+
+function resizeFlower() {
+  const c = document.getElementById('flower-canvas');
+  if (!c) return;
+  c.width = c.offsetWidth; c.height = c.offsetHeight;
+  flowerCtx = c.getContext('2d'); flowerW = c.width; flowerH = c.height;
+  seedFountainSparkles();
+}
+
+function drawFlowerLoop() {
+  flowerRunning = true;
+  if (!flowerCtx) { flowerAF = requestAnimationFrame(drawFlowerLoop); return; }
+  const ctx = flowerCtx, W = flowerW, H = flowerH;
+  const t = Date.now() / 1000;
+  ctx.clearRect(0, 0, W, H);
+
+  // ── Sun pulse glow on horizon
+  const sunX = SUN_POS.x * W, sunY = SUN_POS.y * H;
+  const sunPulse = 1 + Math.sin(t * 0.35) * 0.18;
+  const sunR = Math.min(W, H) * 0.28 * sunPulse;
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  const sunGrad = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, sunR);
+  sunGrad.addColorStop(0, 'rgba(255,215,150,' + (0.16 * sunPulse) + ')');
+  sunGrad.addColorStop(0.5, 'rgba(255,200,140,' + (0.07 * sunPulse) + ')');
+  sunGrad.addColorStop(1, 'rgba(255,200,140,0)');
+  ctx.fillStyle = sunGrad;
+  ctx.fillRect(0, 0, W, H);
+  ctx.restore();
+
+  // ── Fountain water sparkles
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  fountainSparkles.forEach(sp => {
+    const pulse = Math.sin(t * sp.speed + sp.phase);
+    if (pulse > 0.55) {
+      const alpha = (pulse - 0.55) / 0.45;
+      const sx = sp.x * W, sy = sp.y * H;
+      const sg = ctx.createRadialGradient(sx, sy, 0, sx, sy, sp.size * 6);
+      sg.addColorStop(0, 'rgba(255,250,220,' + (alpha * 0.95) + ')');
+      sg.addColorStop(1, 'rgba(255,250,220,0)');
+      ctx.fillStyle = sg;
+      ctx.fillRect(sx - sp.size * 6, sy - sp.size * 6, sp.size * 12, sp.size * 12);
+    }
+  });
+  ctx.restore();
+
+  // ── Falling water highlights (fountain stream sparkles)
+  ctx.save();
+  ctx.globalAlpha = 0.5;
+  ctx.globalCompositeOperation = 'screen';
+  for (let i = 0; i < 4; i++) {
+    const fx = FOUNTAIN_BOUNDS.x * W + FOUNTAIN_BOUNDS.w * W * (0.3 + 0.4 * i / 4);
+    const fy = (FOUNTAIN_BOUNDS.y + 0.02) * H + ((t * 30 + i * 17) % 25);
+    ctx.beginPath();
+    ctx.arc(fx, fy, 0.8, 0, Math.PI * 2);
+    ctx.fillStyle = 'rgba(255,240,200,0.9)';
+    ctx.fill();
+  }
+  ctx.restore();
+
+  flowerAF = requestAnimationFrame(drawFlowerLoop);
+}
+
+function beginFlower() {
+  document.getElementById('flower-begin').classList.add('hidden');
+  document.getElementById('flower-sensory').classList.remove('hidden');
+}
+
+function checkSense(el, stepIdx) {
+  if (el.classList.contains('checked')) return;
+  el.classList.add('checked');
+  const step = el.closest('.sensory-step');
+  step.classList.remove('active');
+  step.classList.add('done');
+  sensoryCount++;
+
+  const next = document.querySelector('.sensory-step[data-step="' + (stepIdx + 1) + '"]');
+  if (next) next.classList.add('active');
+  if (sensoryCount >= 5) {
+    setTimeout(() => document.getElementById('flower-advance').classList.add('visible'), 800);
+  }
+}
+
+function resetFlower() {
+  sensoryCount = 0;
+  ['flower-begin','flower-sensory','flower-reflect','flower-advance'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    if (id === 'flower-begin') el.classList.remove('hidden');
+    if (id === 'flower-sensory') el.classList.add('hidden');
+    if (id === 'flower-reflect') el.classList.remove('visible');
+    if (id === 'flower-advance') el.classList.remove('visible');
+  });
+  document.querySelectorAll('#room-flower .sensory-step').forEach((s, i) => {
+    s.className = 'sensory-step' + (i === 0 ? ' active' : '');
+    const ch = s.querySelector('.sensory-check');
+    if (ch) { ch.classList.remove('checked'); ch.textContent = '✓'; }
+  });
+}
+
+
+// ══════════════════════════════════════════════════════
+//  SAND GARDEN — IMAGE BG + BOX BREATHING OVERLAY
+// ══════════════════════════════════════════════════════
+const SAND_CYCLES = 3;
+const SAND_PHASES = [
+  { label: 'Breathe in...',  dur: 6, ticks: 4 },
+  { label: 'Hold...',         dur: 6, ticks: 4 },
+  { label: 'Breathe out...', dur: 6, ticks: 4 },
+  { label: 'Hold...',         dur: 6, ticks: 4 },
+];
+let sandRunning = false, sandPhase = 0, sandCount = 0, sandCycle = 0;
+let sandTimer = null, sandAF = null, sandActive = false;
+let sandPhaseStartTime = null;
+let sandCtx, sandW, sandH;
+
+// Box position calibrated to the empty circle in sand-garden.png
+const SAND_BOX = { cx: 0.50, cy: 0.50, size: 0.28 };
+
+function resizeSand() {
+  const c = document.getElementById('sand-canvas');
+  if (!c) return;
+  c.width = c.offsetWidth; c.height = c.offsetHeight;
+  sandCtx = c.getContext('2d'); sandW = c.width; sandH = c.height;
+}
+
+function drawSandLoop() {
+  sandRunning = true;
+  if (!sandCtx) { sandAF = requestAnimationFrame(drawSandLoop); return; }
+  const ctx = sandCtx, W = sandW, H = sandH;
+  const t = Date.now() / 1000;
+  ctx.clearRect(0, 0, W, H);
+
+  if (!sandActive) { sandAF = requestAnimationFrame(drawSandLoop); return; }
+
+  // Box geometry — use min dimension so it stays square
+  const size = SAND_BOX.size * Math.min(W, H) * (W / Math.min(W, H));
+  const boxSize = SAND_BOX.size * W;
+  const cx = SAND_BOX.cx * W;
+  const cy = SAND_BOX.cy * H;
+  const x0 = cx - boxSize / 2;
+  const y0 = cy - boxSize / 2;
+
+  // Corners in path order: BL → BR → TR → TL → back to BL
+  // Path: bottom edge (inhale), right edge (hold), top edge (exhale), left edge (hold)
+  const corners = [
+    { x: x0,           y: y0 + boxSize }, // BL
+    { x: x0 + boxSize, y: y0 + boxSize }, // BR
+    { x: x0 + boxSize, y: y0 },           // TR
+    { x: x0,           y: y0 },           // TL
+  ];
+
+  // Calculate exact phase progress
+  const phaseDurMs = SAND_PHASES[sandPhase].dur * 1000;
+  const elapsed = sandPhaseStartTime ? Date.now() - sandPhaseStartTime : 0;
+  const phaseProgress = Math.min(1, Math.max(0, elapsed / phaseDurMs));
+  const eased = easeInOutSine(phaseProgress);
+
+  // Draw all previously completed sides at full opacity
+  // (accumulates across cycles for deepening effect)
+  const totalCompletedSides = sandCycle * 4 + sandPhase;
+  const baseDepth = Math.min(1, 0.55 + sandCycle * 0.15);
+  for (let i = 0; i < totalCompletedSides; i++) {
+    const sideCycle = Math.floor(i / 4);
+    const cycleDepth = Math.min(1, 0.55 + sideCycle * 0.15);
+    drawBoxSide(ctx, corners, i % 4, 1.0, cycleDepth);
+  }
+
+  // Draw current partial side at current cycle depth
+  if (sandCycle < SAND_CYCLES) {
+    drawBoxSide(ctx, corners, sandPhase, eased, baseDepth);
+
+    // Glow point at the leading edge
+    const from = corners[sandPhase];
+    const to   = corners[(sandPhase + 1) % 4];
+    const px = from.x + (to.x - from.x) * eased;
+    const py = from.y + (to.y - from.y) * eased;
+    drawSandGlow(ctx, px, py, t);
+  }
+
+  sandAF = requestAnimationFrame(drawSandLoop);
+}
+
+function drawBoxSide(ctx, corners, side, frac, depth) {
+  const from = corners[side];
+  const to   = corners[(side + 1) % 4];
+  const ex = from.x + (to.x - from.x) * frac;
+  const ey = from.y + (to.y - from.y) * frac;
+  const isH = Math.abs(to.y - from.y) < 1;
+  const TINES = 5;
+  const SPACING = 4.5;
+
+  ctx.save();
+  for (let ti = -(TINES / 2) | 0; ti <= (TINES / 2) | 0; ti++) {
+    const ox = isH ? 0 : ti * SPACING;
+    const oy = isH ? ti * SPACING : 0;
+
+    // Dark groove center
+    ctx.beginPath();
+    ctx.moveTo(from.x + ox, from.y + oy);
+    ctx.lineTo(ex + ox, ey + oy);
+    ctx.strokeStyle = 'rgba(95, 65, 30, ' + (0.5 * depth) + ')';
+    ctx.lineWidth = 1.8;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+
+    // Light highlight (the "raised" edge of the groove)
+    const hox = isH ? 0 : 0.9;
+    const hoy = isH ? -0.9 : 0;
+    ctx.beginPath();
+    ctx.moveTo(from.x + ox + hox, from.y + oy + hoy);
+    ctx.lineTo(ex + ox + hox, ey + oy + hoy);
+    ctx.strokeStyle = 'rgba(255, 235, 195, ' + (0.28 * depth) + ')';
+    ctx.lineWidth = 0.7;
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+function drawSandGlow(ctx, x, y, t) {
+  const pulse = 0.85 + Math.sin(t * 1.5) * 0.15;
+  // Soft outer glow
+  const grad = ctx.createRadialGradient(x, y, 0, x, y, 28);
+  grad.addColorStop(0, 'rgba(255, 200, 110, ' + (0.7 * pulse) + ')');
+  grad.addColorStop(0.5, 'rgba(255, 180, 90, ' + (0.3 * pulse) + ')');
+  grad.addColorStop(1, 'rgba(255, 180, 90, 0)');
+  ctx.fillStyle = grad;
+  ctx.fillRect(x - 28, y - 28, 56, 56);
+  // Bright center dot
+  ctx.beginPath();
+  ctx.arc(x, y, 3.5, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255, 245, 210, ' + (0.95 * pulse) + ')';
+  ctx.fill();
+}
+
+function beginSand() {
+  document.getElementById('sand-begin').classList.add('hidden');
+  document.getElementById('sand-instr').classList.remove('hidden');
+  sandActive = true; sandPhase = 0; sandCycle = 0; sandCount = 0;
+  startSandPhase();
+}
+
+function startSandPhase() {
+  const p = SAND_PHASES[sandPhase];
+  document.getElementById('sand-instr-text').textContent = p.label;
+  sandCount = p.ticks;
+  document.getElementById('sand-instr-count').textContent = sandCount;
+  sandPhaseStartTime = Date.now();
+  const tickInterval = (p.dur / p.ticks) * 1000;
+  sandTimer = setInterval(() => {
+    sandCount--;
+    document.getElementById('sand-instr-count').textContent = Math.max(0, sandCount);
+    if (sandCount <= 0) { clearInterval(sandTimer); nextSandPhase(); }
+  }, tickInterval);
+}
+
+function nextSandPhase() {
+  sandPhase++;
+  if (sandPhase >= SAND_PHASES.length) {
+    sandPhase = 0;
+    sandCycle++;
+    updateDots('sand-dots', sandCycle, SAND_CYCLES);
+  }
+  if (sandCycle >= SAND_CYCLES) { finishSand(); return; }
+  startSandPhase();
+}
+
+function finishSand() {
+  clearInterval(sandTimer);
+  document.getElementById('sand-instr-text').textContent = 'Complete. Rest in the stillness.';
+  document.getElementById('sand-instr-count').textContent = '';
+  document.getElementById('sand-advance').classList.add('visible');
+}
+
+function resetSand() {
+  clearInterval(sandTimer);
+  sandActive = false; sandPhase = 0; sandCount = 0; sandCycle = 0;
+  sandPhaseStartTime = null;
+  ['sand-begin','sand-instr','sand-reflect','sand-advance'].forEach(id => {
+    const el = document.getElementById(id); if (!el) return;
+    if (id === 'sand-begin') el.classList.remove('hidden');
+    if (id === 'sand-instr') el.classList.add('hidden');
+    if (id === 'sand-reflect') el.classList.remove('visible');
+    if (id === 'sand-advance') el.classList.remove('visible');
+  });
+  initDots('sand-dots', SAND_CYCLES);
+}
+
+
+// ══════════════════════════════════════════════════════
+//  BAMBOO GROVE — IMAGE BG + FINGER TRACING HAND
+// ══════════════════════════════════════════════════════
+const BAMBOO_CYCLES = 5;  // one cycle per finger
+const BAMBOO_PHASES = [
+  { label: 'Breathe in...',  dur: 4, ticks: 4 },
+  { label: 'Breathe out...', dur: 4, ticks: 4 },
+];
+
+let bambooRunning = false, bambooPhase = 0, bambooCount = 0, bambooCycle = 0;
+let bambooTimer = null, bambooAF = null, bambooActive = false;
+let bambooPhaseStartTime = null;
+let bambooCtx, bambooW, bambooH;
+let bambooMotes = [];
+
+// Hand position on screen
+const HAND_CENTER = { x: 0.5, y: 0.55 };
+const HAND_NATURAL = 480;  // natural unit space, scaled to viewport
+
+// Finger path data: each finger has inhale (out → tip) and exhale (tip → in) quadratic bezier curves
+// Order matches typical hand trace: thumb, index, middle, ring, pinky
+const HAND_PATH = [
+  // Thumb (extends down-left at angle)
+  { inhale: { from: { x: -130, y: 110 }, ctrl: { x: -210, y: 50 },  to: { x: -215, y: -25 } },
+    exhale: { from: { x: -215, y: -25 }, ctrl: { x: -160, y: 0 },   to: { x: -115, y: 35 } } },
+  // Index
+  { inhale: { from: { x: -90, y: 10 },   ctrl: { x: -98, y: -110 }, to: { x: -78, y: -185 } },
+    exhale: { from: { x: -78, y: -185 }, ctrl: { x: -50, y: -110 }, to: { x: -38, y: 0 } } },
+  // Middle (tallest)
+  { inhale: { from: { x: -10, y: -10 },  ctrl: { x: -2, y: -130 },  to: { x: 12, y: -225 } },
+    exhale: { from: { x: 12, y: -225 },  ctrl: { x: 42, y: -130 },  to: { x: 48, y: -10 } } },
+  // Ring
+  { inhale: { from: { x: 75, y: -5 },    ctrl: { x: 88, y: -110 },  to: { x: 105, y: -200 } },
+    exhale: { from: { x: 105, y: -200 }, ctrl: { x: 130, y: -110 }, to: { x: 138, y: 0 } } },
+  // Pinky (shortest)
+  { inhale: { from: { x: 160, y: 25 },   ctrl: { x: 178, y: -45 },  to: { x: 188, y: -110 } },
+    exhale: { from: { x: 188, y: -110 }, ctrl: { x: 208, y: -30 },  to: { x: 198, y: 55 } } },
+];
+
+function bezierAt(p1, ctrl, p2, t) {
+  const mt = 1 - t;
+  return {
+    x: mt*mt*p1.x + 2*mt*t*ctrl.x + t*t*p2.x,
+    y: mt*mt*p1.y + 2*mt*t*ctrl.y + t*t*p2.y,
+  };
+}
+
+function resizeBamboo() {
+  const c = document.getElementById('bamboo-canvas');
+  if (!c) return;
+  c.width = c.offsetWidth; c.height = c.offsetHeight;
+  bambooCtx = c.getContext('2d'); bambooW = c.width; bambooH = c.height;
+  seedBambooMotes();
+}
+
+function seedBambooMotes() {
+  bambooMotes = [];
+  for (let i = 0; i < 22; i++) {
+    bambooMotes.push({
+      x: Math.random(),
+      y: Math.random(),
+      vy: -(0.0004 + Math.random() * 0.0008),
+      vx: (Math.random() - 0.5) * 0.0002,
+      size: 0.6 + Math.random() * 1.8,
+      phase: Math.random() * Math.PI * 2,
+      speed: 0.4 + Math.random() * 0.9,
+    });
+  }
+}
+
+function drawBambooLoop() {
+  bambooRunning = true;
+  if (!bambooCtx) { bambooAF = requestAnimationFrame(drawBambooLoop); return; }
+  const ctx = bambooCtx, W = bambooW, H = bambooH;
+  const t = Date.now() / 1000;
+  ctx.clearRect(0, 0, W, H);
+
+  // ── Floating dust motes / spores
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  bambooMotes.forEach(m => {
+    m.x += m.vx; m.y += m.vy;
+    if (m.y < -0.05) { m.y = 1.05; m.x = Math.random(); }
+    if (m.x < -0.05) m.x = 1.05;
+    if (m.x > 1.05) m.x = -0.05;
+    const pulse = (Math.sin(t * m.speed + m.phase) + 1) * 0.5;
+    const alpha = 0.18 + pulse * 0.32;
+    const x = m.x * W, y = m.y * H;
+    const grad = ctx.createRadialGradient(x, y, 0, x, y, m.size * 4);
+    grad.addColorStop(0, 'rgba(255, 240, 200, ' + alpha + ')');
+    grad.addColorStop(1, 'rgba(255, 240, 200, 0)');
+    ctx.fillStyle = grad;
+    ctx.fillRect(x - m.size * 4, y - m.size * 4, m.size * 8, m.size * 8);
+  });
+  ctx.restore();
+
+  // ── Hand outline + tracer (only when active)
+  if (bambooActive) {
+    const cx = HAND_CENTER.x * W;
+    const cy = HAND_CENTER.y * H;
+    const scale = (0.42 * H) / HAND_NATURAL;
+
+    drawHandOutline(ctx, cx, cy, scale, 0.32);
+    drawTracedTrail(ctx, cx, cy, scale);
+    drawTracer(ctx, cx, cy, scale, t);
+  }
+
+  bambooAF = requestAnimationFrame(drawBambooLoop);
+}
+
+function drawHandOutline(ctx, cx, cy, scale, opacity) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(scale, scale);
+  ctx.strokeStyle = 'rgba(255, 220, 150, ' + opacity + ')';
+  ctx.lineWidth = 3.5 / scale;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.shadowColor = 'rgba(255, 200, 120, 0.4)';
+  ctx.shadowBlur = 8 / scale;
+
+  ctx.beginPath();
+  // Wrist left
+  ctx.moveTo(-115, 215);
+  ctx.lineTo(-130, 110);
+
+  // Trace each finger (up + down)
+  HAND_PATH.forEach((f, i) => {
+    ctx.quadraticCurveTo(f.inhale.ctrl.x, f.inhale.ctrl.y, f.inhale.to.x, f.inhale.to.y);
+    ctx.quadraticCurveTo(f.exhale.ctrl.x, f.exhale.ctrl.y, f.exhale.to.x, f.exhale.to.y);
+    // Connect to next finger's base
+    if (i < HAND_PATH.length - 1) {
+      ctx.lineTo(HAND_PATH[i + 1].inhale.from.x, HAND_PATH[i + 1].inhale.from.y);
+    }
+  });
+
+  // Pinky inside base → right side of palm → wrist right
+  ctx.lineTo(195, 215);
+  // Across wrist
+  ctx.lineTo(-115, 215);
+
+  ctx.stroke();
+  ctx.restore();
+}
+
+function drawTracedTrail(ctx, cx, cy, scale) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.scale(scale, scale);
+  ctx.strokeStyle = 'rgba(255, 215, 140, 0.75)';
+  ctx.lineWidth = 4 / scale;
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.shadowColor = 'rgba(255, 200, 100, 0.6)';
+  ctx.shadowBlur = 12 / scale;
+
+  // All completed fingers
+  for (let i = 0; i < bambooCycle; i++) {
+    const f = HAND_PATH[i];
+    ctx.beginPath();
+    ctx.moveTo(f.inhale.from.x, f.inhale.from.y);
+    ctx.quadraticCurveTo(f.inhale.ctrl.x, f.inhale.ctrl.y, f.inhale.to.x, f.inhale.to.y);
+    ctx.quadraticCurveTo(f.exhale.ctrl.x, f.exhale.ctrl.y, f.exhale.to.x, f.exhale.to.y);
+    ctx.stroke();
+  }
+
+  // Current finger - partially drawn
+  if (bambooCycle < BAMBOO_CYCLES && bambooPhaseStartTime !== null) {
+    const f = HAND_PATH[bambooCycle];
+    const phaseDurMs = BAMBOO_PHASES[bambooPhase].dur * 1000;
+    const elapsed = Date.now() - bambooPhaseStartTime;
+    const progress = Math.min(1, Math.max(0, elapsed / phaseDurMs));
+
+    ctx.beginPath();
+    if (bambooPhase === 0) {
+      // Drawing inhale
+      ctx.moveTo(f.inhale.from.x, f.inhale.from.y);
+      drawPartialQuadratic(ctx, f.inhale.from, f.inhale.ctrl, f.inhale.to, progress);
+    } else {
+      // Inhale complete, drawing exhale
+      ctx.moveTo(f.inhale.from.x, f.inhale.from.y);
+      ctx.quadraticCurveTo(f.inhale.ctrl.x, f.inhale.ctrl.y, f.inhale.to.x, f.inhale.to.y);
+      drawPartialQuadratic(ctx, f.exhale.from, f.exhale.ctrl, f.exhale.to, progress);
+    }
+    ctx.stroke();
+  }
+
+  ctx.restore();
+}
+
+function drawPartialQuadratic(ctx, p1, ctrl, p2, progress) {
+  const STEPS = 30;
+  const lastStep = Math.ceil(STEPS * progress);
+  for (let i = 1; i <= lastStep; i++) {
+    const tt = Math.min(1, i / STEPS) * (i === lastStep ? progress * STEPS / lastStep : 1);
+    const frac = Math.min(progress, i / STEPS);
+    const pt = bezierAt(p1, ctrl, p2, frac);
+    ctx.lineTo(pt.x, pt.y);
+  }
+}
+
+function drawTracer(ctx, cx, cy, scale, t) {
+  if (bambooCycle >= BAMBOO_CYCLES || bambooPhaseStartTime === null) return;
+  const f = HAND_PATH[bambooCycle];
+  const phaseDurMs = BAMBOO_PHASES[bambooPhase].dur * 1000;
+  const elapsed = Date.now() - bambooPhaseStartTime;
+  const progress = Math.min(1, Math.max(0, elapsed / phaseDurMs));
+  const eased = easeInOutSine(progress);
+
+  const path = bambooPhase === 0 ? f.inhale : f.exhale;
+  const pos = bezierAt(path.from, path.ctrl, path.to, eased);
+  const tx = cx + pos.x * scale;
+  const ty = cy + pos.y * scale;
+
+  const pulse = 0.85 + Math.sin(t * 1.5) * 0.15;
+
+  // Big outer halo
+  const halo = ctx.createRadialGradient(tx, ty, 0, tx, ty, 50);
+  halo.addColorStop(0, 'rgba(255, 210, 130, ' + (0.5 * pulse) + ')');
+  halo.addColorStop(0.5, 'rgba(255, 190, 100, ' + (0.2 * pulse) + ')');
+  halo.addColorStop(1, 'rgba(255, 190, 100, 0)');
+  ctx.fillStyle = halo;
+  ctx.fillRect(tx - 50, ty - 50, 100, 100);
+
+  // Bright center
+  ctx.save();
+  ctx.shadowColor = 'rgba(255, 200, 100, 0.9)';
+  ctx.shadowBlur = 25;
+  ctx.beginPath();
+  ctx.arc(tx, ty, 7, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(255, 245, 215, ' + pulse + ')';
+  ctx.fill();
+  ctx.restore();
+}
+
+function beginBamboo() {
+  document.getElementById('bamboo-begin').classList.add('hidden');
+  document.getElementById('bamboo-instr').classList.remove('hidden');
+  bambooActive = true;
+  bambooPhase = 0; bambooCycle = 0; bambooCount = 0;
+  startBambooPhase();
+}
+
+function startBambooPhase() {
+  const p = BAMBOO_PHASES[bambooPhase];
+  document.getElementById('bamboo-instr-text').textContent = p.label;
+  bambooCount = p.ticks;
+  document.getElementById('bamboo-instr-count').textContent = bambooCount;
+  bambooPhaseStartTime = Date.now();
+  const tickInterval = (p.dur / p.ticks) * 1000;
+  bambooTimer = setInterval(() => {
+    bambooCount--;
+    document.getElementById('bamboo-instr-count').textContent = Math.max(0, bambooCount);
+    if (bambooCount <= 0) { clearInterval(bambooTimer); nextBambooPhase(); }
+  }, tickInterval);
+}
+
+function nextBambooPhase() {
+  bambooPhase++;
+  if (bambooPhase >= BAMBOO_PHASES.length) {
+    bambooPhase = 0;
+    bambooCycle++;
+    updateDots('bamboo-dots', bambooCycle, BAMBOO_CYCLES);
+  }
+  if (bambooCycle >= BAMBOO_CYCLES) { finishBamboo(); return; }
+  startBambooPhase();
+}
+
+function finishBamboo() {
+  clearInterval(bambooTimer);
+  document.getElementById('bamboo-instr-text').textContent = 'Well done. Rest in the stillness.';
+  document.getElementById('bamboo-instr-count').textContent = '';
+  document.getElementById('bamboo-advance').classList.add('visible');
+}
+
+function resetBamboo() {
+  clearInterval(bambooTimer);
+  bambooActive = false;
+  bambooPhase = 0; bambooCount = 0; bambooCycle = 0;
+  bambooPhaseStartTime = null;
+  ['bamboo-begin','bamboo-instr','bamboo-reflect','bamboo-advance'].forEach(id => {
+    const el = document.getElementById(id); if (!el) return;
+    if (id === 'bamboo-begin') el.classList.remove('hidden');
+    if (id === 'bamboo-instr') el.classList.add('hidden');
+    if (id === 'bamboo-reflect') el.classList.remove('visible');
+    if (id === 'bamboo-advance') el.classList.remove('visible');
+  });
+  initDots('bamboo-dots', BAMBOO_CYCLES);
+}
+
+
+// ══════════════════════════════════════════════════════
+//  LANTERN ALCOVE — COLOR BREATHING ORB
+// ══════════════════════════════════════════════════════
+const LANTERN_CYCLES = 4;
+const LANTERN_PHASES = [
+  { label: 'Breathe in your calm color...',    dur: 5, ticks: 4 },
+  { label: 'Release what you\'re holding...', dur: 5, ticks: 4 },
+];
+
+let lanternRunning = false, lanternPhase = 0, lanternCount = 0, lanternCycle = 0;
+let lanternTimer = null, lanternAF = null, lanternActive = false;
+let lanternPhaseStartTime = null;
+let lanternCtx, lanternW, lanternH;
+let calmColor = '#87CEEB';   // defaults — will be overridden by user picks
+let releaseColor = '#A85070';
+
+function lerpColor(c1, c2, t) {
+  const r1 = parseInt(c1.substr(1, 2), 16);
+  const g1 = parseInt(c1.substr(3, 2), 16);
+  const b1 = parseInt(c1.substr(5, 2), 16);
+  const r2 = parseInt(c2.substr(1, 2), 16);
+  const g2 = parseInt(c2.substr(3, 2), 16);
+  const b2 = parseInt(c2.substr(5, 2), 16);
+  const r = Math.round(r1 + (r2 - r1) * t);
+  const g = Math.round(g1 + (g2 - g1) * t);
+  const b = Math.round(b1 + (b2 - b1) * t);
+  return [r, g, b];
+}
+function rgba(rgb, alpha) {
+  return 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + alpha + ')';
+}
+
+function resizeLantern() {
+  const c = document.getElementById('lantern-canvas');
+  if (!c) return;
+  c.width = c.offsetWidth; c.height = c.offsetHeight;
+  lanternCtx = c.getContext('2d');
+  lanternW = c.width; lanternH = c.height;
+}
+
+function drawLanternLoop() {
+  lanternRunning = true;
+  if (!lanternCtx) { lanternAF = requestAnimationFrame(drawLanternLoop); return; }
+  const ctx = lanternCtx, W = lanternW, H = lanternH;
+  const t = Date.now() / 1000;
+  ctx.clearRect(0, 0, W, H);
+
+  if (!lanternActive) { lanternAF = requestAnimationFrame(drawLanternLoop); return; }
+
+  // Calculate phase progress and current color/radius
+  const phaseDurMs = LANTERN_PHASES[lanternPhase].dur * 1000;
+  const elapsed = lanternPhaseStartTime ? Date.now() - lanternPhaseStartTime : 0;
+  const phaseProgress = Math.min(1, Math.max(0, elapsed / phaseDurMs));
+  const eased = easeInOutSine(phaseProgress);
+
+  const minR = Math.min(W, H) * 0.10;
+  const maxR = Math.min(W, H) * 0.28;
+
+  let radius, color;
+  if (lanternPhase === 0) {
+    radius = minR + (maxR - minR) * eased;
+    color = lerpColor(releaseColor, calmColor, eased);
+  } else {
+    radius = maxR - (maxR - minR) * eased;
+    color = lerpColor(calmColor, releaseColor, eased);
+  }
+
+  const cx = W * 0.5, cy = H * 0.5;
+  const pulse = 0.88 + Math.sin(t * 1.4) * 0.12;
+
+  // ── Outer halo (additive screen — brightens the warm room with the picked hue)
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  const haloR = radius * 3.2;
+  const halo = ctx.createRadialGradient(cx, cy, 0, cx, cy, haloR);
+  halo.addColorStop(0, rgba(color, 0.55 * pulse));
+  halo.addColorStop(0.35, rgba(color, 0.28 * pulse));
+  halo.addColorStop(1, rgba(color, 0));
+  ctx.fillStyle = halo;
+  ctx.fillRect(cx - haloR, cy - haloR, haloR * 2, haloR * 2);
+  ctx.restore();
+
+  // ── Mid glow (additive screen — pushes the color outward)
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  const midR = radius * 1.8;
+  const mid = ctx.createRadialGradient(cx, cy, 0, cx, cy, midR);
+  mid.addColorStop(0, rgba(color, 0.85 * pulse));
+  mid.addColorStop(0.5, rgba(color, 0.45 * pulse));
+  mid.addColorStop(1, rgba(color, 0));
+  ctx.fillStyle = mid;
+  ctx.fillRect(cx - midR, cy - midR, midR * 2, midR * 2);
+  ctx.restore();
+
+  // ── Solid inner orb (normal blend — fully covers the background so the picked color reads true)
+  const inner = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius);
+  inner.addColorStop(0, rgba(color, 1.0));
+  inner.addColorStop(0.55, rgba(color, 0.95 * pulse));
+  inner.addColorStop(0.88, rgba(color, 0.55 * pulse));
+  inner.addColorStop(1, rgba(color, 0));
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+  ctx.fillStyle = inner;
+  ctx.fill();
+
+  // ── Bright nucleus with white-hot center for extra punch
+  ctx.beginPath();
+  ctx.arc(cx, cy, radius * 0.22, 0, Math.PI * 2);
+  const nuc = ctx.createRadialGradient(cx, cy, 0, cx, cy, radius * 0.22);
+  nuc.addColorStop(0, 'rgba(255,255,255,' + (0.45 * pulse) + ')');
+  nuc.addColorStop(0.5, rgba(color, pulse));
+  nuc.addColorStop(1, rgba(color, 0.85 * pulse));
+  ctx.fillStyle = nuc;
+  ctx.fill();
+
+  lanternAF = requestAnimationFrame(drawLanternLoop);
+}
+
+// ─── Sequence: Begin → pick calm → pick release → breathing
+function beginLantern() {
+  document.getElementById('lantern-begin').classList.add('hidden');
+  document.getElementById('lantern-picker-calm').classList.remove('hidden');
+}
+
+function pickCalmColor(hex) {
+  calmColor = hex;
+  try { CypressSession.choice('lantern', 'calm color', COLOR_NAMES[hex] || hex); } catch (e) {}
+  document.getElementById('lantern-picker-calm').classList.add('hidden');
+  document.getElementById('lantern-picker-release').classList.remove('hidden');
+}
+
+function pickReleaseColor(hex) {
+  releaseColor = hex;
+  try { CypressSession.choice('lantern', 'release color', COLOR_NAMES[hex] || hex); } catch (e) {}
+  document.getElementById('lantern-picker-release').classList.add('hidden');
+  startLanternBreathing();
+}
+
+function startLanternBreathing() {
+  document.getElementById('lantern-instr').classList.remove('hidden');
+  lanternActive = true;
+  lanternPhase = 0; lanternCycle = 0; lanternCount = 0;
+  startLanternPhase();
+}
+
+function startLanternPhase() {
+  const p = LANTERN_PHASES[lanternPhase];
+  document.getElementById('lantern-instr-text').textContent = p.label;
+  lanternCount = p.ticks;
+  document.getElementById('lantern-instr-count').textContent = lanternCount;
+  lanternPhaseStartTime = Date.now();
+  const tickInterval = (p.dur / p.ticks) * 1000;
+  lanternTimer = setInterval(() => {
+    lanternCount--;
+    document.getElementById('lantern-instr-count').textContent = Math.max(0, lanternCount);
+    if (lanternCount <= 0) { clearInterval(lanternTimer); nextLanternPhase(); }
+  }, tickInterval);
+}
+
+function nextLanternPhase() {
+  lanternPhase++;
+  if (lanternPhase >= LANTERN_PHASES.length) {
+    lanternPhase = 0;
+    lanternCycle++;
+    updateDots('lantern-dots', lanternCycle, LANTERN_CYCLES);
+  }
+  if (lanternCycle >= LANTERN_CYCLES) { finishLantern(); return; }
+  startLanternPhase();
+}
+
+function finishLantern() {
+  clearInterval(lanternTimer);
+  document.getElementById('lantern-instr-text').textContent = 'Well done. Rest in the stillness.';
+  document.getElementById('lantern-instr-count').textContent = '';
+  document.getElementById('lantern-advance').classList.add('visible');
+}
+
+function resetLantern() {
+  clearInterval(lanternTimer);
+  lanternActive = false;
+  lanternPhase = 0; lanternCount = 0; lanternCycle = 0;
+  lanternPhaseStartTime = null;
+  ['lantern-begin','lantern-picker-calm','lantern-picker-release','lantern-instr','lantern-reflect','lantern-advance'].forEach(id => {
+    const el = document.getElementById(id); if (!el) return;
+    if (id === 'lantern-begin') el.classList.remove('hidden');
+    if (id === 'lantern-picker-calm') el.classList.add('hidden');
+    if (id === 'lantern-picker-release') el.classList.add('hidden');
+    if (id === 'lantern-instr') el.classList.add('hidden');
+    if (id === 'lantern-reflect') el.classList.remove('visible');
+    if (id === 'lantern-advance') el.classList.remove('visible');
+  });
+  initDots('lantern-dots', LANTERN_CYCLES);
+}
+
+
+// ══════════════════════════════════════════════════════
+//  SKY PLATFORM — PROGRESSIVE MUSCLE RELAXATION
+// ══════════════════════════════════════════════════════
+const SKY_CYCLES = 5; // 5 body regions
+const SKY_REGIONS = [
+  { name: 'Feet & Legs',       tensePrompt: 'Squeeze your feet and legs tight',                releasePrompt: 'And release. Feel them grow heavy.' },
+  { name: 'Stomach & Hands',   tensePrompt: 'Tighten your stomach. Clench your hands.',         releasePrompt: 'And release. Let them soften.' },
+  { name: 'Shoulders & Arms',  tensePrompt: 'Scrunch your shoulders up toward your ears',       releasePrompt: 'And drop them. Let them fall.' },
+  { name: 'Face',              tensePrompt: 'Scrunch your eyes, jaw, and forehead',              releasePrompt: 'And let it all go.' },
+  { name: 'Whole Body',        tensePrompt: 'One last squeeze — everything together',      releasePrompt: 'And release completely.' },
+];
+const SKY_PHASES = [
+  { key: 'tense',   dur: 4, ticks: 4 },
+  { key: 'hold',    dur: 3, ticks: 3 },
+  { key: 'release', dur: 6, ticks: 0 },  // no count during release
+];
+
+let skyRunning = false, skyPhase = 0, skyCount = 0, skyCycle = 0;
+let skyTimer = null, skyAF = null, skyActive = false;
+let skyPhaseStartTime = null;
+let skyCtx, skyW, skyH;
+
+// Sun position (calibrated to image)
+const SKY_SUN_POS = { x: 0.50, y: 0.40 };
+
+function resizeSky() {
+  const c = document.getElementById('sky-canvas');
+  if (!c) return;
+  c.width = c.offsetWidth; c.height = c.offsetHeight;
+  skyCtx = c.getContext('2d'); skyW = c.width; skyH = c.height;
+}
+
+function drawSkyLoop() {
+  skyRunning = true;
+  if (!skyCtx) { skyAF = requestAnimationFrame(drawSkyLoop); return; }
+  const ctx = skyCtx, W = skyW, H = skyH;
+  const t = Date.now() / 1000;
+  ctx.clearRect(0, 0, W, H);
+
+  // ── Ambient sun glow pulse (always running)
+  const sunX = SKY_SUN_POS.x * W, sunY = SKY_SUN_POS.y * H;
+  const ambientPulse = 1 + Math.sin(t * 0.3) * 0.12;
+  let intensity = 0.14;
+
+  // During release phase: bloom brighter (the body letting go reflected in the world)
+  if (skyActive && SKY_PHASES[skyPhase].key === 'release' && skyPhaseStartTime !== null) {
+    const elapsed = Date.now() - skyPhaseStartTime;
+    const releaseProgress = Math.min(1, elapsed / (SKY_PHASES[skyPhase].dur * 1000));
+    // Peak warmth at ~30% through release, then gentle return to baseline
+    const bloom = Math.sin(releaseProgress * Math.PI);
+    intensity = 0.14 + bloom * 0.32;
+  }
+
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  const sunR = Math.min(W, H) * 0.7 * ambientPulse;
+  const sunGrad = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, sunR);
+  sunGrad.addColorStop(0, 'rgba(255, 225, 160, ' + (intensity * ambientPulse) + ')');
+  sunGrad.addColorStop(0.35, 'rgba(255, 195, 120, ' + (intensity * 0.5 * ambientPulse) + ')');
+  sunGrad.addColorStop(1, 'rgba(255, 195, 120, 0)');
+  ctx.fillStyle = sunGrad;
+  ctx.fillRect(0, 0, W, H);
+  ctx.restore();
+
+  // ── Subtle atmospheric haze drifting horizontally over the mountains
+  ctx.save();
+  ctx.globalAlpha = 0.06;
+  ctx.globalCompositeOperation = 'screen';
+  const hazeY = H * 0.5;
+  const hazeOffset = (t * 8) % (W * 0.4);
+  for (let i = 0; i < 4; i++) {
+    const hx = -W * 0.2 + i * W * 0.4 + hazeOffset;
+    const hy = hazeY + Math.sin(t * 0.15 + i) * H * 0.02;
+    const hg = ctx.createRadialGradient(hx, hy, 0, hx, hy, W * 0.25);
+    hg.addColorStop(0, 'rgba(255, 220, 190, 0.9)');
+    hg.addColorStop(1, 'rgba(255, 220, 190, 0)');
+    ctx.fillStyle = hg;
+    ctx.fillRect(hx - W * 0.25, hy - H * 0.08, W * 0.5, H * 0.16);
+  }
+  ctx.restore();
+
+  skyAF = requestAnimationFrame(drawSkyLoop);
+}
+
+// ─── Exercise control
+function beginSky() {
+  document.getElementById('sky-begin').classList.add('hidden');
+  document.getElementById('sky-instr').classList.remove('hidden');
+  skyActive = true;
+  skyPhase = 0; skyCycle = 0; skyCount = 0;
+  showSkyRegion();
+  startSkyPhase();
+}
+
+function showSkyRegion() {
+  const regionEl = document.getElementById('sky-region-label');
+  const region = SKY_REGIONS[skyCycle];
+  if (!region) return;
+  regionEl.classList.remove('visible');
+  setTimeout(() => {
+    regionEl.textContent = region.name;
+    regionEl.classList.add('visible');
+  }, 350);
+}
+
+function startSkyPhase() {
+  const p = SKY_PHASES[skyPhase];
+  const region = SKY_REGIONS[skyCycle];
+
+  // Set instruction based on phase
+  let instrText;
+  if (p.key === 'tense') instrText = region.tensePrompt;
+  else if (p.key === 'hold') instrText = 'Hold...';
+  else instrText = region.releasePrompt;
+
+  document.getElementById('sky-instr-text').textContent = instrText;
+  skyPhaseStartTime = Date.now();
+
+  if (p.ticks > 0) {
+    skyCount = p.ticks;
+    document.getElementById('sky-instr-count').textContent = skyCount;
+    const tickInterval = (p.dur / p.ticks) * 1000;
+    skyTimer = setInterval(() => {
+      skyCount--;
+      document.getElementById('sky-instr-count').textContent = Math.max(0, skyCount);
+      if (skyCount <= 0) { clearInterval(skyTimer); nextSkyPhase(); }
+    }, tickInterval);
+  } else {
+    // No count display, just wait the duration
+    document.getElementById('sky-instr-count').textContent = '';
+    skyTimer = setTimeout(() => nextSkyPhase(), p.dur * 1000);
+  }
+}
+
+function nextSkyPhase() {
+  skyPhase++;
+  if (skyPhase >= SKY_PHASES.length) {
+    skyPhase = 0;
+    skyCycle++;
+    updateDots('sky-dots', skyCycle, SKY_CYCLES);
+    if (skyCycle >= SKY_CYCLES) { finishSky(); return; }
+    showSkyRegion();
+    // Small breath between regions
+    setTimeout(() => startSkyPhase(), 600);
+    return;
+  }
+  startSkyPhase();
+}
+
+function finishSky() {
+  clearInterval(skyTimer); clearTimeout(skyTimer);
+  document.getElementById('sky-region-label').classList.remove('visible');
+  document.getElementById('sky-instr-text').textContent = 'Rest here for a moment. Notice how your body feels.';
+  document.getElementById('sky-instr-count').textContent = '';
+  document.getElementById('sky-advance').classList.add('visible');
+}
+
+function resetSky() {
+  clearInterval(skyTimer); clearTimeout(skyTimer);
+  skyActive = false;
+  skyPhase = 0; skyCount = 0; skyCycle = 0;
+  skyPhaseStartTime = null;
+  ['sky-begin','sky-instr','sky-reflect','sky-advance'].forEach(id => {
+    const el = document.getElementById(id); if (!el) return;
+    if (id === 'sky-begin') el.classList.remove('hidden');
+    if (id === 'sky-instr') el.classList.add('hidden');
+    if (id === 'sky-reflect') el.classList.remove('visible');
+    if (id === 'sky-advance') el.classList.remove('visible');
+  });
+  const regionEl = document.getElementById('sky-region-label');
+  if (regionEl) regionEl.classList.remove('visible');
+  initDots('sky-dots', SKY_CYCLES);
+}
+
+
+// ══════════════════════════════════════════════════════
+//  TEA ROOM — ALPHABET GROUNDING (self-paced)
+// ══════════════════════════════════════════════════════
+const TEA_LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+const TEA_CANDLE_POS = { x: 0.40, y: 0.55 };
+const TEA_TEAPOT_POS = { x: 0.50, y: 0.60 };
+const TEA_SUN_POS    = { x: 0.53, y: 0.36 };
+
+let teaRunning = false, teaAF = null;
+let teaCtx, teaW, teaH;
+let teaCategory = '';
+let teaLetterIndex = 0;
+let teaResponses = [];  // [{letter, response, skipped}]
+let teaSteamWisps = [];
+
+function resizeTea() {
+  const c = document.getElementById('tea-canvas');
+  if (!c) return;
+  c.width = c.offsetWidth; c.height = c.offsetHeight;
+  teaCtx = c.getContext('2d'); teaW = c.width; teaH = c.height;
+  seedTeaSteam();
+}
+
+function seedTeaSteam() {
+  teaSteamWisps = [];
+  for (let i = 0; i < 4; i++) {
+    teaSteamWisps.push({
+      offset: i * 1.2,
+      xJitter: Math.random() * 6 - 3,
+      speed: 0.4 + Math.random() * 0.3,
+    });
+  }
+}
+
+function drawTeaLoop() {
+  teaRunning = true;
+  if (!teaCtx) { teaAF = requestAnimationFrame(drawTeaLoop); return; }
+  const ctx = teaCtx, W = teaW, H = teaH;
+  const t = Date.now() / 1000;
+  ctx.clearRect(0, 0, W, H);
+
+  // ── Sun glow pulse through shoji
+  const sunX = TEA_SUN_POS.x * W, sunY = TEA_SUN_POS.y * H;
+  const sunPulse = 1 + Math.sin(t * 0.28) * 0.14;
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  const sunR = Math.min(W, H) * 0.4 * sunPulse;
+  const sg = ctx.createRadialGradient(sunX, sunY, 0, sunX, sunY, sunR);
+  sg.addColorStop(0, 'rgba(255, 215, 150, ' + (0.13 * sunPulse) + ')');
+  sg.addColorStop(0.5, 'rgba(255, 195, 120, ' + (0.05 * sunPulse) + ')');
+  sg.addColorStop(1, 'rgba(255, 195, 120, 0)');
+  ctx.fillStyle = sg;
+  ctx.fillRect(0, 0, W, H);
+  ctx.restore();
+
+  // ── Candle flame flicker
+  const cdX = TEA_CANDLE_POS.x * W, cdY = TEA_CANDLE_POS.y * H;
+  const flicker = 0.75 + Math.sin(t * 6) * 0.1 + Math.sin(t * 13) * 0.08 + (Math.random() - 0.5) * 0.05;
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  const fR = Math.min(W, H) * 0.10 * flicker;
+  const fg = ctx.createRadialGradient(cdX, cdY, 0, cdX, cdY, fR);
+  fg.addColorStop(0, 'rgba(255, 220, 140, ' + (0.55 * flicker) + ')');
+  fg.addColorStop(0.4, 'rgba(255, 180, 90, ' + (0.25 * flicker) + ')');
+  fg.addColorStop(1, 'rgba(255, 180, 90, 0)');
+  ctx.fillStyle = fg;
+  ctx.fillRect(cdX - fR, cdY - fR, fR * 2, fR * 2);
+  ctx.restore();
+
+  // ── Steam rising from teapot (4 wisps in continuous loop)
+  const tpX = TEA_TEAPOT_POS.x * W, tpY = TEA_TEAPOT_POS.y * H;
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  teaSteamWisps.forEach(w => {
+    const cyclePos = ((t * w.speed) + w.offset) % 4;
+    const rise = cyclePos / 4;  // 0..1
+    const wx = tpX + Math.sin(cyclePos * Math.PI * 2) * 8 + w.xJitter;
+    const wy = tpY - rise * H * 0.18;
+    const wAlpha = (rise < 0.15) ? rise / 0.15 : (rise > 0.8 ? (1 - rise) / 0.2 : 1);
+    const wR = (8 + rise * 28) * Math.min(W, H) / 900;
+    const wg = ctx.createRadialGradient(wx, wy, 0, wx, wy, wR);
+    wg.addColorStop(0, 'rgba(255, 240, 220, ' + (0.18 * wAlpha) + ')');
+    wg.addColorStop(1, 'rgba(255, 240, 220, 0)');
+    ctx.fillStyle = wg;
+    ctx.fillRect(wx - wR, wy - wR, wR * 2, wR * 2);
+  });
+  ctx.restore();
+
+  teaAF = requestAnimationFrame(drawTeaLoop);
+}
+
+// ─── Build alphabet progress dots
+function buildTeaProgress() {
+  const el = document.getElementById('tea-progress');
+  if (!el) return;
+  el.innerHTML = '';
+  for (let i = 0; i < 26; i++) {
+    const d = document.createElement('div');
+    d.className = 'tea-progress-dot' + (i === 0 ? ' active' : '');
+    el.appendChild(d);
+  }
+}
+
+function updateTeaProgress() {
+  const dots = document.querySelectorAll('#tea-progress .tea-progress-dot');
+  dots.forEach((d, i) => {
+    d.className = 'tea-progress-dot' + (i < teaLetterIndex ? ' done' : i === teaLetterIndex ? ' active' : '');
+  });
+}
+
+// ─── Sequence: begin → categories → (custom) → alphabet → reflect
+function beginTea() {
+  document.getElementById('tea-begin').classList.add('hidden');
+  document.getElementById('tea-categories').classList.remove('hidden');
+}
+
+function selectTeaCategory(cat) {
+  if (cat === 'Your own') {
+    document.getElementById('tea-categories').classList.add('hidden');
+    document.getElementById('tea-custom-cat').classList.remove('hidden');
+    setTimeout(() => document.getElementById('tea-custom-input').focus(), 100);
+    return;
+  }
+  teaCategory = cat;
+  document.getElementById('tea-categories').classList.add('hidden');
+  startTeaAlphabet();
+}
+
+function confirmCustomCategory() {
+  const val = document.getElementById('tea-custom-input').value.trim();
+  if (!val) return;
+  teaCategory = val;
+  document.getElementById('tea-custom-cat').classList.add('hidden');
+  startTeaAlphabet();
+}
+
+function startTeaAlphabet() {
+  teaLetterIndex = 0;
+  teaResponses = [];
+  document.getElementById('tea-alphabet').classList.remove('hidden');
+  document.getElementById('tea-category-display').textContent = teaCategory;
+  updateTeaLetter();
+}
+
+function updateTeaLetter() {
+  if (teaLetterIndex >= 26) {
+    endTeaAlphabet();
+    return;
+  }
+  const letter = TEA_LETTERS[teaLetterIndex];
+  const letterEl = document.getElementById('tea-letter');
+  const input = document.getElementById('tea-input');
+
+  // Brief fade transition
+  letterEl.style.opacity = '0';
+  letterEl.style.transform = 'translateY(8px)';
+  setTimeout(() => {
+    letterEl.textContent = letter;
+    letterEl.style.opacity = '1';
+    letterEl.style.transform = 'translateY(0)';
+  }, 220);
+
+  input.value = '';
+  input.placeholder = 'Type something that starts with ' + letter + '...';
+  setTimeout(() => input.focus(), 250);
+  updateTeaProgress();
+}
+
+function nextTeaLetter() {
+  const input = document.getElementById('tea-input');
+  const val = input.value.trim();
+  teaResponses.push({
+    letter: TEA_LETTERS[teaLetterIndex],
+    response: val,
+    skipped: false,
+  });
+  teaLetterIndex++;
+  updateTeaLetter();
+}
+
+function skipTeaLetter() {
+  teaResponses.push({
+    letter: TEA_LETTERS[teaLetterIndex],
+    response: '',
+    skipped: true,
+  });
+  teaLetterIndex++;
+  updateTeaLetter();
+}
+
+function endTeaAlphabet() {
+  document.getElementById('tea-alphabet').classList.add('hidden');
+  // Log responses for session summary
+  console.log('Tea alphabet session:', { category: teaCategory, responses: teaResponses });
+  document.getElementById('tea-reflect').classList.add('visible');
+}
+
+function resetTea() {
+  teaCategory = '';
+  teaLetterIndex = 0;
+  teaResponses = [];
+  ['tea-begin','tea-categories','tea-custom-cat','tea-alphabet','tea-reflect'].forEach(id => {
+    const el = document.getElementById(id); if (!el) return;
+    if (id === 'tea-begin') el.classList.remove('hidden');
+    if (id === 'tea-categories') el.classList.add('hidden');
+    if (id === 'tea-custom-cat') el.classList.add('hidden');
+    if (id === 'tea-alphabet') el.classList.add('hidden');
+    if (id === 'tea-reflect') el.classList.remove('visible');
+  });
+  const customInput = document.getElementById('tea-custom-input');
+  if (customInput) customInput.value = '';
+  buildTeaProgress();
+}
+
+// Enter key on input = Next (so user can flow naturally without clicking)
+document.addEventListener('DOMContentLoaded', () => {
+  const input = document.getElementById('tea-input');
+  if (input) {
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); nextTeaLetter(); }
+    });
+  }
+  const customInput = document.getElementById('tea-custom-input');
+  if (customInput) {
+    customInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter') { e.preventDefault(); confirmCustomCategory(); }
+    });
+  }
+});
+
+// ══════════════════════════════════════════════════════
+//  SHARED UTILITIES
+// ══════════════════════════════════════════════════════
+function initDots(id, count) {
+  const el = document.getElementById(id); if (!el) return;
+  el.innerHTML = '';
+  for (let i = 0; i < count; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot' + (i === 0 ? ' active' : '');
+    el.appendChild(d);
+  }
+}
+function updateDots(id, done, total) {
+  document.querySelectorAll('#' + id + ' .dot').forEach((d, i) => {
+    d.className = 'dot' + (i < done ? ' done' : i === done ? ' active' : '');
+  });
+}
+function showReflect(room) {
+  const instr = document.getElementById(room + '-instr');
+  const adv   = document.getElementById(room + '-advance');
+  if (instr) instr.classList.add('hidden');
+  if (adv)   adv.classList.remove('visible');
+  document.getElementById(room + '-reflect').classList.add('visible');
+}
+function selectReflect(el, room, val) {
+  el.closest('.reflect-opts').querySelectorAll('.reflect-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  try { CypressSession.reflect(room, val); } catch (e) { console.log('Reflection:', room, val); }
+}
+// ════════════════════════════════════════════════════════════════════
+//  CYPRESS MIND — SESSION CAPTURE  (client role, via shared engine)
+//  Emits the same event timeline as before, now through
+//  CypressSessionEngine so the dashboard drawer mirrors it live.
+//  Transport today = BroadcastChannel keyed to the session code.
+//  Open with ?session=CODE to join a specific therapist session.
+// ════════════════════════════════════════════════════════════════════
+const COLOR_NAMES = {
+  '#87CEEB':'sky blue', '#9DB99D':'sage green', '#C8B6E0':'lavender', '#F0D89C':'soft gold',
+  '#F0A0A0':'coral', '#A85070':'deep rose', '#7868A0':'storm purple', '#9D9890':'stone gray',
+};
+
+const CypressSession = (function () {
+  const E  = window.CypressSessionEngine || null;
+  const RM = (E && E.ROOM_META) || {};
+  const FL = (E && E.FEELING_LABEL) || {};
+  const sp = new URLSearchParams(location.search);
+  const code = sp.get('session') || sp.get('code') || (E ? E.newCode() : 'GARDEN-LOCAL');
+
+  let engine = null, current = null, panel = null;
+
+  function start() {
+    if (E) {
+      engine = E.join({ role: 'client', code: code });
+      engine.start();
+      engine.onControl(handleControl);
+      console.log('%c[client] session ' + code, 'color:#355E3B;font-weight:700');
+    } else {
+      console.warn('[client] CypressSessionEngine not loaded — capture is local-only.');
+    }
+    render();
+  }
+  function emit(type, room, detail) {
+    if (engine) engine.emit(type, room, detail);
+    else console.log('[session]', type, room || '', detail || '');
+    render();
+  }
+
+  // DOM readers (game-side)
+  function dotsCount(room) {
+    const w = document.getElementById(room + '-dots');
+    if (!w) return [0, 0];
+    return [w.querySelectorAll('.dot.done').length, w.querySelectorAll('.dot').length];
+  }
+  function isCompleted(room) {
+    const adv = document.getElementById(room + '-advance');
+    if (adv && adv.classList.contains('visible')) return true;
+    if (room === 'tea') { const r = document.getElementById('tea-reflect'); if (r && r.classList.contains('visible')) return true; }
+    return false;
+  }
+  function readNote(room) {
+    const p = document.getElementById(room + '-reflect');
+    if (!p) return '';
+    const notes = p.querySelectorAll('.reflect-note');
+    const last = notes[notes.length - 1];
+    return last ? (last.value || '').trim() : '';
+  }
+
+  // capture API (called by the inline hooks)
+  function enterRoom(room) {
+    const meta = RM[room] || { label: room, practice: '' };
+    current = { room: room, enteredAt: Date.now() };
+    emit('enter', room, { label: meta.label, practice: meta.practice });
+  }
+  function leaveRoom() {
+    if (!current) return;
+    const room = current.room;
+    const seconds = Math.round((Date.now() - current.enteredAt) / 1000);
+    const [done, total] = dotsCount(room);
+    const completed = isCompleted(room);
+    const extra = {};
+
+    const note = readNote(room);
+    if (note) emit('note', room, { text: note });
+
+    if (room === 'lantern') {
+      const lg = document.getElementById('lantern-letgo');
+      const txt = lg ? (lg.value || '').trim() : '';
+      if (txt) { extra.letGo = txt; emit('note', room, { kind: 'let-go', text: txt }); }
+    }
+    if (room === 'tea') {
+      try {
+        extra.category = (typeof teaCategory !== 'undefined') ? (teaCategory || '') : '';
+        extra.responses = (typeof teaResponses !== 'undefined') ? (teaResponses || []).slice() : [];
+        const words = extra.responses.filter(r => !r.skipped && r.response).length;
+        emit('progress', room, { summary: 'grounding \u201C' + extra.category + '\u201D \u00b7 ' + words + ' words' });
+      } catch (e) {}
+    }
+    if (room === 'sky') {
+      try { extra.regions = (typeof SKY_REGIONS !== 'undefined') ? SKY_REGIONS.slice(0, done).map(r => r.name) : []; } catch (e) {}
+    }
+
+    if (completed) emit('progress', room, { completed: true, cycles: done, target: total });
+    emit('leave', room, { seconds: seconds, cyclesCompleted: done, cyclesTarget: total, completed: completed, extra: extra });
+    current = null;
+  }
+  function reflect(room, feeling) { emit('reflect', room, { feeling: feeling, label: FL[feeling] || feeling }); }
+  function choice(room, label, value) { emit('choice', room, { label: label, value: value }); }
+  function end() { return engine ? engine.end() : null; }
+  function summary() { return engine ? engine.summary() : null; }
+  function getState() { return engine ? engine.state() : null; }
+
+  // controls received FROM the therapist drawer
+  function handleControl(c) {
+    if (!c) return;
+    switch (c.type) {
+      case 'nudge':           nudge(c.payload && c.payload.text); break;
+      case 'goto_room':       if (c.payload && c.payload.room) goRoom(c.payload.room); break;
+      case 'return_hub':      goHub(); break;
+      case 'goto_reflection': { const r = current && current.room; if (r) showReflect(r); break; }
+      case 'pause':           nudge('Your guide paused \u2014 take your time.'); break;  // TODO: real animation pacing
+      case 'resume':          nudge('Continuing together.'); break;
+      case 'end':             nudge('Session complete. Well done.'); setTimeout(goHub, 1200); break;
+    }
+    render();
+  }
+  function nudge(text) {
+    let t = document.getElementById('cs-nudge');
+    if (!t) { t = document.createElement('div'); t.id = 'cs-nudge'; document.body.appendChild(t); }
+    t.textContent = text || 'A gentle check-in from your guide.';
+    t.classList.add('show');
+    clearTimeout(nudge._timer);
+    nudge._timer = setTimeout(function () { t.classList.remove('show'); }, 4000);
+  }
+
+  // debug readout (press "s")
+  function buildPanel() {
+    if (panel) return;
+    panel = document.createElement('div');
+    panel.id = 'cs-debug';
+    panel.innerHTML =
+      '<div class="dbg-head"><b>sessionState \u00b7 ' + code + '</b><span class="dbg-hint">press \u201Cs\u201D to toggle</span>' +
+      '<button class="dbg-end">End &amp; summarize</button></div><pre class="dbg-body"></pre>';
+    document.body.appendChild(panel);
+    panel.querySelector('.dbg-end').addEventListener('click', function () { console.log('SUMMARY \u2192', end()); });
+  }
+  function render() {
+    if (!panel || panel.style.display === 'none') return;
+    panel.querySelector('.dbg-body').textContent = JSON.stringify(getState(), null, 2);
+  }
+  function toggle() { buildPanel(); panel.style.display = (panel.style.display === 'none' || !panel.style.display) ? 'block' : 'none'; render(); }
+
+  return { start: start, enterRoom: enterRoom, leaveRoom: leaveRoom, reflect: reflect, choice: choice, end: end, summary: summary, toggle: toggle, get: getState, code: code };
+})();
+window.CypressSession = CypressSession;
+
+CypressSession.start();
+document.addEventListener('keydown', function (e) {
+  const tag = (e.target.tagName || '').toLowerCase();
+  if (tag === 'input' || tag === 'textarea') return;
+  if (e.key === 's' || e.key === 'S') CypressSession.toggle();
+});
+</script>
+</body>
+</html>
