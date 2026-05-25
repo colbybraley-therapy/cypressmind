@@ -250,13 +250,11 @@ html,body{width:100%;height:100%;background:#0e1f06;font-family:'Crimson Pro',Ge
 
 /* ── RESPONSIVE ── */
 @media (max-width: 800px) {
-  #npc-wrap{ height: min(60vh, 52vw); }
   #dialogue-wrap{ width: clamp(200px, 50vw, 340px); }
   #scene-stage[data-bubble="right"] #dialogue-wrap{ left: 102%; }
   #scene-stage[data-bubble="left"] #dialogue-wrap{ right: 102%; }
 }
 @media (max-width: 600px) {
-  #npc-wrap{ height: min(50vh, 45vw); }
   /* On very small screens stack the bubble above the NPC */
   #scene-stage[data-bubble="right"] #dialogue-wrap,
   #scene-stage[data-bubble="left"] #dialogue-wrap{
