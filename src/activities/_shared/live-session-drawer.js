@@ -292,7 +292,15 @@
     el.roomsToggle.onclick = function () { el.rooms.classList.toggle('csd-collapsed'); };
     el.copy.onclick = function () { if (navigator.clipboard) navigator.clipboard.writeText(opts.code).catch(function(){}); toast('Code copied'); };
     el.end.onclick = function () { control('end', {}, 'You ended the session'); showSummary(); };
-    el.save.onclick = function () { var s = engine && engine.summary(); if (saveCb) saveCb(s); toast('Saved to client record'); el.summary.classList.remove('csd-show'); };
+    el.save.onclick = function () {
+      var s = engine && engine.summary();
+      if (saveCb) saveCb(s);
+      if (engine) { try { engine.close(); } catch (e) {} engine = null; }
+      el.handle.classList.remove('csd-avail');
+      close();
+      reset();
+      toast('Saved to client record');
+    };
     document.addEventListener('keydown', function (e) { if (e.key === 'Escape') close(); });
 
     Array.prototype.forEach.call(root.querySelectorAll('.csd-ctl[data-ctl]'), function (b) {
