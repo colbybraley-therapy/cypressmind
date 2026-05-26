@@ -1186,8 +1186,51 @@
   });
   let currentUser = null;
 
-  CypressDrawer.onSave(function(summary) {
-    console.log('[CypressDrawer] save:', summary);
+  CypressDrawer.onSave(async function(summary) {
+    if (!summary || !currentClient) return;
+
+    function buildZenNarrative(sum) {
+      const dur = Math.round((sum.durationSec || 0) / 60);
+      const rooms = sum.rooms || [];
+      const completed = rooms.filter(r => r.completed).length;
+      const calmer = rooms.filter(r => r.feeling === 'calmer').length;
+      const names = rooms.map(r => r.room);
+      const parts = [];
+      if (dur) parts.push(dur + '-minute session.');
+      if (names.length) parts.push('Visited: ' + names.join(', ') + '.');
+      if (completed) parts.push('Completed ' + completed + ' of ' + rooms.length + ' practice' + (rooms.length > 1 ? 's' : '') + '.');
+      if (calmer) parts.push('Reported calmer after ' + (calmer === rooms.length ? 'all' : calmer) + ' room' + (calmer > 1 ? 's' : '') + '.');
+      return parts.join(' ');
+    }
+
+    try {
+      const { data: session, error: sessErr } = await db.from('sessions').insert({
+        client_id:     currentClient.id,
+        therapist_id:  currentUser?.id,
+        code:          summary.sessionCode || '',
+        status:        'completed',
+        activity_type: 'zen-breathing',
+      }).select().single();
+
+      if (sessErr) { console.error('[CypressDrawer] session insert:', sessErr); return; }
+
+      const { error: sumErr } = await db.from('session_summaries').insert({
+        session_id:          session.id,
+        client_id:           currentClient.id,
+        therapist_id:        currentUser?.id,
+        activity_type:       'zen-breathing',
+        duration_seconds:    summary.durationSec || 0,
+        responses:           summary.rooms || [],
+        generated_summary:   buildZenNarrative(summary),
+        breathing_completed: (summary.rooms || []).some(r => r.completed),
+      });
+
+      if (sumErr) console.error('[CypressDrawer] summary insert:', sumErr);
+
+      if (document.getElementById('tab-history')?.style.display !== 'none') loadSessionHistory();
+    } catch (e) {
+      console.error('[CypressDrawer] save error:', e);
+    }
   });
 
   function esc(s) {
@@ -2200,8 +2243,35 @@
       return;
     }
 
+    const sessionIds = sessions.map(s => s.id);
+    const { data: summaries } = await db.from('session_summaries')
+      .select('session_id, generated_summary, duration_seconds, responses, breathing_completed')
+      .in('session_id', sessionIds);
+    const sumMap = {};
+    (summaries || []).forEach(s => { sumMap[s.session_id] = s; });
+
     list.innerHTML = sessions.map(s => {
-      const status = s.status === 'completed' ? '<span class="pill pill-green">Completed</span>' : s.status === 'active' ? '<span class="pill pill-blue">Active</span>' : '<span class="pill pill-amber">Waiting</span>';
+      const sum = sumMap[s.id];
+      const status = s.status === 'completed' ? '<span class="pill pill-green">Completed</span>'
+        : s.status === 'active' ? '<span class="pill pill-blue">Active</span>'
+        : '<span class="pill pill-amber">Waiting</span>';
+
+      if (s.activity_type === 'zen-breathing' && sum) {
+        const dur = sum.duration_seconds ? Math.round(sum.duration_seconds / 60) + ' min' : '';
+        const rooms = Array.isArray(sum.responses) ? sum.responses.map(r => r.room).join(' · ') : '';
+        return `<div class="session-row" style="flex-direction:column;align-items:flex-start;gap:5px;padding:12px 14px">
+          <div style="display:flex;align-items:center;gap:8px;width:100%">
+            <div class="session-dot" style="background:var(--hunter-green);flex-shrink:0"></div>
+            <div class="session-info" style="flex:1">
+              <div class="session-date">🌿 Zen Breathing Garden${dur ? ' · ' + dur : ''} · ${formatDate(s.created_at)}</div>
+            </div>
+            ${status}
+          </div>
+          ${rooms ? `<div class="session-summary" style="padding-left:20px">${rooms}</div>` : ''}
+          ${sum.generated_summary ? `<div class="session-summary" style="padding-left:20px;font-style:italic;color:var(--slate-light)">${esc(sum.generated_summary)}</div>` : ''}
+        </div>`;
+      }
+
       return `<div class="session-row">
         <div class="session-dot"></div>
         <div class="session-info">
