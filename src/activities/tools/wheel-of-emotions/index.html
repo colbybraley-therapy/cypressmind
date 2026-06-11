@@ -1,0 +1,1139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Wheel of Emotions – Cypress Mind</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Pro:ital,wght@0,300;0,400;1,300;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --hunter: #355E3B;
+    --royal: #4169E1;
+    --purple: #6B3FA0;
+    --offwhite: #F8FAF9;
+    --parchment: #F5EFE0;
+    --ink: #2A2420;
+    --ink-soft: #4A3F38;
+
+    /* Family colors */
+    --joy:          #F5C842;
+    --trust:        #7DBF82;
+    --fear:         #8A7FB5;
+    --surprise:     #F4855A;
+    --sadness:      #6A9CC7;
+    --disgust:      #A3A84B;
+    --anger:        #D95F6A;
+    --anticipation: #E8A030;
+
+    --wheel-size: min(88vw, 88vh, 520px);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--parchment);
+    font-family: 'DM Sans', sans-serif;
+    color: var(--ink);
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+    user-select: none;
+  }
+
+  /* Subtle texture overlay */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(ellipse at 20% 10%, rgba(245,200,66,0.08) 0%, transparent 50%),
+      radial-gradient(ellipse at 80% 85%, rgba(106,156,199,0.08) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* ── SCREENS ── */
+  .screen {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease;
+    z-index: 1;
+  }
+  .screen.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  /* ── WELCOME SCREEN ── */
+  #screen-welcome {
+    gap: 20px;
+    text-align: center;
+  }
+  .welcome-emblem {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--hunter) 0%, #4a8c52 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 20px rgba(53,94,59,0.25);
+    margin-bottom: 8px;
+  }
+  .welcome-emblem svg {
+    width: 48px;
+    height: 48px;
+    fill: none;
+    stroke: var(--offwhite);
+    stroke-width: 1.5;
+  }
+  .welcome-title {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(22px, 5vw, 30px);
+    font-weight: 600;
+    color: var(--hunter);
+    letter-spacing: 0.04em;
+    line-height: 1.2;
+  }
+  .welcome-subtitle {
+    font-family: 'Crimson Pro', serif;
+    font-size: clamp(16px, 3.5vw, 20px);
+    font-style: italic;
+    color: var(--ink-soft);
+    max-width: 300px;
+    line-height: 1.5;
+  }
+  .welcome-dots {
+    display: flex;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .welcome-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  /* ── MAIN WHEEL SCREEN ── */
+  #screen-wheel {
+    justify-content: flex-start;
+    padding: 16px 12px 20px;
+    gap: 0;
+  }
+
+  .wheel-header {
+    text-align: center;
+    margin-bottom: 12px;
+    z-index: 2;
+  }
+  .wheel-instruction {
+    font-family: 'Crimson Pro', serif;
+    font-size: clamp(14px, 3.2vw, 17px);
+    font-style: italic;
+    color: var(--ink-soft);
+    transition: opacity 0.4s ease;
+  }
+  .wheel-instruction.hidden { opacity: 0; }
+
+  /* Wheel container */
+  .wheel-stage {
+    position: relative;
+    width: var(--wheel-size);
+    height: var(--wheel-size);
+    flex-shrink: 0;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .wheel-stage:active { transform: scale(0.99); }
+
+  #wheel-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    filter: drop-shadow(0 6px 24px rgba(42,36,32,0.18));
+  }
+
+  /* Pointer */
+  .wheel-pointer {
+    position: absolute;
+    right: -22px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 10;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.2));
+  }
+
+  /* Center hub */
+  .wheel-hub {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--parchment);
+    border: 3px solid rgba(42,36,32,0.12);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 5;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+    pointer-events: none;
+  }
+  .wheel-hub-inner {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--hunter);
+    opacity: 0.7;
+  }
+
+  /* Spin ripple */
+  .spin-ripple {
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 2px solid transparent;
+    pointer-events: none;
+    opacity: 0;
+  }
+  .wheel-stage.spinning .spin-ripple {
+    animation: ripplePulse 0.8s ease-out infinite;
+    border-color: rgba(53,94,59,0.3);
+    opacity: 1;
+  }
+  @keyframes ripplePulse {
+    0%   { transform: scale(1); opacity: 0.6; }
+    100% { transform: scale(1.05); opacity: 0; }
+  }
+
+  /* ── LANDED CARD ── */
+  .landed-card {
+    width: 100%;
+    max-width: 480px;
+    margin-top: 14px;
+    padding: 14px 20px 16px;
+    background: white;
+    border-radius: 16px;
+    box-shadow: 0 3px 16px rgba(42,36,32,0.1);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+    pointer-events: none;
+  }
+  .landed-card.visible {
+    opacity: 1;
+    transform: translateY(0);
+    pointer-events: all;
+  }
+  .landed-swatch {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+  }
+  .landed-text { flex: 1; min-width: 0; }
+  .landed-word {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(17px, 4vw, 22px);
+    font-weight: 600;
+    line-height: 1.1;
+  }
+  .landed-family {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    color: var(--ink-soft);
+    margin-top: 2px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+  .landed-waiting {
+    font-family: 'Crimson Pro', serif;
+    font-size: 13px;
+    font-style: italic;
+    color: var(--ink-soft);
+    white-space: nowrap;
+  }
+
+  /* ── WAITING OVERLAY ── */
+  .waiting-blocker {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    background: rgba(245,239,224,0.6);
+    backdrop-filter: blur(1px);
+    z-index: 8;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+  }
+  .waiting-blocker.active {
+    opacity: 1;
+    pointer-events: all;
+    cursor: default;
+  }
+  .waiting-pulse {
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 3px solid var(--hunter);
+    opacity: 0.4;
+    animation: waitPulse 1.8s ease-in-out infinite;
+  }
+  @keyframes waitPulse {
+    0%, 100% { transform: scale(0.95); opacity: 0.3; }
+    50%       { transform: scale(1.05); opacity: 0.6; }
+  }
+
+  /* ── CLOSING RITUAL SCREEN ── */
+  #screen-closing {
+    gap: 0;
+    text-align: center;
+    padding: 32px 24px;
+  }
+  .closing-title {
+    font-family: 'Cinzel', serif;
+    font-size: clamp(20px, 5vw, 28px);
+    font-weight: 600;
+    color: var(--hunter);
+    letter-spacing: 0.04em;
+    margin-bottom: 6px;
+  }
+  .closing-count {
+    font-family: 'Crimson Pro', serif;
+    font-size: clamp(15px, 3.5vw, 18px);
+    font-style: italic;
+    color: var(--ink-soft);
+    margin-bottom: 28px;
+  }
+  .closing-words-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 28px;
+    max-width: 380px;
+  }
+  .closing-word-chip {
+    padding: 7px 16px;
+    border-radius: 100px;
+    font-family: 'Cinzel', serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--ink);
+    opacity: 0;
+    transform: scale(0.8);
+    transition: opacity 0.4s ease, transform 0.4s ease;
+  }
+  .closing-word-chip.show {
+    opacity: 1;
+    transform: scale(1);
+  }
+  .closing-affirmation {
+    font-family: 'Crimson Pro', serif;
+    font-size: clamp(16px, 3.8vw, 20px);
+    font-style: italic;
+    color: var(--ink-soft);
+    max-width: 320px;
+    line-height: 1.6;
+    opacity: 0;
+    transition: opacity 0.8s ease 0.3s;
+  }
+  .closing-affirmation.show { opacity: 1; }
+
+  /* ── BUTTONS ── */
+  .btn-primary {
+    font-family: 'Cinzel', serif;
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    color: var(--offwhite);
+    background: var(--hunter);
+    border: none;
+    border-radius: 100px;
+    padding: 14px 36px;
+    cursor: pointer;
+    box-shadow: 0 4px 16px rgba(53,94,59,0.25);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-primary:active {
+    transform: scale(0.97);
+    box-shadow: 0 2px 8px rgba(53,94,59,0.2);
+  }
+
+  /* ── SLICE REMOVAL ANIMATION ── */
+  @keyframes sliceVanish {
+    0%   { opacity: 1; }
+    60%  { opacity: 0.3; }
+    100% { opacity: 0; }
+  }
+
+  /* ── DEV BADGE ── */
+  .dev-badge {
+    position: fixed;
+    bottom: 12px;
+    right: 12px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    color: rgba(42,36,32,0.3);
+    pointer-events: none;
+    z-index: 100;
+  }
+</style>
+</head>
+<body>
+
+<!-- WELCOME SCREEN -->
+<div class="screen active" id="screen-welcome">
+  <div class="welcome-emblem">
+    <svg viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+      <!-- Simple compass/wheel icon -->
+      <circle cx="24" cy="24" r="18" stroke-width="1.5"/>
+      <line x1="24" y1="6" x2="24" y2="14" stroke-width="2" stroke-linecap="round"/>
+      <line x1="24" y1="34" x2="24" y2="42" stroke-width="2" stroke-linecap="round"/>
+      <line x1="6" y1="24" x2="14" y2="24" stroke-width="2" stroke-linecap="round"/>
+      <line x1="34" y1="24" x2="42" y2="24" stroke-width="2" stroke-linecap="round"/>
+      <circle cx="24" cy="24" r="5" stroke-width="1.5"/>
+      <circle cx="24" cy="24" r="2" fill="white" stroke="none"/>
+    </svg>
+  </div>
+  <h1 class="welcome-title">Wheel of Emotions</h1>
+  <p class="welcome-subtitle">See what feelings are here with you today.</p>
+  <div class="welcome-dots">
+    <div class="welcome-dot" style="background:var(--joy)"></div>
+    <div class="welcome-dot" style="background:var(--trust)"></div>
+    <div class="welcome-dot" style="background:var(--fear)"></div>
+    <div class="welcome-dot" style="background:var(--surprise)"></div>
+    <div class="welcome-dot" style="background:var(--sadness)"></div>
+    <div class="welcome-dot" style="background:var(--anger)"></div>
+    <div class="welcome-dot" style="background:var(--anticipation)"></div>
+  </div>
+  <button class="btn-primary" onclick="startSession()" style="margin-top:28px">Begin</button>
+</div>
+
+<!-- WHEEL SCREEN -->
+<div class="screen" id="screen-wheel">
+  <div class="wheel-header">
+    <p class="wheel-instruction" id="wheel-instruction">Tap the wheel to spin</p>
+  </div>
+
+  <div class="wheel-stage" id="wheel-stage" onclick="handleWheelTap()">
+    <div class="spin-ripple"></div>
+
+    <!-- Pointer (compass needle) -->
+    <svg class="wheel-pointer" width="28" height="32" viewBox="0 0 28 32">
+      <polygon points="2,16 26,8 20,16 26,24" fill="#2A2420" opacity="0.75"/>
+      <polygon points="2,16 26,8 20,16 26,24" fill="none" stroke="var(--parchment)" stroke-width="1"/>
+    </svg>
+
+    <canvas id="wheel-canvas"></canvas>
+
+    <!-- Waiting blocker -->
+    <div class="waiting-blocker" id="waiting-blocker">
+      <div class="waiting-pulse"></div>
+    </div>
+
+    <!-- Hub -->
+    <div class="wheel-hub">
+      <div class="wheel-hub-inner"></div>
+    </div>
+  </div>
+
+  <!-- Landed card -->
+  <div class="landed-card" id="landed-card">
+    <div class="landed-swatch" id="landed-swatch"></div>
+    <div class="landed-text">
+      <div class="landed-word" id="landed-word"></div>
+      <div class="landed-family" id="landed-family"></div>
+    </div>
+    <div class="landed-waiting">Talking it over…</div>
+  </div>
+</div>
+
+<!-- CLOSING SCREEN -->
+<div class="screen" id="screen-closing">
+  <div class="closing-title">Well done today.</div>
+  <div class="closing-count" id="closing-count"></div>
+  <div class="closing-words-grid" id="closing-words-grid"></div>
+  <p class="closing-affirmation" id="closing-affirmation">
+    Every feeling you named today took courage.<br>You showed up — that matters.
+  </p>
+</div>
+
+<div class="dev-badge">Cypress Mind · Wheel of Emotions</div>
+
+<script>
+/* ───────────────────────────────────────────────────────────────
+   WORD LIBRARY – 81 unique words, 8 Plutchik families
+   Each word: { word, family, intensity (1-3) }
+─────────────────────────────────────────────────────────────── */
+const FAMILIES = {
+  joy:          { label: 'Joy',          color: '#F5C842', symbol: '☀', dark: '#9A7A10' },
+  trust:        { label: 'Trust',        color: '#7DBF82', symbol: '🤝', dark: '#2E6B33' },
+  fear:         { label: 'Fear',         color: '#8A7FB5', symbol: '🌀', dark: '#3D2E7A' },
+  surprise:     { label: 'Surprise',     color: '#F4855A', symbol: '…', dark: '#8C3510' },
+  sadness:      { label: 'Sadness',      color: '#6A9CC7', symbol: '🧊', dark: '#1E4D7A' },
+  disgust:      { label: 'Disgust',      color: '#A3A84B', symbol: '🌿', dark: '#4A4C10' },
+  anger:        { label: 'Anger',        color: '#D95F6A', symbol: '🔥', dark: '#7A1520' },
+  anticipation: { label: 'Anticipation', color: '#E8A030', symbol: '→', dark: '#7A4A00' },
+};
+
+const WORD_LIBRARY = [
+  // JOY
+  { word: 'serene',    family: 'joy', intensity: 1 },
+  { word: 'content',   family: 'joy', intensity: 1 },
+  { word: 'grateful',  family: 'joy', intensity: 1 },
+  { word: 'cheerful',  family: 'joy', intensity: 1 },
+  { word: 'warm',      family: 'joy', intensity: 1 },
+  { word: 'pleased',   family: 'joy', intensity: 1 },
+  { word: 'happy',     family: 'joy', intensity: 2 },
+  { word: 'hopeful',   family: 'joy', intensity: 2 },
+  { word: 'proud',     family: 'joy', intensity: 2 },
+  { word: 'playful',   family: 'joy', intensity: 2 },
+  { word: 'joyful',    family: 'joy', intensity: 2 },
+  { word: 'delighted', family: 'joy', intensity: 2 },
+  { word: 'inspired',  family: 'joy', intensity: 2 },
+  { word: 'excited',   family: 'joy', intensity: 2 },
+  { word: 'blissful',  family: 'joy', intensity: 3 },
+  { word: 'elated',    family: 'joy', intensity: 3 },
+  { word: 'ecstatic',  family: 'joy', intensity: 3 },
+  { word: 'radiant',   family: 'joy', intensity: 3 },
+  { word: 'thrilled',  family: 'joy', intensity: 3 },
+  { word: 'euphoric',  family: 'joy', intensity: 3 },
+  // TRUST
+  { word: 'accepting',  family: 'trust', intensity: 1 },
+  { word: 'open',       family: 'trust', intensity: 1 },
+  { word: 'comfortable',family: 'trust', intensity: 1 },
+  { word: 'safe',       family: 'trust', intensity: 1 },
+  { word: 'belonging',  family: 'trust', intensity: 1 },
+  { word: 'secure',     family: 'trust', intensity: 2 },
+  { word: 'confident',  family: 'trust', intensity: 2 },
+  { word: 'valued',     family: 'trust', intensity: 2 },
+  { word: 'supported',  family: 'trust', intensity: 2 },
+  { word: 'connected',  family: 'trust', intensity: 2 },
+  { word: 'appreciated',family: 'trust', intensity: 2 },
+  { word: 'trusting',   family: 'trust', intensity: 2 },
+  { word: 'loyal',      family: 'trust', intensity: 3 },
+  { word: 'respected',  family: 'trust', intensity: 3 },
+  // FEAR
+  { word: 'uneasy',      family: 'fear', intensity: 1 },
+  { word: 'cautious',    family: 'fear', intensity: 1 },
+  { word: 'nervous',     family: 'fear', intensity: 1 },
+  { word: 'worried',     family: 'fear', intensity: 1 },
+  { word: 'unsettled',   family: 'fear', intensity: 2 },
+  { word: 'anxious',     family: 'fear', intensity: 2 },
+  { word: 'vulnerable',  family: 'fear', intensity: 2 },
+  { word: 'exposed',     family: 'fear', intensity: 2 },
+  { word: 'afraid',      family: 'fear', intensity: 2 },
+  { word: 'overwhelmed', family: 'fear', intensity: 3 },
+  { word: 'terrified',   family: 'fear', intensity: 3 },
+  { word: 'panicked',    family: 'fear', intensity: 3 },
+  // SURPRISE
+  { word: 'puzzled',        family: 'surprise', intensity: 1 },
+  { word: 'curious',        family: 'surprise', intensity: 1 },
+  { word: 'wide-eyed',      family: 'surprise', intensity: 2 },
+  { word: 'amazed',         family: 'surprise', intensity: 2 },
+  { word: 'startled',       family: 'surprise', intensity: 2 },
+  { word: 'astonished',     family: 'surprise', intensity: 3 },
+  { word: 'shocked',        family: 'surprise', intensity: 3 },
+  { word: 'stunned',        family: 'surprise', intensity: 3 },
+  // SADNESS
+  { word: 'pensive',      family: 'sadness', intensity: 1 },
+  { word: 'wistful',      family: 'sadness', intensity: 1 },
+  { word: 'disappointed', family: 'sadness', intensity: 1 },
+  { word: 'lonely',       family: 'sadness', intensity: 2 },
+  { word: 'lost',         family: 'sadness', intensity: 2 },
+  { word: 'sad',          family: 'sadness', intensity: 2 },
+  { word: 'downhearted',  family: 'sadness', intensity: 2 },
+  { word: 'empty',        family: 'sadness', intensity: 2 },
+  { word: 'grieving',     family: 'sadness', intensity: 3 },
+  { word: 'heartbroken',  family: 'sadness', intensity: 3 },
+  { word: 'sorrowful',    family: 'sadness', intensity: 3 },
+  { word: 'despairing',   family: 'sadness', intensity: 3 },
+  // DISGUST
+  { word: 'uncomfortable', family: 'disgust', intensity: 1 },
+  { word: 'bothered',      family: 'disgust', intensity: 1 },
+  { word: 'offended',      family: 'disgust', intensity: 2 },
+  { word: 'repulsed',      family: 'disgust', intensity: 3 },
+  { word: 'revolted',      family: 'disgust', intensity: 3 },
+  { word: 'contemptuous',  family: 'disgust', intensity: 3 },
+  // ANGER
+  { word: 'irritated',  family: 'anger', intensity: 1 },
+  { word: 'annoyed',    family: 'anger', intensity: 1 },
+  { word: 'frustrated', family: 'anger', intensity: 2 },
+  { word: 'resentful',  family: 'anger', intensity: 2 },
+  { word: 'bitter',     family: 'anger', intensity: 2 },
+  { word: 'angry',      family: 'anger', intensity: 2 },
+  { word: 'hostile',    family: 'anger', intensity: 3 },
+  { word: 'furious',    family: 'anger', intensity: 3 },
+  { word: 'enraged',    family: 'anger', intensity: 3 },
+  { word: 'livid',      family: 'anger', intensity: 3 },
+  // ANTICIPATION
+  { word: 'restless',    family: 'anticipation', intensity: 1 },
+  { word: 'eager',       family: 'anticipation', intensity: 2 },
+  { word: 'expectant',   family: 'anticipation', intensity: 2 },
+  { word: 'impatient',   family: 'anticipation', intensity: 2 },
+  { word: 'ready',       family: 'anticipation', intensity: 2 },
+  { word: 'driven',      family: 'anticipation', intensity: 3 },
+];
+
+/* ───────────────────────────────────────────────────────────────
+   SESSION STATE
+─────────────────────────────────────────────────────────────── */
+const SESSION = {
+  pool: [],         // 22 words drawn for this session
+  remaining: [],    // indices still on the wheel
+  landedIndex: -1,  // current landed slice index
+  spins: [],        // log of all discussed words
+  isSpinning: false,
+  isWaiting: false, // waiting for therapist to mark discussed
+  startedAt: null,
+};
+
+/* ───────────────────────────────────────────────────────────────
+   WHEEL CANVAS RENDERING
+─────────────────────────────────────────────────────────────── */
+const WHEEL_WORD_COUNT = 22;
+let canvas, ctx, currentAngle = 0;
+// Removal animation state per slice
+let sliceOpacity = []; // 1 = fully visible, 0 = removed
+
+function drawWheel() {
+  if (!canvas) return;
+  const size = canvas.width;
+  const cx = size / 2;
+  const cy = size / 2;
+  const R = size / 2 - 4;
+  const innerR = 28; // hub hole
+
+  ctx.clearRect(0, 0, size, size);
+
+  const remaining = SESSION.remaining;
+  if (remaining.length === 0) return;
+
+  const sliceAngle = (2 * Math.PI) / remaining.length;
+
+  remaining.forEach((poolIdx, i) => {
+    const word = SESSION.pool[poolIdx];
+    const family = FAMILIES[word.family];
+    const startA = currentAngle + i * sliceAngle;
+    const endA   = startA + sliceAngle;
+    const midA   = startA + sliceAngle / 2;
+    const opacity = sliceOpacity[i] !== undefined ? sliceOpacity[i] : 1;
+
+    ctx.save();
+    ctx.globalAlpha = opacity;
+
+    // Slice fill
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.arc(cx, cy, R, startA, endA);
+    ctx.closePath();
+
+    // Storybook warm gradient per slice
+    const grad = ctx.createRadialGradient(cx, cy, innerR, cx, cy, R);
+    grad.addColorStop(0,   lighten(family.color, 0.22));
+    grad.addColorStop(0.6, family.color);
+    grad.addColorStop(1,   darken(family.color, 0.08));
+    ctx.fillStyle = grad;
+    ctx.fill();
+
+    // Slice border (parchment lines)
+    ctx.strokeStyle = 'rgba(245,239,224,0.7)';
+    ctx.lineWidth = 1.5;
+    ctx.stroke();
+
+    // Word text – reads left-to-right along the slice, outer edge = left, center = right
+    // Rotate canvas so +x points outward along midA, then draw right-aligned
+    // ending near the outer edge so first letter is outermost.
+    ctx.save();
+    ctx.translate(cx, cy);
+    ctx.rotate(midA);
+
+    const fontSize = remaining.length <= 12 ? 23 : remaining.length <= 18 ? 20 : 17;
+    // Draw symbol + dash + word as one left-aligned string starting near outer edge
+    const label = family.symbol + ' - ' + word.word;
+    ctx.font = `600 ${fontSize}px 'Cinzel', serif`;
+    ctx.textAlign = 'left';
+    ctx.textBaseline = 'middle';
+
+    ctx.shadowColor = 'rgba(0,0,0,0.32)';
+    ctx.shadowBlur = 4;
+    ctx.fillStyle = '#fff';
+    const textWidth = ctx.measureText(label).width;
+    const sliceLength = R - innerR - 20;
+    const startX = innerR + 10 + (sliceLength - textWidth) / 2;
+    ctx.fillText(label, startX, 0);
+    ctx.shadowBlur = 0;
+
+    ctx.restore();
+    ctx.restore();
+  });
+
+  // Outer ring
+  ctx.beginPath();
+  ctx.arc(cx, cy, R, 0, 2 * Math.PI);
+  ctx.strokeStyle = 'rgba(42,36,32,0.15)';
+  ctx.lineWidth = 3;
+  ctx.stroke();
+
+  // Hub circle cutout
+  ctx.beginPath();
+  ctx.arc(cx, cy, innerR, 0, 2 * Math.PI);
+  ctx.fillStyle = '#F5EFE0';
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(42,36,32,0.1)';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+}
+
+function lighten(hex, amt) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = Math.min(255, (n >> 16) + Math.round(amt * 255));
+  const g = Math.min(255, ((n >> 8) & 0xff) + Math.round(amt * 255));
+  const b = Math.min(255, (n & 0xff) + Math.round(amt * 255));
+  return `rgb(${r},${g},${b})`;
+}
+function darken(hex, amt) {
+  const n = parseInt(hex.slice(1), 16);
+  const r = Math.max(0, (n >> 16) - Math.round(amt * 255));
+  const g = Math.max(0, ((n >> 8) & 0xff) - Math.round(amt * 255));
+  const b = Math.max(0, (n & 0xff) - Math.round(amt * 255));
+  return `rgb(${r},${g},${b})`;
+}
+
+/* ───────────────────────────────────────────────────────────────
+   SPIN ANIMATION
+─────────────────────────────────────────────────────────────── */
+let spinRAF = null;
+
+function spin() {
+  if (SESSION.isSpinning || SESSION.isWaiting) return;
+  if (SESSION.remaining.length === 0) return;
+
+  SESSION.isSpinning = true;
+  document.getElementById('wheel-stage').classList.add('spinning');
+  document.getElementById('wheel-instruction').classList.add('hidden');
+
+  // Pick a random target slice
+  const targetSliceIndex = Math.floor(Math.random() * SESSION.remaining.length);
+  const sliceAngle = (2 * Math.PI) / SESSION.remaining.length;
+
+  // How many full rotations + land on target
+  const fullRotations = (5 + Math.floor(Math.random() * 4)) * 2 * Math.PI;
+  // Pointer is at top (–π/2). We want sliceIndex midpoint to end at top.
+  const targetMidAngle = targetSliceIndex * sliceAngle + sliceAngle / 2;
+  const targetFinal = fullRotations + (0 - targetMidAngle - currentAngle);
+
+  const duration = 2800 + Math.random() * 800;
+  const startAngle = currentAngle;
+  const startTime = performance.now();
+
+  function easeOut(t) {
+    return 1 - Math.pow(1 - t, 4);
+  }
+
+  function frame(now) {
+    const elapsed = now - startTime;
+    const t = Math.min(elapsed / duration, 1);
+    const easedT = easeOut(t);
+    currentAngle = startAngle + targetFinal * easedT;
+    drawWheel();
+
+    if (t < 1) {
+      spinRAF = requestAnimationFrame(frame);
+    } else {
+      currentAngle = startAngle + targetFinal;
+      SESSION.isSpinning = false;
+      SESSION.isWaiting = true;
+      SESSION.landedIndex = targetSliceIndex;
+      document.getElementById('wheel-stage').classList.remove('spinning');
+      showLandedCard(targetSliceIndex);
+      showWaitingBlocker();
+    }
+  }
+
+  spinRAF = requestAnimationFrame(frame);
+}
+
+function handleWheelTap() {
+  if (SESSION.isWaiting || SESSION.isSpinning) return;
+  spin();
+}
+
+/* ───────────────────────────────────────────────────────────────
+   LANDED STATE
+─────────────────────────────────────────────────────────────── */
+function showLandedCard(sliceIndex) {
+  const poolIdx = SESSION.remaining[sliceIndex];
+  const word = SESSION.pool[poolIdx];
+  const family = FAMILIES[word.family];
+
+  document.getElementById('landed-swatch').style.background = family.color + '33';
+  document.getElementById('landed-swatch').style.border = `2px solid ${family.color}`;
+  document.getElementById('landed-swatch').textContent = family.symbol;
+  document.getElementById('landed-word').textContent = word.word;
+  document.getElementById('landed-word').style.color = family.dark;
+  document.getElementById('landed-family').textContent = `from ${family.label}`;
+
+  const card = document.getElementById('landed-card');
+  card.classList.add('visible');
+
+  // Notify therapist drawer (same-tab mode)
+  if (window.WheelDrawer) {
+    WheelDrawer.notifyLanded({
+      word:      word.word,
+      family:    word.family,
+      intensity: word.intensity,
+      remaining: SESSION.remaining.length - 1,
+      landed_at: new Date().toISOString(),
+    });
+  }
+
+  // Broadcast to therapist drawer via engine (cross-device mode)
+  broadcastLanded(word.word, word.family, word.intensity);
+}
+
+function hideLandedCard() {
+  document.getElementById('landed-card').classList.remove('visible');
+}
+
+function showWaitingBlocker() {
+  document.getElementById('waiting-blocker').classList.add('active');
+}
+function hideWaitingBlocker() {
+  document.getElementById('waiting-blocker').classList.remove('active');
+}
+
+/* ───────────────────────────────────────────────────────────────
+   MARK DISCUSSED (called by therapist drawer broadcast)
+   For standalone demo: exposed as window.markDiscussed()
+─────────────────────────────────────────────────────────────── */
+window.markDiscussed = function(note = '') {
+  if (!SESSION.isWaiting) return;
+
+  const sliceIndex = SESSION.landedIndex;
+  const poolIdx = SESSION.remaining[sliceIndex];
+  const word = SESSION.pool[poolIdx];
+
+  // Log it
+  SESSION.spins.push({
+    word: word.word,
+    family: word.family,
+    intensity: word.intensity,
+    landed_at: new Date().toISOString(),
+    discussed_at: new Date().toISOString(),
+    note,
+  });
+
+  // Animate slice removal
+  animateSliceRemoval(sliceIndex, () => {
+    // Remove from remaining
+    SESSION.remaining.splice(sliceIndex, 1);
+    sliceOpacity = SESSION.remaining.map(() => 1);
+
+    SESSION.isWaiting = false;
+    SESSION.landedIndex = -1;
+
+    hideLandedCard();
+    hideWaitingBlocker();
+    drawWheel();
+
+    if (SESSION.remaining.length === 0) {
+      setTimeout(showClosingScreen, 800);
+    } else {
+      const instr = document.getElementById('wheel-instruction');
+      instr.textContent = SESSION.remaining.length === 1
+        ? 'One feeling remains — tap to spin'
+        : 'Tap the wheel to spin again';
+      instr.classList.remove('hidden');
+    }
+  });
+};
+
+function animateSliceRemoval(sliceIndex, onComplete) {
+  sliceOpacity = SESSION.remaining.map(() => 1);
+  const startTime = performance.now();
+  const duration = 600;
+
+  function frame(now) {
+    const t = Math.min((now - startTime) / duration, 1);
+    sliceOpacity[sliceIndex] = 1 - t;
+    drawWheel();
+    if (t < 1) {
+      requestAnimationFrame(frame);
+    } else {
+      onComplete();
+    }
+  }
+  requestAnimationFrame(frame);
+}
+
+/* ───────────────────────────────────────────────────────────────
+   CLOSING RITUAL
+─────────────────────────────────────────────────────────────── */
+function showClosingScreen() {
+  // Build the words grid
+  const grid = document.getElementById('closing-words-grid');
+  grid.innerHTML = '';
+  SESSION.spins.forEach(spin => {
+    const family = FAMILIES[spin.family];
+    const chip = document.createElement('div');
+    chip.className = 'closing-word-chip';
+    chip.textContent = spin.word;
+    chip.style.background = family.color + '33';
+    chip.style.border = `1.5px solid ${family.color}`;
+    chip.style.color = family.dark;
+    grid.appendChild(chip);
+  });
+
+  const n = SESSION.spins.length;
+  document.getElementById('closing-count').textContent =
+    `Today you sat with ${n} feeling${n !== 1 ? 's' : ''}.`;
+
+  showScreen('screen-closing');
+
+  // Stagger chips in
+  setTimeout(() => {
+    const chips = grid.querySelectorAll('.closing-word-chip');
+    chips.forEach((chip, i) => {
+      setTimeout(() => chip.classList.add('show'), i * 120);
+    });
+    setTimeout(() => {
+      document.getElementById('closing-affirmation').classList.add('show');
+    }, chips.length * 120 + 200);
+  }, 400);
+}
+
+/* ───────────────────────────────────────────────────────────────
+   SESSION SETUP
+─────────────────────────────────────────────────────────────── */
+function buildWordPool() {
+  const familyKeys = Object.keys(FAMILIES);
+  const pool = [];
+  const usedIndices = new Set();
+
+  // Guarantee 2 words per family (balanced draw)
+  familyKeys.forEach(fam => {
+    const famWords = WORD_LIBRARY
+      .map((w, i) => ({ ...w, origIdx: i }))
+      .filter(w => w.family === fam);
+    // Shuffle
+    for (let i = famWords.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [famWords[i], famWords[j]] = [famWords[j], famWords[i]];
+    }
+    // Pick 2
+    famWords.slice(0, 2).forEach(w => {
+      if (!usedIndices.has(w.origIdx)) {
+        pool.push(w);
+        usedIndices.add(w.origIdx);
+      }
+    });
+  });
+
+  // Fill to 22 from remaining, with intensity weighting
+  const remaining = WORD_LIBRARY
+    .map((w, i) => ({ ...w, origIdx: i }))
+    .filter(w => !usedIndices.has(w.origIdx));
+
+  // Weight: intensity 1 = weight 3, intensity 2 = weight 2, intensity 3 = weight 1
+  const weighted = [];
+  remaining.forEach(w => {
+    const wt = 4 - w.intensity;
+    for (let i = 0; i < wt; i++) weighted.push(w);
+  });
+
+  // Shuffle weighted list
+  for (let i = weighted.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [weighted[i], weighted[j]] = [weighted[j], weighted[i]];
+  }
+
+  // Pick unique until pool = 22
+  for (const w of weighted) {
+    if (pool.length >= 22) break;
+    if (!usedIndices.has(w.origIdx)) {
+      pool.push(w);
+      usedIndices.add(w.origIdx);
+    }
+  }
+
+  return pool;
+}
+
+function startSession() {
+  SESSION.pool = buildWordPool();
+  SESSION.remaining = SESSION.pool.map((_, i) => i);
+  SESSION.spins = [];
+  SESSION.isSpinning = false;
+  SESSION.isWaiting = false;
+  SESSION.startedAt = new Date().toISOString();
+  sliceOpacity = SESSION.pool.map(() => 1);
+  currentAngle = 0; // pointer at right = angle 0
+
+  // Init canvas
+  canvas = document.getElementById('wheel-canvas');
+  const stageSize = document.getElementById('wheel-stage').offsetWidth;
+  canvas.width = stageSize * window.devicePixelRatio;
+  canvas.height = stageSize * window.devicePixelRatio;
+  canvas.style.width = stageSize + 'px';
+  canvas.style.height = stageSize + 'px';
+  ctx = canvas.getContext('2d');
+  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+
+  drawWheel();
+  broadcastPoolSize();
+  showScreen('screen-wheel');
+}
+
+/* ───────────────────────────────────────────────────────────────
+   SCREEN TRANSITIONS
+─────────────────────────────────────────────────────────────── */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+/* ───────────────────────────────────────────────────────────────
+   DEMO SHORTCUT (dev only)
+   Press 'd' to auto-mark current landed slice as discussed
+─────────────────────────────────────────────────────────────── */
+document.addEventListener('keydown', e => {
+  if (e.key === 'd' && SESSION.isWaiting) {
+    window.markDiscussed('demo note');
+  }
+  // Press 'e' to trigger closing early
+  if (e.key === 'e') {
+    if (SESSION.spins.length > 0) showClosingScreen();
+  }
+});
+
+// Handle resize
+window.addEventListener('resize', () => {
+  if (canvas) {
+    const stageSize = document.getElementById('wheel-stage').offsetWidth;
+    canvas.width = stageSize * window.devicePixelRatio;
+    canvas.height = stageSize * window.devicePixelRatio;
+    canvas.style.width = stageSize + 'px';
+    canvas.style.height = stageSize + 'px';
+    ctx = canvas.getContext('2d');
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    drawWheel();
+  }
+});
+
+/* ───────────────────────────────────────────────────────────────
+   SUPABASE REALTIME WIRING
+   Reads ?session=CODE and ?supabase=1 from URL.
+   Without ?supabase=1, uses BroadcastChannel (same-browser tabs).
+   With    ?supabase=1, uses SupabaseTransport (cross-device).
+─────────────────────────────────────────────────────────────── */
+const SUPABASE_URL  = 'https://vfpxovpwwabisfjjqkpm.supabase.co';
+const SUPABASE_KEY  = 'sb_publishable_-cIPFr0xt1CfC8fwh0e_ew_Q6LIbcX5';
+
+const _params      = new URLSearchParams(window.location.search);
+const SESSION_CODE = _params.get('session');
+const USE_SUPABASE = _params.get('supabase') === '1';
+
+let _engine = null;
+
+function initEngine() {
+  if (!SESSION_CODE) return; // standalone / welcome screen mode
+
+  const E = window.CypressSessionEngine;
+  if (!E) { console.warn('[WheelClient] cypress-session-engine.js not loaded'); return; }
+
+  const joinOpts = { role: 'client', code: SESSION_CODE };
+
+  if (USE_SUPABASE) {
+    const { createClient } = supabase;
+    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
+    joinOpts.supabase = sb;
+  }
+
+  _engine = E.join(joinOpts);
+
+  // Listen for therapist commands
+  _engine.onEvent(function(evt) {
+    const d = evt.data || evt;
+
+    // Therapist marks a word as discussed
+    if (d.type === 'mark_discussed') {
+      window.markDiscussed(d.note || '');
+    }
+
+    // Nudge – brief visual pulse on the wheel
+    if (d.type === 'therapist_nudge') {
+      const stage = document.getElementById('wheel-stage');
+      if (stage) {
+        stage.style.transition = 'box-shadow 0.2s';
+        stage.style.boxShadow  = '0 0 0 6px rgba(53,94,59,0.5)';
+        setTimeout(() => { stage.style.boxShadow = ''; }, 800);
+      }
+    }
+
+    // Therapist closes session – show closing screen
+    if (d.type === 'end_session') {
+      if (SESSION.spins.length > 0) showClosingScreen();
+    }
+  });
+
+  // Announce presence to therapist drawer
+  _engine.send({ type: 'joined' });
+}
+
+// Broadcast spin_landed to therapist drawer via engine
+const _origShowLandedCard = window._showLandedCard_real || null;
+function broadcastLanded(word, family, intensity) {
+  if (_engine) {
+    _engine.send({
+      type:      'spin_landed',
+      word:      word,
+      family:    family,
+      intensity: intensity,
+      remaining: SESSION.remaining.length - 1,
+      landed_at: new Date().toISOString(),
+    });
+  }
+}
+
+// Broadcast pool size once session starts
+function broadcastPoolSize() {
+  if (_engine) {
+    _engine.send({ type: 'pool_size', total: SESSION.pool.length, pool: SESSION.pool.map(function(w){ return w.word; }) });
+  }
+}
+
+// Init engine as soon as the page loads (before Begin is tapped)
+document.addEventListener('DOMContentLoaded', function() {
+  if (SESSION_CODE) initEngine();
+});
+
+</script>
+</body>
+</html>
