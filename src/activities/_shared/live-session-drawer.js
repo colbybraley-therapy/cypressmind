@@ -201,6 +201,10 @@
   .csd-feed::-webkit-scrollbar,.csd-rlist::-webkit-scrollbar,.csd-rows::-webkit-scrollbar{width:8px}
   .csd-feed::-webkit-scrollbar-thumb,.csd-rlist::-webkit-scrollbar-thumb,.csd-rows::-webkit-scrollbar-thumb{background:rgba(237,234,224,.16);border-radius:8px}
   @media(max-width:640px){.csd-drawer{width:100%;max-width:100%}}
+  .csd-basic .csd-garden-only{display:none!important}
+  .csd-url-row{display:flex;align-items:center;gap:9px;margin-top:10px;padding:8px 11px;background:rgba(237,234,224,.07);border:1px solid var(--csd-line);border-radius:9px}
+  .csd-url-row .csd-lbl{color:var(--csd-on-soft);letter-spacing:.08em;text-transform:uppercase;font-size:10px;font-weight:700;white-space:nowrap}
+  .csd-url-row [data-csd=urlVal]{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:rgba(237,234,224,.8);font-family:monospace;font-size:11px}
   `;
 
   var I = function (svg) { return svg; }; // inline-svg helper for readability
@@ -238,22 +242,25 @@
           '<div class="csd-sub"><span class="csd-client">Client \u00b7 <span data-csd="client">\u2014</span></span><span class="csd-elapsed" data-csd="elapsed">00:00</span></div>'+
           '<div class="csd-meta"><div class="csd-code"><span class="csd-lbl">Code</span><span class="csd-val" data-csd="code">\u2026</span>'+
             '<button class="csd-copy" data-csd="copy">'+SVG.copy+'Copy</button></div>'+
-            '<div class="csd-conn" data-csd="conn"><span class="csd-d"></span> <span data-csd="connText">Waiting for client</span></div></div></div>'+
-        '<div class="csd-now"><div class="csd-actname" data-csd="actName">Breathing Garden</div>'+
+            '<div class="csd-conn" data-csd="conn"><span class="csd-d"></span> <span data-csd="connText">Waiting for client</span></div></div>'+
+          '<div class="csd-url-row" data-csd="urlRow" style="display:none"><span class="csd-lbl">App</span>'+
+            '<span data-csd="urlVal"></span><button class="csd-copy" data-csd="urlCopy">'+SVG.copy+'Copy URL</button></div>'+
+          '<div class="csd-actname" data-csd="actName" style="margin-top:10px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:rgba(224,188,114,.8);font-weight:700"></div></div>'+
+        '<div class="csd-now csd-garden-only">'+
           '<div class="csd-nowcard csd-idle" data-csd="nowCard"><div class="csd-ring"><b data-csd="glyph">\u00b7</b></div>'+
             '<div class="csd-info"><b data-csd="nowRoom">No room yet</b><span data-csd="nowPractice">Waiting for the client to begin</span></div>'+
             '<div class="csd-phase"><div class="csd-p" data-csd="phase"></div><div class="csd-c" data-csd="phaseSub"></div></div></div></div>'+
         '<div class="csd-controls"><div class="csd-clabel">Session controls</div><div class="csd-grid">'+
-          '<button class="csd-ctl" data-ctl="pause">'+SVG.pause+'Pause</button>'+
-          '<button class="csd-ctl" data-ctl="goto_reflection">'+SVG.reflect+'To reflection</button>'+
-          '<button class="csd-ctl" data-ctl="return_hub">'+SVG.back+'Return to garden</button>'+
-          '<button class="csd-ctl" data-ctl="nudge">'+SVG.bell+'Send nudge</button>'+
+          '<button class="csd-ctl csd-garden-only" data-ctl="pause">'+SVG.pause+'Pause</button>'+
+          '<button class="csd-ctl csd-garden-only" data-ctl="goto_reflection">'+SVG.reflect+'To reflection</button>'+
+          '<button class="csd-ctl csd-garden-only" data-ctl="return_hub">'+SVG.back+'Return to garden</button>'+
+          '<button class="csd-ctl csd-garden-only" data-ctl="nudge">'+SVG.bell+'Send nudge</button>'+
           '<button class="csd-ctl csd-end" data-csd="end">'+SVG.end+'End session &amp; save summary</button></div></div>'+
-        '<div class="csd-rooms csd-collapsed" data-csd="rooms"><div class="csd-rhead" data-csd="roomsToggle"><div class="csd-clabel">Send client to a room</div><span class="csd-chev">'+SVG.chev+'</span></div>'+
+        '<div class="csd-rooms csd-collapsed csd-garden-only" data-csd="rooms"><div class="csd-rhead" data-csd="roomsToggle"><div class="csd-clabel">Send client to a room</div><span class="csd-chev">'+SVG.chev+'</span></div>'+
           '<div class="csd-rlist">'+roomRows+'</div></div>'+
-        '<div class="csd-feedwrap"><div class="csd-fhead"><div class="csd-clabel">Live feed</div><div class="csd-following"><span class="csd-pulse" style="width:7px;height:7px"></span> following</div></div>'+
+        '<div class="csd-feedwrap csd-garden-only"><div class="csd-fhead"><div class="csd-clabel">Live feed</div><div class="csd-following"><span class="csd-pulse" style="width:7px;height:7px"></span> following</div></div>'+
           '<div class="csd-feed" data-csd="feed"><div class="csd-empty" data-csd="empty">Nothing yet \u2014 the feed fills as the client moves through the garden.</div></div></div>'+
-        '<div class="csd-foot">'+SVG.save+' Ending the session folds this feed into a saved summary.</div>'+
+        '<div class="csd-foot csd-garden-only">'+SVG.save+' Ending the session folds this feed into a saved summary.</div>'+
         '<div class="csd-summary" data-csd="summary"><h2>Session summary</h2><div class="csd-smeta" data-csd="summaryMeta"></div>'+
           '<div class="csd-rows" data-csd="summaryRows"></div><button class="csd-save" data-csd="save">Save to client record</button></div>'+
       '</aside>'+
@@ -265,7 +272,7 @@
 
   /* ----------------------------- module ----------------------------- */
   var root, el = {}, engine = null, opts = {}, startedAt = null, ticking = null,
-      connected = false, saveCb = null, paused = false;
+      connected = false, saveCb = null, endCb = null, paused = false;
 
   function q(name) { return root.querySelector('[data-csd="' + name + '"]'); }
   function fmt(s) { s = Math.max(0, s | 0); return String(s/60|0).padStart(2,'0')+':'+String(s%60).padStart(2,'0'); }
@@ -284,6 +291,7 @@
       feed:q('feed'), empty:q('empty'), end:q('end'), summary:q('summary'),
       summaryMeta:q('summaryMeta'), summaryRows:q('summaryRows'), save:q('save'),
       handleRoom:q('handleRoom'), handleTime:q('handleTime'), toast:q('toast'),
+      urlRow:q('urlRow'), urlVal:q('urlVal'), urlCopy:q('urlCopy'),
     };
 
     el.handle.onclick = open;
@@ -291,7 +299,17 @@
     el.scrim.onclick = close;
     el.roomsToggle.onclick = function () { el.rooms.classList.toggle('csd-collapsed'); };
     el.copy.onclick = function () { if (navigator.clipboard) navigator.clipboard.writeText(opts.code).catch(function(){}); toast('Code copied'); };
-    el.end.onclick = function () { control('end', {}, 'You ended the session'); showSummary(); };
+    el.urlCopy.onclick = function () { if (navigator.clipboard) navigator.clipboard.writeText(opts.clientUrl || '').catch(function(){}); toast('URL copied'); };
+    el.end.onclick = function () {
+      if (opts.noEngine) {
+        if (endCb) endCb();
+        el.handle.classList.remove('csd-avail');
+        close();
+        reset();
+      } else {
+        control('end', {}, 'You ended the session'); showSummary();
+      }
+    };
     el.save.onclick = function () {
       var s = engine && engine.summary();
       if (saveCb) saveCb(s);
@@ -421,24 +439,51 @@
 
   function launch(o) {
     ensureBuilt();
-    var E = global.CypressSessionEngine;
-    if (!E) { console.error('[CypressDrawer] cypress-session-engine.js not loaded'); return null; }
     opts = o || {};
-    opts.code = opts.code || E.newCode();
+    endCb = null;
+
+    var E = global.CypressSessionEngine;
+    if (!opts.noEngine && !E) { console.error('[CypressDrawer] cypress-session-engine.js not loaded'); return null; }
+    if (!opts.noEngine) {
+      opts.code = opts.code || E.newCode();
+    } else {
+      opts.code = opts.code || Math.random().toString(36).substring(2, 8).toUpperCase();
+    }
+
     reset();
     el.code.textContent = opts.code;
     el.client.textContent = opts.client || 'Client';
-    if (opts.activityLabel) el.actName.textContent = opts.activityLabel;
+    if (opts.actName || opts.activityLabel) {
+      if (el.actName) el.actName.textContent = opts.actName || opts.activityLabel;
+    }
 
-    if (engine) { try { engine.close(); } catch (e) {} engine = null; }
-    var joinOpts = { role:'therapist', code:opts.code };
-    if (opts.supabase) joinOpts.supabase = opts.supabase;
-    engine = E.join(joinOpts);
-    engine.onEvent(renderEvent);
-    engine.onPhase(setPhase);
-    engine.onPresence(function () { if (!connected) setConnected(); });
+    // basic mode: hide garden-specific controls
+    if (opts.hideGardenControls) root.classList.add('csd-basic');
+    else root.classList.remove('csd-basic');
 
-    el.handle.classList.add('csd-avail');   // handle now available while live
+    // update end-button label to match mode
+    var endBtn = root.querySelector('.csd-ctl.csd-end');
+    if (endBtn) endBtn.innerHTML = SVG.end + (opts.noEngine ? 'End session' : 'End session &amp; save summary');
+
+    // URL row
+    if (opts.clientUrl && el.urlRow) {
+      el.urlRow.style.display = 'flex';
+      el.urlVal.textContent = opts.clientUrl;
+    } else if (el.urlRow) {
+      el.urlRow.style.display = 'none';
+    }
+
+    if (!opts.noEngine) {
+      if (engine) { try { engine.close(); } catch (e) {} engine = null; }
+      var joinOpts = { role:'therapist', code:opts.code };
+      if (opts.supabase) joinOpts.supabase = opts.supabase;
+      engine = E.join(joinOpts);
+      engine.onEvent(renderEvent);
+      engine.onPhase(setPhase);
+      engine.onPresence(function () { if (!connected) setConnected(); });
+    }
+
+    el.handle.classList.add('csd-avail');
 
     // open the client view with the code (+ supabase flag if enabled)
     if (opts.clientView) {
@@ -460,7 +505,10 @@
     close: close,
     end: end,
     onSave: function (fn) { saveCb = fn; },
+    onEnd:  function (fn) { endCb  = fn; },
     isLive: function () { return connected; },
     code: function () { return opts.code; },
+    setStatus: function (text) { if (el.connText) el.connText.textContent = text; },
+    markConnected: function () { setConnected(); },
   };
 })(typeof window !== 'undefined' ? window : this);

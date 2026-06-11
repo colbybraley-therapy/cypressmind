@@ -1121,40 +1121,7 @@
     </div>
   </div>
 
-  <!-- Willowmere full-screen panel — outside all pages so position:fixed works correctly -->
-  <!-- CHARACTER BUILDER LAUNCH PANEL -->
-  <div id="char-builder-panel" style="display:none;position:fixed;inset:0;z-index:400;align-items:center;justify-content:center;background:rgba(0,0,0,.55);">
-    <div style="background:#fff;border-radius:16px;padding:2.5rem;width:460px;max-width:90vw;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.35);">
-      <div style="font-size:1.1rem;font-weight:700;color:var(--ink);margin-bottom:6px;font-family:var(--sans);">⚔️ Character Builder</div>
-      <p style="font-size:13px;color:var(--slate);line-height:1.6;margin-bottom:1.75rem;">Share the adventure app link and this code with your client. They'll enter the code to start building their hero.</p>
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--slate-light);font-weight:500;margin-bottom:6px;">Session Code</div>
-      <div id="cb-code-display" style="font-family:var(--mono);font-size:42px;font-weight:700;letter-spacing:10px;color:#7C6FE0;margin-bottom:1.5rem;"></div>
-      <div style="display:flex;align-items:center;gap:8px;background:var(--green-faint);border:0.5px solid var(--border);border-radius:6px;padding:8px 12px;margin-bottom:1.5rem;">
-        <span style="font-size:11px;color:var(--slate-light);white-space:nowrap;">Adventure app:</span>
-        <span id="cb-client-url" style="font-family:var(--mono);font-size:11px;color:var(--hunter-green);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
-        <button id="cb-copy-btn" onclick="copyCbUrl()" style="background:#fff;border:0.5px solid var(--border);border-radius:4px;padding:3px 10px;font-size:11px;cursor:pointer;color:var(--slate);font-family:var(--sans);flex-shrink:0;">Copy</button>
-      </div>
-      <div id="cb-status" style="font-size:13px;color:var(--slate);font-style:italic;margin-bottom:1.75rem;min-height:20px;"></div>
-      <button onclick="closeCharBuilderPanel()" style="background:none;border:0.5px solid var(--border);border-radius:6px;padding:9px 24px;font-size:13px;cursor:pointer;color:var(--slate);font-family:var(--sans);">✕ Close</button>
-    </div>
-  </div>
-
-  <div id="willowmere-panel" style="display:none;position:fixed;inset:0;z-index:400;align-items:center;justify-content:center;background:rgba(0,0,0,.55);">
-    <div style="background:#fff;border-radius:16px;padding:2.5rem;width:460px;max-width:90vw;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.35);">
-      <div style="font-size:1.1rem;font-weight:700;color:var(--ink);margin-bottom:6px;font-family:var(--sans);">🌲 Willowmere · Boundaries</div>
-      <p style="font-size:13px;color:var(--slate);line-height:1.6;margin-bottom:1.75rem;">Share the adventure app link and this code with your client. They'll enter the code to start the Willowmere adventure.</p>
-      <div style="font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--slate-light);font-weight:500;margin-bottom:6px;">Session Code</div>
-      <div id="wm-code-display" style="font-family:var(--mono);font-size:42px;font-weight:700;letter-spacing:10px;color:var(--hunter-green);margin-bottom:1.5rem;"></div>
-      <div style="display:flex;align-items:center;gap:8px;background:var(--green-faint);border:0.5px solid var(--border);border-radius:6px;padding:8px 12px;margin-bottom:1.5rem;">
-        <span style="font-size:11px;color:var(--slate-light);white-space:nowrap;">Adventure app:</span>
-        <span id="wm-client-url" style="font-family:var(--mono);font-size:11px;color:var(--hunter-green);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></span>
-        <button id="wm-copy-btn" onclick="copyWillowmereUrl()" style="background:#fff;border:0.5px solid var(--border);border-radius:4px;padding:3px 10px;font-size:11px;cursor:pointer;color:var(--slate);font-family:var(--sans);flex-shrink:0;">Copy</button>
-      </div>
-      <div id="wm-status" style="font-size:13px;color:var(--slate);font-style:italic;margin-bottom:1.75rem;min-height:20px;"></div>
-      <button onclick="closeWillowmereOverlay()" style="background:none;border:0.5px solid var(--border);border-radius:6px;padding:9px 24px;font-size:13px;cursor:pointer;color:var(--slate);font-family:var(--sans);">✕ End session</button>
-    </div>
-  </div>
-
+  <!-- Willowmere full-screen therapist iframe panel — shown after client starts the adventure -->
   <div id="willowmere-session-panel" style="display:none;position:fixed;inset:0;z-index:401;flex-direction:column;background:#fff;">
     <div style="display:flex;align-items:center;gap:14px;padding:10px 18px;border-bottom:0.5px solid var(--border);background:#fff;flex-shrink:0;">
       <span style="font-size:14px;font-weight:600;color:var(--ink);white-space:nowrap;">🌲 Willowmere · Boundaries</span>
@@ -1878,14 +1845,17 @@
     const base = window.location.origin;
     _cbClientUrl = base + '/adventure/index.html';
 
-    // Show the panel immediately with the code
-    document.getElementById('cb-code-display').textContent = code;
-    document.getElementById('cb-client-url').textContent   = _cbClientUrl;
-    document.getElementById('cb-status').textContent       = '⏳ Setting up session…';
-    document.getElementById('cb-copy-btn').textContent     = 'Copy';
-    document.getElementById('char-builder-panel').style.display = 'flex';
+    CypressDrawer.launch({
+      activityLabel:    '⚔️ Character Builder',
+      client:           currentClient ? currentClient.name : 'Client',
+      code,
+      noEngine:         true,
+      hideGardenControls: true,
+      clientUrl:        _cbClientUrl,
+    });
+    CypressDrawer.onEnd(closeCharBuilderSession);
+    CypressDrawer.setStatus('Setting up session…');
 
-    // Insert session
     const { error: insertError } = await db.from('sessions').insert({
       client_id:     currentClient.id,
       therapist_id:  currentUser?.id,
@@ -1895,17 +1865,16 @@
     });
 
     if (insertError) {
-      document.getElementById('cb-status').textContent = `⚠️ ${insertError.message || insertError.code || JSON.stringify(insertError)}`;
+      CypressDrawer.setStatus(`⚠️ ${insertError.message || insertError.code || JSON.stringify(insertError)}`);
       console.error('character_builder session error:', insertError);
       return;
     }
 
-    // Fetch the session id so we can filter the Realtime subscription
     const { data: session } = await db.from('sessions').select('id').eq('code', code).single();
-    if (!session) { document.getElementById('cb-status').textContent = '⚠️ Could not retrieve session. Try again.'; return; }
+    if (!session) { CypressDrawer.setStatus('⚠️ Could not retrieve session. Try again.'); return; }
     _cbSessionId = session.id;
 
-    document.getElementById('cb-status').textContent = '⏳ Waiting for client to join…';
+    CypressDrawer.setStatus('Waiting for client to join…');
 
     if (_cbChannel) db.removeChannel(_cbChannel);
     _cbChannel = db.channel('cb-' + session.id)
@@ -1916,7 +1885,8 @@
         filter: `id=eq.${session.id}`,
       }, payload => {
         if (payload.new.status === 'active') {
-          document.getElementById('char-builder-panel').style.display = 'none';
+          CypressDrawer.markConnected();
+          CypressDrawer.setStatus('Client is active — building their hero…');
           if (currentClient) showPage('pg-client');
         }
       })
@@ -1927,9 +1897,8 @@
         filter: `session_id=eq.${session.id}`,
       }, async payload => {
         if (payload.new.step_index === -1) {
-          document.getElementById('cb-status').textContent = '✅ Character built! Marking activity done…';
+          CypressDrawer.setStatus('✅ Character built! Marking activity done…');
 
-          // Update clients.last_character so the client card reflects the new character
           let rd = payload.new.response_data;
           if (typeof rd === 'string') { try { rd = JSON.parse(rd); } catch(e) {} }
           const charId = rd?.character;
@@ -1947,30 +1916,21 @@
             loadClientStats();
             loadCharacter();
             renderClientGrid();
-            document.getElementById('cb-status').textContent = '✅ Activity marked complete.';
+            CypressDrawer.setStatus('✅ Activity marked complete.');
           }
         } else {
-          document.getElementById('cb-status').textContent = '✅ Client is active — building their hero…';
+          CypressDrawer.setStatus('Client is active — building their hero…');
         }
       })
       .subscribe();
   }
 
-  function copyCbUrl() {
-    navigator.clipboard.writeText(_cbClientUrl).then(() => {
-      const btn = document.getElementById('cb-copy-btn');
-      btn.textContent = 'Copied ✓';
-      setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
-    });
-  }
-
-  async function closeCharBuilderPanel() {
+  async function closeCharBuilderSession() {
     if (_cbChannel) { db.removeChannel(_cbChannel); _cbChannel = null; }
     if (_cbSessionId) {
       await db.from('sessions').update({ status: 'completed' }).eq('id', _cbSessionId);
       _cbSessionId = null;
     }
-    document.getElementById('char-builder-panel').style.display = 'none';
   }
 
   /* ─────────────────────────────────────────
@@ -2005,11 +1965,16 @@
     _wmBase = window.location.origin;
     _wmClientUrl = _wmBase + '/adventure/index.html';
 
-    document.getElementById('wm-code-display').textContent = code;
-    document.getElementById('wm-client-url').textContent   = _wmClientUrl;
-    document.getElementById('wm-status').textContent       = '⏳ Setting up session…';
-    document.getElementById('wm-copy-btn').textContent     = 'Copy';
-    document.getElementById('willowmere-panel').style.display = 'flex';
+    CypressDrawer.launch({
+      activityLabel:    '🌲 Willowmere · Boundaries',
+      client:           currentClient ? currentClient.name : 'Client',
+      code,
+      noEngine:         true,
+      hideGardenControls: true,
+      clientUrl:        _wmClientUrl,
+    });
+    CypressDrawer.onEnd(closeWillowmereSession);
+    CypressDrawer.setStatus('Setting up session…');
 
     const { error: insertError } = await db.from('sessions').insert({
       client_id:     currentClient.id,
@@ -2020,17 +1985,16 @@
     });
 
     if (insertError) {
-      document.getElementById('wm-status').textContent = `⚠️ ${insertError.message || insertError.code || JSON.stringify(insertError)}`;
+      CypressDrawer.setStatus(`⚠️ ${insertError.message || insertError.code || JSON.stringify(insertError)}`);
       return;
     }
 
     const { data: session } = await db.from('sessions').select('id').eq('code', code).single();
-    if (!session) { document.getElementById('wm-status').textContent = '⚠️ Could not retrieve session. Try again.'; return; }
+    if (!session) { CypressDrawer.setStatus('⚠️ Could not retrieve session. Try again.'); return; }
 
     _wmSessionId = session.id;
-    document.getElementById('wm-status').textContent = '⏳ Waiting for client to join…';
+    CypressDrawer.setStatus('Waiting for client to join…');
 
-    // Watch for client joining — transition to full therapist view
     if (_wmSessionChannel) db.removeChannel(_wmSessionChannel);
     _wmSessionChannel = db.channel('wm-session-' + session.id)
       .on('postgres_changes', {
@@ -2040,18 +2004,17 @@
         filter: `id=eq.${session.id}`,
       }, payload => {
         if (payload.new.status === 'active') {
-          document.getElementById('willowmere-panel').style.display = 'none';
+          CypressDrawer.markConnected();
+          CypressDrawer.setStatus('Client is active in the adventure…');
           if (currentClient) showPage('pg-client');
         }
       })
       .subscribe();
 
-    // Watch for in-adventure activity broadcasts
     if (_wmChannel) db.removeChannel(_wmChannel);
     _wmChannel = db.channel(`quest-${session.id}`)
       .on('broadcast', { event: 'willowmere_started' }, () => {
-        // Client has launched the Willowmere activity — open full-screen therapist view
-        document.getElementById('willowmere-panel').style.display = 'none';
+        CypressDrawer.close();
         const therapistUrl = `${_wmBase}/src/activities/adventures/willowmere-boundaries-therapist.html?session=${_wmSessionId}`;
         document.getElementById('wm-therapist-frame').src = therapistUrl;
         document.getElementById('wm-session-status').textContent = '✅ Client active';
@@ -2072,15 +2035,7 @@
       .subscribe();
   }
 
-  function copyWillowmereUrl() {
-    navigator.clipboard.writeText(_wmClientUrl).then(() => {
-      const btn = document.getElementById('wm-copy-btn');
-      btn.textContent = 'Copied ✓';
-      setTimeout(() => { btn.textContent = 'Copy'; }, 2000);
-    });
-  }
-
-  async function closeWillowmereOverlay() {
+  async function closeWillowmereSession() {
     if (_wmChannel) {
       await _wmChannel.send({ type: 'broadcast', event: 'end_session', payload: { timestamp: new Date().toISOString() } });
       db.removeChannel(_wmChannel);
@@ -2096,10 +2051,13 @@
       loadActivities();
       loadClientStats();
     }
-    document.getElementById('willowmere-panel').style.display = 'none';
+    _wmSessionId = null;
+  }
+
+  async function closeWillowmereOverlay() {
+    await closeWillowmereSession();
     document.getElementById('wm-therapist-frame').src = '';
     document.getElementById('willowmere-session-panel').style.display = 'none';
-    _wmSessionId = null;
     if (currentClient) showPage('pg-client');
   }
 
