@@ -418,8 +418,8 @@ async function openClient(client) {
       <div style="width:72px;height:96px;background:var(--green-light,#F0F5F0);border:0.5px solid var(--border);border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:36px;flex-shrink:0;">${archIcon}</div>
       <div>
         <div style="font-size:10px;letter-spacing:0.12em;text-transform:uppercase;color:var(--color-text-tertiary);font-weight:500;margin-bottom:4px;">Custom Hero</div>
-        <div style="font-family:var(--serif,Georgia,serif);font-size:17px;font-weight:500;color:var(--color-text-primary,#1A2E1A);">${charData.name}</div>
-        ${archLabel || traitStr ? `<div style="font-size:11px;color:var(--color-text-tertiary);margin-top:3px;">${archLabel}${traitStr ? ' · ' + traitStr : ''}</div>` : ''}
+        <div style="font-family:var(--serif,Georgia,serif);font-size:17px;font-weight:500;color:var(--color-text-primary,#1A2E1A);">${esc(charData.name)}</div>
+        ${archLabel || traitStr ? `<div style="font-size:11px;color:var(--color-text-tertiary);margin-top:3px;">${esc(archLabel)}${traitStr ? ' · ' + esc(traitStr) : ''}</div>` : ''}
       </div>`;
     charEl.style.display = 'flex';
   } else if (char && CHARACTER_IMAGES[char]) {
@@ -570,13 +570,13 @@ async function renderActivities() {
 async function toggleActivity(id, currentDone) {
   const update = { done: !currentDone };
   if (!currentDone) update.completed_at = new Date().toISOString();
-  await db.from('activities').update(update).eq('id', id);
+  await db.from('activities').update(update).eq('id', id).eq('user_id', currentUser.id);
   renderActivities();
 }
 
 async function deleteActivity(id) {
   if (!confirm('Remove this activity?')) return;
-  await db.from('activities').delete().eq('id', id);
+  await db.from('activities').delete().eq('id', id).eq('user_id', currentUser.id);
   renderActivities();
 }
 
@@ -666,11 +666,12 @@ async function openScore(activityId) {
 async function saveScore() {
   const val = parseInt(document.getElementById('score-input').value, 10);
   if (isNaN(val) || val < 0 || val > 100) { document.getElementById('score-input').focus(); return; }
+  if (!_activityMap[scoringActivity]) return;
 
   const { error } = await db.from('scores').insert({ activity_id: scoringActivity, score: val });
   if (error) { console.error('Error saving score:', error); return; }
 
-  await db.from('activities').update({ done: true, completed_at: new Date().toISOString() }).eq('id', scoringActivity);
+  await db.from('activities').update({ done: true, completed_at: new Date().toISOString() }).eq('id', scoringActivity).eq('user_id', currentUser.id);
 
   closeOverlay('score-overlay');
   renderActivities();
@@ -934,19 +935,19 @@ function addResponseToPanel(response) {
           <div style="width:48px;height:64px;background:#F0F5F0;border:0.5px solid #E2E8E2;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:26px;flex-shrink:0;">${archIcon}</div>
           <div>
             <div style="font-size:10px;letter-spacing:0.1em;text-transform:uppercase;color:#7B7899;font-weight:600;margin-bottom:4px;">Custom Hero</div>
-            <div style="font-size:16px;font-weight:600;color:#1A2E1A;">${data.name}</div>
-            <div style="font-size:11px;color:#7B7899;margin-top:2px;">${archLabel}</div>
+            <div style="font-size:16px;font-weight:600;color:#1A2E1A;">${esc(data.name)}</div>
+            <div style="font-size:11px;color:#7B7899;margin-top:2px;">${esc(archLabel)}</div>
           </div>
         </div>
         ${data.traits?.length ? `
           <div style="padding:10px 14px;display:flex;gap:6px;flex-wrap:wrap;border-bottom:0.5px solid #E2E8E2;">
             <span style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;color:#7B7899;width:100%;margin-bottom:4px;">Traits</span>
-            ${data.traits.map(t=>`<span style="background:#F0F5F0;border:0.5px solid #E2E8E2;border-radius:3px;padding:3px 10px;font-size:11px;font-weight:600;color:#355E3B;">${t}</span>`).join('')}
+            ${data.traits.map(t=>`<span style="background:#F0F5F0;border:0.5px solid #E2E8E2;border-radius:3px;padding:3px 10px;font-size:11px;font-weight:600;color:#355E3B;">${esc(t)}</span>`).join('')}
           </div>` : ''}
         ${powerLabel ? `
           <div style="padding:10px 14px;font-size:13px;color:#4B5563;">
             <span style="font-size:10px;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;color:#7B7899;display:block;margin-bottom:4px;">Special Power</span>
-            ${powerLabel}
+            ${esc(powerLabel)}
           </div>` : ''}`;
     } else if (CHARACTER_NAMES[data.character]) {
       div.innerHTML = `
@@ -1228,7 +1229,8 @@ async function saveTherapistNotes(summaryId) {
 
   await db.from('session_summaries')
     .update({ therapist_notes: notes })
-    .eq('id', summaryId);
+    .eq('id', summaryId)
+    .eq('therapist_id', currentUser.id);
 
   // Visual confirmation
   const btn = document.querySelector('.primary-save-btn');

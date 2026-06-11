@@ -995,10 +995,10 @@ function renderEntries(entries) {
       </div>
       ${(e.mood_words && e.mood_words.length) ? `
         <div class="mood-chips">
-          ${e.mood_words.map(m => `<span class="mood-chip">${m}</span>`).join('')}
+          ${e.mood_words.map(m => `<span class="mood-chip">${escapeHtml(m)}</span>`).join('')}
         </div>` : ''}
       ${visible && e.entry_text
-        ? `<div class="entry-text">${e.entry_text}</div>`
+        ? `<div class="entry-text">${escapeHtml(e.entry_text)}</div>`
         : `<div class="entry-private">Entry content is private. Mood check-in only.</div>`}
       ${pathway ? `<div class="entry-pathway">${pathway}</div>` : ''}
     </div>`;
