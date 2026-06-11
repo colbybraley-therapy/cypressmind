@@ -251,7 +251,9 @@
       /* Wait for therapist to broadcast a session */
       show('screen-waiting');
 
-      db.channel('client-portal:' + CLIENT_ID)
+      db.channel('client-portal:' + CLIENT_ID, {
+          config: { broadcast: { self: false, ack: false } },
+        })
         .on('broadcast', { event: 'session-ready' }, function(msg) {
           var p = msg.payload || {};
           var url = activityUrl(p.activityType, p.code, p.sessionId);

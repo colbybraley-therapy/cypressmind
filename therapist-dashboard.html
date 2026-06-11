@@ -1557,6 +1557,7 @@
      CLIENT PROFILE
   ───────────────────────────────────────── */
   let currentClient = null;
+  let portalChannel  = null;   // persistent Supabase channel for the open client's portal
   let currentNotes   = [];
   let currentHomework = [];
 
@@ -1604,6 +1605,13 @@
     const portalUrl = window.location.origin + '/client-session.html?client=' + client.id;
     document.getElementById('portal-url').textContent = portalUrl;
     document.getElementById('portal-open-btn').href = portalUrl;
+
+    // Open and hold the portal broadcast channel while this client is active
+    if (portalChannel) { try { db.removeChannel(portalChannel); } catch (e) {} }
+    portalChannel = db.channel('client-portal:' + client.id, {
+      config: { broadcast: { self: false, ack: false } },
+    });
+    portalChannel.subscribe();
 
     showPage('pg-client');
     switchTabByName('tab-activities');
@@ -2674,27 +2682,17 @@
   }
 
   function broadcastToClientPortal(activityType, code, sessionId) {
-    if (!currentClient) return;
-    const ch = db.channel('client-portal:' + currentClient.id);
-    ch.subscribe(status => {
-      if (status === 'SUBSCRIBED') {
-        ch.send({
-          type: 'broadcast',
-          event: 'session-ready',
-          payload: { activityType, code, sessionId: sessionId || null },
-        });
-      }
+    if (!portalChannel) return;
+    portalChannel.send({
+      type: 'broadcast',
+      event: 'session-ready',
+      payload: { activityType, code, sessionId: sessionId || null },
     });
   }
 
   function broadcastSessionEnded() {
-    if (!currentClient) return;
-    const ch = db.channel('client-portal:' + currentClient.id);
-    ch.subscribe(status => {
-      if (status === 'SUBSCRIBED') {
-        ch.send({ type: 'broadcast', event: 'session-ended', payload: {} });
-      }
-    });
+    if (!portalChannel) return;
+    portalChannel.send({ type: 'broadcast', event: 'session-ended', payload: {} });
   }
 
   function showApp() {
