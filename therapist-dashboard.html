@@ -2244,7 +2244,6 @@
     const code = CypressDrawer.launch({
       activityLabel: 'Zen Breathing Garden',
       client: currentClient ? currentClient.name : 'Client',
-      clientView: window.location.origin + '/src/activities/Zen%20Breathing%20Garden/breathing-garden-v31.html',
       supabase: db,   // required for cross-device end-session signal
     });
     if (code) broadcastToClientPortal('zen-breathing', code, null);
@@ -2255,9 +2254,8 @@
     e.stopPropagation();
     const code = Math.random().toString(36).substring(2, 8).toUpperCase();
     WheelDrawer.launch({
-      client:     currentClient ? currentClient.name : 'Client',
-      clientView: window.location.origin + '/src/activities/tools/wheel-of-emotions/index.html',
-      supabase:   db,
+      client:   currentClient ? currentClient.name : 'Client',
+      supabase: db,
       code,
     });
     WheelDrawer.onSave(async function() {
