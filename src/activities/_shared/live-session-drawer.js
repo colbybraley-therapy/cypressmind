@@ -205,6 +205,7 @@
   .csd-url-row{display:flex;align-items:center;gap:9px;margin-top:10px;padding:8px 11px;background:rgba(237,234,224,.07);border:1px solid var(--csd-line);border-radius:9px}
   .csd-url-row .csd-lbl{color:var(--csd-on-soft);letter-spacing:.08em;text-transform:uppercase;font-size:10px;font-weight:700;white-space:nowrap}
   .csd-url-row [data-csd=urlVal]{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:rgba(237,234,224,.8);font-family:monospace;font-size:11px}
+  .csd-body-slot{flex:1 1 auto;overflow-y:auto;min-height:0;display:none}
   `;
 
   var I = function (svg) { return svg; }; // inline-svg helper for readability
@@ -246,6 +247,7 @@
           '<div class="csd-url-row" data-csd="urlRow" style="display:none"><span class="csd-lbl">App</span>'+
             '<span data-csd="urlVal"></span><button class="csd-copy" data-csd="urlCopy">'+SVG.copy+'Copy URL</button></div>'+
           '<div class="csd-actname" data-csd="actName" style="margin-top:10px;font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:rgba(224,188,114,.8);font-weight:700"></div></div>'+
+        '<div class="csd-body-slot" data-csd="bodySlot"></div>'+
         '<div class="csd-now csd-garden-only">'+
           '<div class="csd-nowcard csd-idle" data-csd="nowCard"><div class="csd-ring"><b data-csd="glyph">\u00b7</b></div>'+
             '<div class="csd-info"><b data-csd="nowRoom">No room yet</b><span data-csd="nowPractice">Waiting for the client to begin</span></div>'+
@@ -292,6 +294,7 @@
       summaryMeta:q('summaryMeta'), summaryRows:q('summaryRows'), save:q('save'),
       handleRoom:q('handleRoom'), handleTime:q('handleTime'), toast:q('toast'),
       urlRow:q('urlRow'), urlVal:q('urlVal'), urlCopy:q('urlCopy'),
+      bodySlot:q('bodySlot'),
     };
 
     el.handle.onclick = open;
@@ -435,6 +438,7 @@
     el.glyph.textContent = '\u00b7'; el.nowRoom.textContent = 'No room yet'; el.nowPractice.textContent = 'Waiting for the client to begin';
     if (el.phase) el.phase.textContent = ''; if (el.phaseSub) el.phaseSub.textContent = '';
     el.handleRoom.textContent = 'Waiting\u2026'; el.elapsed.textContent = '00:00'; el.handleTime.textContent = '00:00';
+    if (el.bodySlot) { el.bodySlot.innerHTML = ''; el.bodySlot.style.display = 'none'; }
   }
 
   function launch(o) {
@@ -510,5 +514,9 @@
     code: function () { return opts.code; },
     setStatus: function (text) { if (el.connText) el.connText.textContent = text; },
     markConnected: function () { setConnected(); },
+    getBodySlot: function () { return el.bodySlot || null; },
+    showBodySlot: function () {
+      if (el.bodySlot) { el.bodySlot.style.display = 'flex'; el.bodySlot.style.flexDirection = 'column'; }
+    },
   };
 })(typeof window !== 'undefined' ? window : this);
