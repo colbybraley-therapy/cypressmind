@@ -1181,6 +1181,7 @@
   ══════════════════════════════════════════ -->
   <script src="src/activities/_shared/cypress-session-engine.js"></script>
   <script src="src/activities/_shared/live-session-drawer.js"></script>
+  <script src="src/activities/tools/wheel-of-emotions/wheel-drawer.js"></script>
   <script>
   /* ─────────────────────────────────────────
      PAGE & AUTH SETUP  (unchanged from original)
@@ -1566,7 +1567,7 @@
     quiz:      { icon:'🧠', label:'Coping Skills Quiz',      color:'purple' },
     'zen-breathing': { icon:'🌿', label:'Zen Breathing Garden', color:'teal'   },
     journal:   { icon:'📓', label:'Reflection Journal',      color:'green'  },
-    emotions:  { icon:'🎭', label:'Emotion Explorer',        color:'amber'  },
+    emotions:  { icon:'🎡', label:'Wheel of Emotions',        color:'amber'  },
     custom:                { icon:'✏️', label:'Custom Activity',         color:'slate'  },
     willowmere_boundaries: { icon:'🌲', label:'Willowmere · Boundaries',  color:'green'  },
     character_builder:     { icon:'⚔️', label:'Character Builder',        color:'purple' },
@@ -1768,6 +1769,8 @@
             ? `<button onclick="launchJournal('${a.id}', event)" style="margin-left:4px;background:var(--hunter-green);color:#fff;border:none;border-radius:4px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:var(--sans);">▶ Launch</button>`
             : a.activity_type === 'zen-breathing'
             ? `<button onclick="launchZenBreathing('${a.id}', event)" style="margin-left:4px;background:var(--hunter-green);color:#fff;border:none;border-radius:4px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:var(--sans);">▶ Launch</button>`
+            : a.activity_type === 'emotions'
+            ? `<button onclick="launchWheelOfEmotions('${a.id}', event)" style="margin-left:4px;background:var(--hunter-green);color:#fff;border:none;border-radius:4px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:var(--sans);">▶ Launch</button>`
             : `<button onclick="toggleDone('${a.id}', event)" style="margin-left:4px;background:none;border:0.5px solid var(--border);border-radius:4px;padding:4px 8px;font-size:11px;cursor:pointer;color:var(--slate-light);">Mark done</button>`
         ) : ''}
         <button onclick="deleteActivity('${a.id}', event)" title="Remove activity" style="margin-left:4px;background:none;border:none;padding:4px 6px;font-size:13px;cursor:pointer;color:var(--slate-light);line-height:1;border-radius:4px;" onmouseover="this.style.color='#c00'" onmouseout="this.style.color='var(--slate-light)'">×</button>
@@ -1793,7 +1796,7 @@
     { type:'quiz',      icon:'🧠', label:'Coping Skills Quiz',   sub:'Test knowledge with guided questions' },
     { type:'zen-breathing', icon:'🌿', label:'Zen Breathing Garden', sub:'Guided breathing and grounding exercises' },
     { type:'journal',   icon:'📓', label:'Reflection Journal',   sub:'Prompted journaling for self-discovery' },
-    { type:'emotions',  icon:'🎭', label:'Emotion Explorer',     sub:'Name feelings and find coping tools' },
+    { type:'emotions',  icon:'🎡', label:'Wheel of Emotions',     sub:'Spin the wheel to explore feelings together' },
     { type:'custom',                icon:'✏️', label:'Custom Activity',            sub:'Add your own activity' },
     { type:'willowmere_boundaries', icon:'🌲', label:'Willowmere · Boundaries',    sub:'Boundary-setting adventure in a story world' },
     { type:'character_builder',     icon:'⚔️', label:'Character Builder',           sub:'Build a hero identity in the adventure app' },
@@ -2227,6 +2230,20 @@
       activityLabel: 'Zen Breathing Garden',
       client: currentClient ? currentClient.name : 'Client',
       clientView: window.location.origin + '/src/activities/Zen%20Breathing%20Garden/breathing-garden-v31.html',
+    });
+  }
+
+  function launchWheelOfEmotions(actId, e) {
+    e.stopPropagation();
+    WheelDrawer.launch({
+      client:     currentClient ? currentClient.name : 'Client',
+      clientView: window.location.origin + '/src/activities/tools/wheel-of-emotions/index.html',
+      supabase:   db,
+    });
+    WheelDrawer.onSave(async function() {
+      await db.from('activities').update({ done: true }).eq('id', actId);
+      loadActivities();
+      loadClientStats();
     });
   }
 
