@@ -490,6 +490,7 @@ async function initSession() {
   if (!SESSION_ID) { finishLoading(); return; }
   await db.from('quest_sessions')
     .upsert({ id: SESSION_ID, status: 'active' }, { onConflict: 'id', ignoreDuplicates: true });
+  await restoreProgress();
   channel.subscribe(status => {
     const dot = document.getElementById('sync-dot');
     if (status === 'SUBSCRIBED') {
@@ -499,6 +500,44 @@ async function initSession() {
     } else { dot.classList.remove('live'); dot.classList.add('error'); }
   });
   finishLoading();
+}
+
+async function restoreProgress() {
+  setLoadingStatus('Loading your progress…');
+  const { data: sess } = await db.from('sessions').select('client_id').eq('id', SESSION_ID).single();
+  if (!sess?.client_id) return;
+
+  const { data: allSessions } = await db
+    .from('sessions')
+    .select('id')
+    .eq('client_id', sess.client_id)
+    .eq('activity_type', 'willowmere_boundaries');
+  if (!allSessions?.length) return;
+
+  const { data: encounters } = await db
+    .from('quest_encounters')
+    .select('npc_id')
+    .in('session_id', allSessions.map(s => s.id));
+  if (!encounters?.length) return;
+
+  const completedIds = [...new Set(encounters.map(e => e.npc_id))];
+  completedIds.forEach(id => {
+    if (!NPC[id]) return;
+    done[id] = true;
+    const dot  = document.getElementById('dot-'  + id);
+    const hit  = document.getElementById('hit-'  + id);
+    const glow = document.getElementById('glow-' + id);
+    if (dot)  dot.classList.add('done');
+    if (hit)  hit.classList.add('visited');
+    if (glow) glow.style.opacity = '0';
+  });
+
+  const left = IDS.filter(k => !done[k]).length;
+  if (completedIds.length > 0 && left > 0)
+    setStatus(`${left} villager${left !== 1 ? 's' : ''} left to visit.`);
+
+  if (IDS.every(k => done[k]))
+    setTimeout(() => document.getElementById('complete-screen').classList.add('show'), 800);
 }
 
 async function pushEncounter(npcId, ri) {
@@ -549,6 +588,18 @@ function enterScene(id) {
   currentNPC = id;
   const n = NPC[id];
   tooltip.classList.remove('show');
+
+  if (SESSION_ID) {
+    channel.send({ type: 'broadcast', event: 'npc_entered', payload: {
+      npc_id:   id,
+      npc_name: n.name,
+      location: n.loc,
+      boundary: n.boundary,
+      speech:   n.speech,
+      opts:     n.opts.map(o => ({ label: o.label, color: o.color, text: o.text })),
+      timestamp: new Date().toISOString(),
+    }});
+  }
 
   // Walk token toward location
   const tok = document.getElementById('char-token');

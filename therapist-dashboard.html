@@ -688,6 +688,16 @@
     .wm-d-prompt-idle{font-size:13px;color:rgba(237,234,224,.3);font-style:italic;padding:8px 0}
     .wm-d-complete-banner{padding:12px 20px;background:rgba(127,224,160,.12);border-top:1px solid rgba(127,224,160,.2);color:#9FE3B6;font-size:13px;font-weight:600;text-align:center;display:none;flex-shrink:0}
     .wm-d-complete-banner.show{display:block}
+    .wm-d-active-wrap{flex-shrink:0;padding:0 20px 10px}
+    .wm-d-active-card{background:rgba(92,123,209,.12);border:1px solid rgba(92,123,209,.32);border-radius:12px;overflow:hidden;animation:wm-rise .35s ease}
+    .wm-d-active-header{display:flex;align-items:center;gap:9px;padding:9px 12px;border-bottom:1px solid rgba(92,123,209,.14)}
+    .wm-d-active-badge{font-size:9px;padding:2px 7px;border-radius:20px;background:rgba(92,123,209,.32);color:#BFD0F5;font-weight:700;letter-spacing:.08em;flex-shrink:0;margin-left:auto}
+    .wm-d-active-speech{padding:9px 12px 10px;font-size:13px;color:rgba(237,234,224,.82);line-height:1.55;font-style:italic;border-bottom:1px solid rgba(92,123,209,.1)}
+    .wm-d-active-opts{padding:8px 12px 10px;display:flex;flex-direction:column;gap:6px}
+    .wm-d-active-opts-label{font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:rgba(92,123,209,.65);font-weight:700;margin-bottom:2px}
+    .wm-d-active-opt{display:flex;align-items:flex-start;gap:7px;font-size:12px;color:rgba(237,234,224,.72);line-height:1.4}
+    .wm-d-active-opt-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;margin-top:4px}
+    .wm-d-active-opt-label{font-size:10px;font-weight:700;margin-bottom:1px}
   </style>
 </head>
 <body>
@@ -1976,6 +1986,7 @@
   let _wmClientUrl       = '';
   let _wmSessionId       = null;
   let _wmBase            = '';
+  let _wmAllComplete     = false;
   let _wmEncCount        = 0;
 
   const WM_PORTRAIT = {
@@ -2019,6 +2030,7 @@
             ${dots}
           </div>
         </div>
+        <div class="wm-d-active-wrap" id="wm-d-active-wrap" style="display:none"></div>
         <div class="wm-d-prompts-wrap" id="wm-d-prompts-wrap" style="display:none">
           <div class="wm-d-prompts-label">Reflection prompts</div>
           <div id="wm-d-prompts"></div>
@@ -2032,7 +2044,42 @@
     CypressDrawer.showBodySlot();
   }
 
-  function wmHandleEncounter(p, historical = false) {
+  function wmHandleNpcEntered(p) {
+    const wrap = document.getElementById('wm-d-active-wrap');
+    if (!wrap) return;
+    const portrait = WM_PORTRAIT[p.npc_id] || '';
+    wrap.innerHTML = `
+      <div class="wm-d-active-card">
+        <div class="wm-d-active-header">
+          ${portrait ? `<img class="wm-d-portrait" src="src/assets/portraits/${encodeURIComponent(portrait)}" alt="${p.npc_name}" onerror="this.style.display='none'">` : ''}
+          <div>
+            <div class="wm-d-npc-name">${p.npc_name}</div>
+            <div class="wm-d-npc-loc">${p.location}</div>
+          </div>
+          <span class="wm-d-boundary-badge">${p.boundary}</span>
+          <span class="wm-d-active-badge">NOW ACTIVE</span>
+        </div>
+        <div class="wm-d-active-speech">&ldquo;${p.speech}&rdquo;</div>
+        <div class="wm-d-active-opts">
+          <div class="wm-d-active-opts-label">Client's options</div>
+          ${(p.opts || []).map(o => `
+            <div class="wm-d-active-opt">
+              <div class="wm-d-active-opt-dot" style="background:${o.color}"></div>
+              <div>
+                <div class="wm-d-active-opt-label" style="color:${o.color}">${o.label}</div>
+                <div>${o.text}</div>
+              </div>
+            </div>`).join('')}
+        </div>
+      </div>`;
+    wrap.style.display = 'block';
+    CypressDrawer.open();
+  }
+
+  function wmHandleEncounter(p, historical = false, alreadyComplete = false) {
+    const activeWrap = document.getElementById('wm-d-active-wrap');
+    if (activeWrap) { activeWrap.innerHTML = ''; activeWrap.style.display = 'none'; }
+
     _wmEncCount++;
     const prog = document.getElementById('wm-d-progress');
     if (prog) prog.textContent = `${_wmEncCount} / 8 encounters`;
@@ -2070,15 +2117,18 @@
           </div>
         </div>
         <div class="wm-d-reaction">${p.reaction}</div>
-        <div class="wm-d-badges" style="margin-top:6px">
-          <span class="wm-d-paused-badge" id="wm-pb-${p.npc_id}">PAUSED</span>
-          <span class="wm-d-nudge-badge" id="wm-nb-${p.npc_id}">⏳ WAITING</span>
-        </div>
+        ${alreadyComplete
+          ? `<div class="wm-d-badges" style="margin-top:6px"><span style="font-size:10px;color:rgba(237,234,224,.3);font-style:italic">Prior session</span></div>`
+          : `<div class="wm-d-badges" style="margin-top:6px">
+              <span class="wm-d-paused-badge" id="wm-pb-${p.npc_id}">PAUSED</span>
+              <span class="wm-d-nudge-badge" id="wm-nb-${p.npc_id}">⏳ WAITING</span>
+            </div>`}
       </div>
+      ${alreadyComplete ? '' : `
       <div class="wm-d-continue-row">
         <button class="wm-d-continue-btn" id="wm-cb-${p.npc_id}" onclick="wmReleaseNPC('${p.npc_id}')">Continue session →</button>
         <div class="wm-d-nudge-msg" id="wm-nm-${p.npc_id}">Reminder: your client is still waiting at this encounter.</div>
-      </div>`;
+      </div>`}`;
 
     const feed = document.getElementById('wm-d-feed');
     if (feed) {
@@ -2138,19 +2188,32 @@
   }
 
   async function wmLoadExisting(sessionId) {
+    // Load all Willowmere encounters for this client across all sessions
+    const { data: allSessions } = await db
+      .from('sessions')
+      .select('id')
+      .eq('client_id', currentClient.id)
+      .eq('activity_type', 'willowmere_boundaries');
+
+    const sessionIds = allSessions?.length ? allSessions.map(s => s.id) : [sessionId];
+
     const { data, error } = await db
       .from('quest_encounters')
       .select('*')
-      .eq('session_id', sessionId)
+      .in('session_id', sessionIds)
       .order('created_at', { ascending: true });
     if (error || !data) return;
-    data.forEach(row => wmHandleEncounter({
-      npc_id: row.npc_id, npc_name: row.npc_name, location: row.location,
-      boundary: row.boundary_type, choice_index: row.choice_index,
-      choice_label: row.choice_label, choice_text: row.choice_text,
-      reaction: row.reaction, prompts: WM_PROMPTS[row.npc_id]?.[row.choice_index] || [],
-      timestamp: row.created_at,
-    }, true));
+
+    data.forEach(row => {
+      const alreadyComplete = row.session_id !== sessionId;
+      wmHandleEncounter({
+        npc_id: row.npc_id, npc_name: row.npc_name, location: row.location,
+        boundary: row.boundary_type, choice_index: row.choice_index,
+        choice_label: row.choice_label, choice_text: row.choice_text,
+        reaction: row.reaction, prompts: WM_PROMPTS[row.npc_id]?.[row.choice_index] || [],
+        timestamp: row.created_at,
+      }, true, alreadyComplete);
+    });
   }
 
   function launchJournal(actId, e) {
@@ -2170,6 +2233,7 @@
   async function launchWillowmere(actId, e) {
     e.stopPropagation();
     _wmActivityId = actId;
+    _wmAllComplete = false;
 
     const code = Math.random().toString(36).substring(2, 8).toUpperCase();
     _wmBase = window.location.origin;
@@ -2229,6 +2293,9 @@
         CypressDrawer.setStatus('Willowmere active');
         await wmLoadExisting(_wmSessionId);
       })
+      .on('broadcast', { event: 'npc_entered' }, ({ payload }) => {
+        wmHandleNpcEntered(payload);
+      })
       .on('broadcast', { event: 'encounter' }, ({ payload }) => {
         wmHandleEncounter(payload, false);
         CypressDrawer.open();
@@ -2237,6 +2304,7 @@
         wmShowNudge(payload.npc_id);
       })
       .on('broadcast', { event: 'session_complete' }, async () => {
+        _wmAllComplete = true;
         const banner = document.getElementById('wm-d-complete');
         if (banner) banner.classList.add('show');
         if (_wmActivityId) {
@@ -2259,12 +2327,13 @@
       db.removeChannel(_wmSessionChannel);
       _wmSessionChannel = null;
     }
-    if (_wmActivityId) {
+    if (_wmActivityId && _wmAllComplete) {
       await db.from('activities').update({ done: true, completed_at: new Date().toISOString() }).eq('id', _wmActivityId);
       _wmActivityId = null;
       loadActivities();
       loadClientStats();
     }
+    _wmAllComplete = false;
     _wmSessionId = null;
   }
 
