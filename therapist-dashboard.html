@@ -282,25 +282,27 @@
 
     /* ── Client Portal Bar ── */
     .portal-bar {
-      display: flex; align-items: center; gap: 10px;
-      padding: 9px 40px;
-      background: var(--green-faint);
-      border-bottom: 0.5px solid var(--border);
+      display: flex; align-items: center; gap: 8px;
+      margin: 12px -40px 0;   /* bleed to hero edges */
+      padding: 8px 40px;
+      background: #F0F7F0;
+      border-top: 0.5px solid var(--border);
     }
     .portal-bar-label {
-      font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+      font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase;
       color: var(--slate-light); font-weight: 500; flex-shrink: 0;
     }
     .portal-bar-url {
       flex: 1; font-family: var(--mono); font-size: 11px; color: var(--slate);
       overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+      min-width: 0;
     }
     .portal-bar-btn {
       font-family: var(--sans); font-size: 11px; font-weight: 500;
-      padding: 4px 11px; border-radius: 4px; cursor: pointer;
+      padding: 4px 10px; border-radius: 4px; cursor: pointer;
       border: 0.5px solid var(--border); background: #fff;
       color: var(--slate); transition: all 0.15s; flex-shrink: 0;
-      text-decoration: none; display: inline-block;
+      text-decoration: none; display: inline-block; line-height: normal;
     }
     .portal-bar-btn:hover { border-color: var(--hunter-green); color: var(--hunter-green); }
     .portal-bar-btn.primary {
@@ -936,15 +938,15 @@
         </div>
       </div>
 
-    </div><!-- end .client-hero -->
+      <!-- Client Session Page Bar (inside hero, always visible) -->
+      <div class="portal-bar" id="portal-bar">
+        <span class="portal-bar-label">Client Page</span>
+        <span class="portal-bar-url" id="portal-url"></span>
+        <button class="portal-bar-btn" onclick="copyPortalUrl(this)">Copy link</button>
+        <a class="portal-bar-btn primary" id="portal-open-btn" href="#" target="_blank" rel="noopener">Open ↗</a>
+      </div>
 
-    <!-- Client Session Page Bar -->
-    <div class="portal-bar" id="portal-bar">
-      <span class="portal-bar-label">Client Page</span>
-      <span class="portal-bar-url" id="portal-url"></span>
-      <button class="portal-bar-btn" onclick="copyPortalUrl(this)">Copy link</button>
-      <a class="portal-bar-btn primary" id="portal-open-btn" href="#" target="_blank" rel="noopener">Open ↗</a>
-    </div>
+    </div><!-- end .client-hero -->
 
     <!-- Stat Strip -->
     <div style="background:#fff;border-bottom:0.5px solid var(--border);">
