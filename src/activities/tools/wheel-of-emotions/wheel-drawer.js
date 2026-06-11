@@ -922,10 +922,13 @@
     if (engine) engine.sendControl('therapist_nudge', {});
   }
 
+  var endCb = null;
+
   /* ── END SESSION ── */
   function end() {
     if (engine) engine.sendControl('end_session', {});
     if (ticking) { clearInterval(ticking); ticking = null; }
+    if (endCb) endCb();
     showSummary();
   }
 
@@ -1103,6 +1106,7 @@
     nudge:          nudge,
     togglePrompt:   togglePrompt,
     onSave:         function (fn) { saveCb = fn; },
+    onEnd:          function (fn) { endCb  = fn; },
     isLive:         function () { return connected; },
     code:           function () { return opts.code; },
     // Called by client screen when a slice lands (same-tab mode)

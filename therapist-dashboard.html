@@ -280,6 +280,35 @@
     .strip-trend.up { background: #E8F5E9; color: #2E7D32; }
     .strip-trend.neutral { background: var(--green-light); color: var(--slate-light); }
 
+    /* ── Client Portal Bar ── */
+    .portal-bar {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 40px;
+      background: var(--green-faint);
+      border-bottom: 0.5px solid var(--border);
+    }
+    .portal-bar-label {
+      font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--slate-light); font-weight: 500; flex-shrink: 0;
+    }
+    .portal-bar-url {
+      flex: 1; font-family: var(--mono); font-size: 11px; color: var(--slate);
+      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    }
+    .portal-bar-btn {
+      font-family: var(--sans); font-size: 11px; font-weight: 500;
+      padding: 4px 11px; border-radius: 4px; cursor: pointer;
+      border: 0.5px solid var(--border); background: #fff;
+      color: var(--slate); transition: all 0.15s; flex-shrink: 0;
+      text-decoration: none; display: inline-block;
+    }
+    .portal-bar-btn:hover { border-color: var(--hunter-green); color: var(--hunter-green); }
+    .portal-bar-btn.primary {
+      background: var(--hunter-green); color: #fff;
+      border-color: var(--hunter-green);
+    }
+    .portal-bar-btn.primary:hover { background: var(--green-dark); }
+
     /* ── XP Progress Bar ── */
     .xp-progress-wrap {
       padding: 12px 40px;
@@ -907,8 +936,19 @@
         </div>
       </div>
 
-      <!-- Stat Strip -->
-      <div class="stat-strip">
+    </div><!-- end .client-hero -->
+
+    <!-- Client Session Page Bar -->
+    <div class="portal-bar" id="portal-bar">
+      <span class="portal-bar-label">Client Page</span>
+      <span class="portal-bar-url" id="portal-url"></span>
+      <button class="portal-bar-btn" onclick="copyPortalUrl(this)">Copy link</button>
+      <a class="portal-bar-btn primary" id="portal-open-btn" href="#" target="_blank" rel="noopener">Open ↗</a>
+    </div>
+
+    <!-- Stat Strip -->
+    <div style="background:#fff;border-bottom:0.5px solid var(--border);">
+      <div class="stat-strip" style="margin:0;">
         <div class="strip-stat">
           <div class="strip-val"><span id="st-total">0</span></div>
           <div class="strip-lbl">Total Activities</div>
@@ -1587,6 +1627,10 @@
     document.getElementById('cp-name').textContent = client.name;
     document.getElementById('cp-since').textContent = `Client since ${formatDate(client.created_at)}`;
 
+    const portalUrl = window.location.origin + '/client-session.html?client=' + client.id;
+    document.getElementById('portal-url').textContent = portalUrl;
+    document.getElementById('portal-open-btn').href = portalUrl;
+
     showPage('pg-client');
     switchTabByName('tab-activities');
     await Promise.all([loadClientStats(), loadActivities(), loadCharacter(), loadNotes(), loadHomework(), loadResponses(), loadSessionHistory()]);
@@ -2226,25 +2270,32 @@
 
   function launchZenBreathing(actId, e) {
     e.stopPropagation();
-    CypressDrawer.launch({
+    const code = CypressDrawer.launch({
       activityLabel: 'Zen Breathing Garden',
       client: currentClient ? currentClient.name : 'Client',
       clientView: window.location.origin + '/src/activities/Zen%20Breathing%20Garden/breathing-garden-v31.html',
+      supabase: db,   // required for cross-device end-session signal
     });
+    if (code) broadcastToClientPortal('zen-breathing', code, null);
+    CypressDrawer.onEnd(() => broadcastSessionEnded());
   }
 
   function launchWheelOfEmotions(actId, e) {
     e.stopPropagation();
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
     WheelDrawer.launch({
       client:     currentClient ? currentClient.name : 'Client',
       clientView: window.location.origin + '/src/activities/tools/wheel-of-emotions/index.html',
       supabase:   db,
+      code,
     });
     WheelDrawer.onSave(async function() {
       await db.from('activities').update({ done: true }).eq('id', actId);
       loadActivities();
       loadClientStats();
     });
+    if (WheelDrawer.onEnd) WheelDrawer.onEnd(() => broadcastSessionEnded());
+    broadcastToClientPortal('emotions', code, null);
   }
 
   async function launchWillowmere(actId, e) {
@@ -2284,6 +2335,7 @@
     if (!session) { CypressDrawer.setStatus('⚠️ Could not retrieve session. Try again.'); return; }
 
     _wmSessionId = session.id;
+    broadcastToClientPortal('willowmere_boundaries', code, session.id);
     CypressDrawer.setStatus('Waiting for client to join…');
 
     if (_wmSessionChannel) db.removeChannel(_wmSessionChannel);
@@ -2335,6 +2387,7 @@
   }
 
   async function closeWillowmereSession() {
+    broadcastSessionEnded();
     if (_wmChannel) {
       await _wmChannel.send({ type: 'broadcast', event: 'end_session', payload: { timestamp: new Date().toISOString() } });
       db.removeChannel(_wmChannel);
@@ -2613,6 +2666,43 @@
   function openOverlay(id)  { document.getElementById(id).classList.add('open'); }
   function closeOverlay(id) { document.getElementById(id).classList.remove('open'); }
   function closeBg(e, id)   { if (e.target.id === id) closeOverlay(id); }
+
+  /* ─────────────────────────────────────────
+     CLIENT PORTAL HELPERS
+  ───────────────────────────────────────── */
+  function copyPortalUrl(btn) {
+    const url = document.getElementById('portal-url').textContent;
+    if (!url) return;
+    navigator.clipboard.writeText(url).then(() => {
+      const orig = btn.textContent;
+      btn.textContent = 'Copied!';
+      setTimeout(() => btn.textContent = orig, 2000);
+    });
+  }
+
+  function broadcastToClientPortal(activityType, code, sessionId) {
+    if (!currentClient) return;
+    const ch = db.channel('client-portal:' + currentClient.id);
+    ch.subscribe(status => {
+      if (status === 'SUBSCRIBED') {
+        ch.send({
+          type: 'broadcast',
+          event: 'session-ready',
+          payload: { activityType, code, sessionId: sessionId || null },
+        });
+      }
+    });
+  }
+
+  function broadcastSessionEnded() {
+    if (!currentClient) return;
+    const ch = db.channel('client-portal:' + currentClient.id);
+    ch.subscribe(status => {
+      if (status === 'SUBSCRIBED') {
+        ch.send({ type: 'broadcast', event: 'session-ended', payload: {} });
+      }
+    });
+  }
 
   function showApp() {
     showPage('pg-app');

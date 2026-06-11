@@ -1099,8 +1099,12 @@ function initEngine() {
           setTimeout(() => { stage.style.boxShadow = ''; }, 800);
         }
       }
-      if (ctrl.type === 'end_session') {
-        if (SESSION.spins.length > 0) showClosingScreen();
+      if (ctrl.type === 'end' || ctrl.type === 'end_session') {
+        if (SESSION.spins.length > 0) {
+          showClosingScreen();
+        } else {
+          showScreen('screen-intro'); // no spins yet — return to start
+        }
       }
     });
 

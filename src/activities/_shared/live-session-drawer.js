@@ -310,7 +310,9 @@
         close();
         reset();
       } else {
-        control('end', {}, 'You ended the session'); showSummary();
+        control('end', {}, 'You ended the session');
+        if (endCb) endCb();
+        showSummary();
       }
     };
     el.save.onclick = function () {

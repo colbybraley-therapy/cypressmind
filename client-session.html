@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MindPlay · Your Session</title>
+  <link rel="icon" type="image/png" href="https://vfpxovpwwabisfjjqkpm.supabase.co/storage/v1/object/public/assets/favicon.png" />
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Georgia', 'Times New Roman', serif;
+      background: linear-gradient(160deg, #0D2010 0%, #1A3520 50%, #0D2010 100%);
+      color: #D4E8D4;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 40px 24px;
+      max-width: 420px;
+      width: 100%;
+    }
+    .screen.active { display: flex; }
+
+    .logo {
+      font-size: 11px;
+      letter-spacing: 0.22em;
+      text-transform: uppercase;
+      color: rgba(212, 232, 212, 0.4);
+      margin-bottom: 52px;
+    }
+
+    .avatar-ring {
+      width: 100px;
+      height: 100px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.05);
+      border: 1.5px solid rgba(212, 232, 212, 0.18);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 46px;
+      margin-bottom: 32px;
+      position: relative;
+    }
+    .avatar-ring::before {
+      content: '';
+      position: absolute;
+      inset: -10px;
+      border-radius: 50%;
+      border: 1px solid rgba(212, 232, 212, 0.07);
+      animation: ring-pulse 3s ease-in-out infinite;
+    }
+    .avatar-ring::after {
+      content: '';
+      position: absolute;
+      inset: -22px;
+      border-radius: 50%;
+      border: 1px solid rgba(212, 232, 212, 0.03);
+      animation: ring-pulse 3s ease-in-out 1.2s infinite;
+    }
+    @keyframes ring-pulse {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.05); opacity: 0.5; }
+    }
+
+    .greeting {
+      font-size: 27px;
+      font-weight: 400;
+      color: #EAF5EA;
+      line-height: 1.2;
+      margin-bottom: 14px;
+      letter-spacing: -0.01em;
+    }
+    .subtitle {
+      font-size: 15px;
+      color: rgba(212, 232, 212, 0.55);
+      line-height: 1.75;
+      margin-bottom: 44px;
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: rgba(255,255,255,0.04);
+      border: 0.5px solid rgba(212, 232, 212, 0.1);
+      border-radius: 24px;
+      padding: 10px 22px;
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #6EE7B7;
+      flex-shrink: 0;
+      animation: dot-pulse 2.2s ease-in-out infinite;
+    }
+    @keyframes dot-pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.45; transform: scale(0.82); }
+    }
+    .status-text {
+      font-size: 13px;
+      color: rgba(212, 232, 212, 0.6);
+      letter-spacing: 0.05em;
+    }
+
+    /* Connecting screen */
+    .spinner {
+      width: 42px;
+      height: 42px;
+      border: 2px solid rgba(212, 232, 212, 0.12);
+      border-top-color: #6EE7B7;
+      border-radius: 50%;
+      animation: spin 0.75s linear infinite;
+      margin-bottom: 28px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .connect-title {
+      font-size: 24px;
+      color: #EAF5EA;
+      margin-bottom: 10px;
+    }
+    .connect-sub {
+      font-size: 14px;
+      color: rgba(212, 232, 212, 0.5);
+    }
+
+    /* Error screen */
+    .error-icon {
+      font-size: 48px;
+      margin-bottom: 24px;
+      opacity: 0.6;
+    }
+    .error-title {
+      font-size: 22px;
+      color: #EAF5EA;
+      margin-bottom: 10px;
+    }
+    .error-sub {
+      font-size: 14px;
+      color: rgba(212, 232, 212, 0.5);
+      line-height: 1.7;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Waiting screen -->
+  <div class="screen active" id="screen-waiting">
+    <div class="logo">MindPlay</div>
+    <div class="avatar-ring" id="avatar-display">🌿</div>
+    <h1 class="greeting">Ready for your session</h1>
+    <p class="subtitle">Your therapist will start an activity shortly.<br>This page will update automatically.</p>
+    <div class="status-row">
+      <div class="status-dot"></div>
+      <span class="status-text">Waiting for therapist</span>
+    </div>
+  </div>
+
+  <!-- Connecting screen -->
+  <div class="screen" id="screen-connecting">
+    <div class="logo">MindPlay</div>
+    <div class="spinner"></div>
+    <h1 class="connect-title">Connecting…</h1>
+    <p class="connect-sub">Taking you to your session now</p>
+  </div>
+
+  <!-- Session ended screen -->
+  <div class="screen" id="screen-ended">
+    <div class="logo">MindPlay</div>
+    <div class="error-icon" style="opacity:0.7;">🌿</div>
+    <h1 class="connect-title">Session complete</h1>
+    <p class="connect-sub">Your therapist has ended the session.<br>You can close this tab.</p>
+  </div>
+
+  <!-- Error screen -->
+  <div class="screen" id="screen-error">
+    <div class="logo">MindPlay</div>
+    <div class="error-icon">🌿</div>
+    <h1 class="error-title">Invalid session link</h1>
+    <p class="error-sub">Please ask your therapist for a new session page link.</p>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://vfpxovpwwabisfjjqkpm.supabase.co';
+    const SUPABASE_KEY = 'sb_publishable_-cIPFr0xt1CfC8fwh0e_ew_Q6LIbcX5';
+    const { createClient } = supabase;
+    const db = createClient(SUPABASE_URL, SUPABASE_KEY);
+
+    var params       = new URLSearchParams(window.location.search);
+    var CLIENT_ID    = params.get('client');
+    var SESSION_CODE = params.get('session');
+    var ACT_TYPE     = params.get('activity');
+    var SESSION_ID   = params.get('sessionId');
+
+    /* Map activity type → client-facing URL */
+    function activityUrl(type, code, sid) {
+      var base = window.location.origin;
+      switch (type) {
+        case 'zen-breathing':
+          return base + '/src/activities/Zen%20Breathing%20Garden/breathing-garden-v31.html'
+               + '?session=' + encodeURIComponent(code) + '&supabase=1';
+        case 'emotions':
+          return base + '/src/activities/tools/wheel-of-emotions/index.html'
+               + '?session=' + encodeURIComponent(code) + '&supabase=1';
+        case 'journal':
+          return base + '/src/activities/practices/reflection-journal/client.html'
+               + '?session=' + encodeURIComponent(code) + '&supabase=1';
+        case 'willowmere_boundaries':
+          return base + '/src/activities/adventures/willowmere-boundaries.html'
+               + '?session=' + encodeURIComponent(sid || code);
+        default:
+          return null;
+      }
+    }
+
+    function show(id) {
+      document.querySelectorAll('.screen').forEach(function(s) {
+        s.classList.toggle('active', s.id === id);
+      });
+    }
+
+    function redirect(url) {
+      show('screen-connecting');
+      setTimeout(function() { window.location.href = url; }, 1200);
+    }
+
+    /* Entry point */
+    if (!CLIENT_ID) {
+      show('screen-error');
+    } else if (SESSION_CODE && ACT_TYPE) {
+      /* Therapist opened the client page with session params — redirect immediately */
+      var url = activityUrl(ACT_TYPE, SESSION_CODE, SESSION_ID);
+      if (url) {
+        redirect(url);
+      } else {
+        show('screen-error');
+      }
+    } else {
+      /* Wait for therapist to broadcast a session */
+      show('screen-waiting');
+
+      db.channel('client-portal:' + CLIENT_ID)
+        .on('broadcast', { event: 'session-ready' }, function(msg) {
+          var p = msg.payload || {};
+          var url = activityUrl(p.activityType, p.code, p.sessionId);
+          if (url) redirect(url);
+        })
+        .on('broadcast', { event: 'session-ended' }, function() {
+          show('screen-ended');
+        })
+        .subscribe();
+    }
+  </script>
+</body>
+</html>
