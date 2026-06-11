@@ -486,6 +486,25 @@
 
 <div class="dev-badge">Cypress Mind · Wheel of Emotions</div>
 
+<!-- Load Supabase when ?supabase=1 is in the URL, then signal ready -->
+<script>
+(function() {
+  var sp = new URLSearchParams(location.search);
+  if (sp.get('supabase') !== '1') return;
+  var s = document.createElement('script');
+  s.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2';
+  s.onload = function() {
+    window.CYPRESS_SUPABASE = window.supabase.createClient(
+      'https://vfpxovpwwabisfjjqkpm.supabase.co',
+      'sb_publishable_-cIPFr0xt1CfC8fwh0e_ew_Q6LIbcX5'
+    );
+    document.dispatchEvent(new Event('cypress-supabase-ready'));
+  };
+  document.head.appendChild(s);
+})();
+</script>
+<script src="../../_shared/cypress-session-engine.js"></script>
+
 <script>
 /* ───────────────────────────────────────────────────────────────
    WORD LIBRARY – 81 unique words, 8 Plutchik families
@@ -1063,32 +1082,22 @@ const USE_SUPABASE = _params.get('supabase') === '1';
 let _engine = null;
 
 function initEngine() {
-  if (!SESSION_CODE) return; // standalone / welcome screen mode
+  if (!SESSION_CODE) return;
 
   const E = window.CypressSessionEngine;
   if (!E) { console.warn('[WheelClient] cypress-session-engine.js not loaded'); return; }
 
   const joinOpts = { role: 'client', code: SESSION_CODE };
-
-  if (USE_SUPABASE) {
-    const { createClient } = supabase;
-    const sb = createClient(SUPABASE_URL, SUPABASE_KEY);
-    joinOpts.supabase = sb;
-  }
+  if (window.CYPRESS_SUPABASE) joinOpts.supabase = window.CYPRESS_SUPABASE;
 
   _engine = E.join(joinOpts);
+  _engine.start(); // sends 'hello' → therapist onPresence fires → setConnected()
 
-  // Listen for therapist commands
-  _engine.onEvent(function(evt) {
-    const d = evt.data || evt;
-
-    // Therapist marks a word as discussed
-    if (d.type === 'mark_discussed') {
-      window.markDiscussed(d.note || '');
+  _engine.onControl(function(ctrl) {
+    if (ctrl.type === 'mark_discussed') {
+      window.markDiscussed(ctrl.payload.note || '');
     }
-
-    // Nudge – brief visual pulse on the wheel
-    if (d.type === 'therapist_nudge') {
+    if (ctrl.type === 'therapist_nudge') {
       const stage = document.getElementById('wheel-stage');
       if (stage) {
         stage.style.transition = 'box-shadow 0.2s';
@@ -1096,42 +1105,38 @@ function initEngine() {
         setTimeout(() => { stage.style.boxShadow = ''; }, 800);
       }
     }
-
-    // Therapist closes session – show closing screen
-    if (d.type === 'end_session') {
+    if (ctrl.type === 'end_session') {
       if (SESSION.spins.length > 0) showClosingScreen();
     }
   });
-
-  // Announce presence to therapist drawer
-  _engine.send({ type: 'joined' });
 }
 
-// Broadcast spin_landed to therapist drawer via engine
-const _origShowLandedCard = window._showLandedCard_real || null;
 function broadcastLanded(word, family, intensity) {
   if (_engine) {
-    _engine.send({
-      type:      'spin_landed',
-      word:      word,
-      family:    family,
-      intensity: intensity,
+    _engine.emit('spin_landed', null, {
+      word, family, intensity,
       remaining: SESSION.remaining.length - 1,
       landed_at: new Date().toISOString(),
     });
   }
 }
 
-// Broadcast pool size once session starts
 function broadcastPoolSize() {
   if (_engine) {
-    _engine.send({ type: 'pool_size', total: SESSION.pool.length, pool: SESSION.pool.map(function(w){ return w.word; }) });
+    _engine.emit('pool_size', null, {
+      total: SESSION.pool.length,
+      pool:  SESSION.pool.map(w => w.word),
+    });
   }
 }
 
-// Init engine as soon as the page loads (before Begin is tapped)
 document.addEventListener('DOMContentLoaded', function() {
-  if (SESSION_CODE) initEngine();
+  if (!SESSION_CODE) return;
+  if (USE_SUPABASE) {
+    document.addEventListener('cypress-supabase-ready', initEngine, { once: true });
+  } else {
+    initEngine();
+  }
 });
 
 </script>

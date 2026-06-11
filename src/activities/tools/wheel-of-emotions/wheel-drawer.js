@@ -800,19 +800,20 @@
   /* ── ENGINE EVENTS ── */
   function onEngineEvent(evt) {
     if (!evt) return;
-    var d = evt.data || evt;
+    var d = evt.detail || {};
 
-    if (d.type === 'joined') {
-      setConnected();
+    if (evt.type === 'spin_landed') {
+      showLanded({
+        word:      d.word,
+        family:    d.family,
+        intensity: d.intensity,
+        remaining: d.remaining,
+        landed_at: d.landed_at,
+      });
     }
 
-    if (d.type === 'spin_landed') {
-      showLanded(d);
-    }
-
-    if (d.type === 'pool_size') {
+    if (evt.type === 'pool_size') {
       el.remaining.textContent = d.total;
-      // Persist word pool to DB
       if (sbClient && dbRowId && d.pool) {
         sbClient.from('wheel_sessions')
           .update({ word_pool: d.pool })
@@ -868,7 +869,7 @@
 
     // Tell client screen to remove the slice
     if (engine) {
-      engine.send({ type: 'mark_discussed', word: currentLanded.word, note: note });
+      engine.sendControl('mark_discussed', { word: currentLanded.word, note: note });
     }
     // Also call directly if same-tab demo
     if (global.markDiscussed) global.markDiscussed(note);
@@ -924,13 +925,12 @@
 
   /* ── NUDGE ── */
   function nudge() {
-    if (engine) engine.send({ type: 'therapist_nudge' });
-    if (global.markDiscussed === undefined) return; // no client tab open
+    if (engine) engine.sendControl('therapist_nudge', {});
   }
 
   /* ── END SESSION ── */
   function end() {
-    if (engine) engine.send({ type: 'end_session' });
+    if (engine) engine.sendControl('end_session', {});
     if (ticking) { clearInterval(ticking); ticking = null; }
     showSummary();
   }
