@@ -1305,6 +1305,9 @@
     if (!session) return;
     // Ignore foreign sessions (e.g. client processing magic link in same browser)
     if (currentUser && session.user.id !== currentUser.id) return;
+    // Only navigate on actual sign-in; TOKEN_REFRESHED and USER_UPDATED fire silently
+    // during normal use and would close any open client profile
+    if (event !== 'SIGNED_IN' && event !== 'INITIAL_SESSION') return;
     loadApp();
   });
 
