@@ -2258,10 +2258,23 @@
       supabase: db,
       code,
     });
-    WheelDrawer.onSave(async function() {
+    WheelDrawer.onSave(async function(summary) {
+      if (currentClient && summary?.spins?.length) {
+        await db.from('session_responses').insert({
+          client_id:    currentClient.id,
+          step_index:   0,
+          response_data: {
+            emotions_visited:         summary.emotions_visited,
+            spins:                    summary.spins,
+            session_duration_seconds: summary.session_duration_seconds,
+            closed_at:                summary.closed_at,
+          },
+        });
+      }
       await db.from('activities').update({ done: true }).eq('id', actId);
       loadActivities();
       loadClientStats();
+      if (document.getElementById('tab-responses')?.style.display !== 'none') loadResponses();
     });
     if (WheelDrawer.onEnd) WheelDrawer.onEnd(() => broadcastSessionEnded());
     broadcastToClientPortal('emotions', code, null);
@@ -2494,6 +2507,14 @@
       } else if (rd?.technique) {
         content = `<div class="response-label">Breathing Exercise</div>
           <div class="response-text">Completed ${Number(rd.cycles) || 0} cycle(s) · ${rd.completed ? '✓ Finished' : 'Partial'}</div>`;
+      } else if (rd?.emotions_visited) {
+        const dur = rd.session_duration_seconds ? Math.round(rd.session_duration_seconds / 60) + ' min' : '';
+        const chips = (rd.spins || []).map(s =>
+          `<span style="display:inline-block;margin:2px 3px;padding:3px 8px;background:var(--bg-soft);border-radius:100px;font-size:11px;">${esc(s.word)}${s.note ? ' · ' + esc(s.note) : ''}</span>`
+        ).join('');
+        content = `<div class="response-label">🎡 Wheel of Emotions${dur ? ' · ' + dur : ''}</div>
+          <div class="response-text">Explored ${(rd.emotions_visited || []).length} feeling${(rd.emotions_visited || []).length !== 1 ? 's' : ''}</div>
+          <div style="margin-top:6px;">${chips}</div>`;
       } else {
         content = `<div class="response-label">Session Data</div><div class="response-text">${esc(JSON.stringify(rd))}</div>`;
       }
