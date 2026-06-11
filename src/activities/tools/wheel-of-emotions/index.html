@@ -1026,8 +1026,8 @@ function startSession() {
   ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
 
   drawWheel();
-  broadcastPoolSize();
   showScreen('screen-wheel');
+  initEngine();
 }
 
 /* ───────────────────────────────────────────────────────────────
@@ -1087,28 +1087,39 @@ function initEngine() {
   const E = window.CypressSessionEngine;
   if (!E) { console.warn('[WheelClient] cypress-session-engine.js not loaded'); return; }
 
-  const joinOpts = { role: 'client', code: SESSION_CODE };
-  if (window.CYPRESS_SUPABASE) joinOpts.supabase = window.CYPRESS_SUPABASE;
+  function doInit() {
+    const joinOpts = { role: 'client', code: SESSION_CODE };
+    if (window.CYPRESS_SUPABASE) joinOpts.supabase = window.CYPRESS_SUPABASE;
 
-  _engine = E.join(joinOpts);
-  _engine.start(); // sends 'hello' → therapist onPresence fires → setConnected()
+    _engine = E.join(joinOpts);
+    _engine.start(); // sends 'hello' → therapist onPresence fires → setConnected()
 
-  _engine.onControl(function(ctrl) {
-    if (ctrl.type === 'mark_discussed') {
-      window.markDiscussed(ctrl.payload.note || '');
-    }
-    if (ctrl.type === 'therapist_nudge') {
-      const stage = document.getElementById('wheel-stage');
-      if (stage) {
-        stage.style.transition = 'box-shadow 0.2s';
-        stage.style.boxShadow  = '0 0 0 6px rgba(53,94,59,0.5)';
-        setTimeout(() => { stage.style.boxShadow = ''; }, 800);
+    _engine.onControl(function(ctrl) {
+      if (ctrl.type === 'mark_discussed') {
+        window.markDiscussed(ctrl.payload.note || '');
       }
-    }
-    if (ctrl.type === 'end_session') {
-      if (SESSION.spins.length > 0) showClosingScreen();
-    }
-  });
+      if (ctrl.type === 'therapist_nudge') {
+        const stage = document.getElementById('wheel-stage');
+        if (stage) {
+          stage.style.transition = 'box-shadow 0.2s';
+          stage.style.boxShadow  = '0 0 0 6px rgba(53,94,59,0.5)';
+          setTimeout(() => { stage.style.boxShadow = ''; }, 800);
+        }
+      }
+      if (ctrl.type === 'end_session') {
+        if (SESSION.spins.length > 0) showClosingScreen();
+      }
+    });
+
+    broadcastPoolSize(); // send pool to therapist once engine is live
+  }
+
+  // If Supabase is needed but not yet ready, wait; otherwise connect immediately
+  if (USE_SUPABASE && !window.CYPRESS_SUPABASE) {
+    document.addEventListener('cypress-supabase-ready', doInit, { once: true });
+  } else {
+    doInit();
+  }
 }
 
 function broadcastLanded(word, family, intensity) {
@@ -1130,14 +1141,6 @@ function broadcastPoolSize() {
   }
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-  if (!SESSION_CODE) return;
-  if (USE_SUPABASE) {
-    document.addEventListener('cypress-supabase-ready', initEngine, { once: true });
-  } else {
-    initEngine();
-  }
-});
 
 </script>
 </body>
