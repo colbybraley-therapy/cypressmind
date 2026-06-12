@@ -2273,17 +2273,30 @@
     });
     WheelDrawer.onSave(async function(summary) {
       if (clientSnapshot && summary?.spins?.length) {
-        const { error } = await db.from('session_responses').insert({
+        // session_responses RLS requires a valid session_id — create the record first
+        const { data: session, error: sessErr } = await db.from('sessions').insert({
           client_id:    clientSnapshot.id,
-          step_index:   0,
-          response_data: {
-            emotions_visited:         summary.emotions_visited,
-            spins:                    summary.spins,
-            session_duration_seconds: summary.session_duration_seconds,
-            closed_at:                summary.closed_at,
-          },
-        });
-        if (error) console.error('[WheelOfEmotions] session_responses insert failed:', error);
+          therapist_id: currentUser?.id,
+          code,
+          status:       'completed',
+          activity_type: 'emotions',
+        }).select('id').single();
+        if (sessErr) {
+          console.error('[WheelOfEmotions] sessions insert failed:', sessErr);
+        } else {
+          const { error } = await db.from('session_responses').insert({
+            client_id:    clientSnapshot.id,
+            session_id:   session.id,
+            step_index:   0,
+            response_data: {
+              emotions_visited:         summary.emotions_visited,
+              spins:                    summary.spins,
+              session_duration_seconds: summary.session_duration_seconds,
+              closed_at:                summary.closed_at,
+            },
+          });
+          if (error) console.error('[WheelOfEmotions] session_responses insert failed:', error);
+        }
       }
       loadActivities();
       loadClientStats();

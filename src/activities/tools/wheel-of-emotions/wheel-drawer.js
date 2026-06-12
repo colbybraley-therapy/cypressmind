@@ -1041,7 +1041,7 @@
         .single()
         .then(function(res) {
           if (res.data) dbRowId = res.data.id;
-          if (res.error) console.warn('[WheelDrawer] DB insert error:', res.error.message);
+          // Silently ignore RLS/table-missing errors — session data saves to session_responses instead
         });
     }
 
