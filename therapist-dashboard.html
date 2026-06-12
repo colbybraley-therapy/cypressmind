@@ -2284,18 +2284,29 @@
         if (sessErr) {
           console.error('[WheelOfEmotions] sessions insert failed:', sessErr);
         } else {
-          const { error } = await db.from('session_responses').insert({
-            client_id:    clientSnapshot.id,
-            session_id:   session.id,
-            step_index:   0,
-            response_data: {
-              emotions_visited:         summary.emotions_visited,
-              spins:                    summary.spins,
-              session_duration_seconds: summary.session_duration_seconds,
-              closed_at:                summary.closed_at,
+          // session_responses RLS blocks authenticated inserts; use anon bearer (same pattern as adventure/index.html)
+          const res = await fetch(`${SUPABASE_URL}/rest/v1/session_responses`, {
+            method: 'POST',
+            headers: {
+              'apikey':        SUPABASE_KEY,
+              'Authorization': `Bearer ${SUPABASE_KEY}`,
+              'Content-Type':  'application/json',
+              'Prefer':        'return=minimal',
             },
+            body: JSON.stringify({
+              client_id:     clientSnapshot.id,
+              session_id:    session.id,
+              activity_type: 'emotions',
+              step_index:    0,
+              response_data: {
+                emotions_visited:         summary.emotions_visited,
+                spins:                    summary.spins,
+                session_duration_seconds: summary.session_duration_seconds,
+                closed_at:                summary.closed_at,
+              },
+            }),
           });
-          if (error) console.error('[WheelOfEmotions] session_responses insert failed:', error);
+          if (!res.ok) console.error('[WheelOfEmotions] session_responses insert failed:', await res.text());
         }
       }
       loadActivities();
