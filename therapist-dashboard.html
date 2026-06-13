@@ -1355,8 +1355,10 @@
     currentUser = user;
     const name = user.user_metadata?.full_name || user.email.split('@')[0];
     document.getElementById('tb-name').textContent = name;
-    showPage('pg-app');
-    await renderClientGrid();
+    if (!document.getElementById('pg-client')?.classList.contains('active')) {
+      showPage('pg-app');
+      await renderClientGrid();
+    }
   }
 
   /* ─────────────────────────────────────────
