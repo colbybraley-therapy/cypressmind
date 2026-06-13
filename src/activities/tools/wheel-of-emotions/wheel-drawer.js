@@ -323,8 +323,9 @@
     /* ── Scroll body ── */
     .wd-body {
       flex: 1;
+      min-height: 0;
       overflow-y: auto;
-      padding: 14px 14px 100px;
+      padding: 14px 14px 20px;
       display: flex;
       flex-direction: column;
       gap: 12px;
@@ -534,14 +535,12 @@
 
     /* ── Footer controls ── */
     .wd-footer {
-      position: absolute;
-      bottom: 0; left: 0; right: 0;
+      flex-shrink: 0;
       background: var(--wd-panel);
       border-top: 1px solid var(--wd-border);
       padding: 12px 14px;
       display: flex;
       gap: 8px;
-      flex-shrink: 0;
     }
     .wd-foot-btn {
       flex: 1;
@@ -569,6 +568,9 @@
       flex-direction: column;
       gap: 12px;
       padding: 14px;
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
     }
     .wd-summary.wd-show { display: flex; }
     .wd-summary-title {
