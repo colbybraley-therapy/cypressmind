@@ -25,7 +25,7 @@
     --anger:        #D95F6A;
     --anticipation: #E8A030;
 
-    --wheel-size: min(88vw, 88vh, 520px);
+    --wheel-size: min(88vw, calc(100dvh - 130px), 500px);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -1008,18 +1008,22 @@ function startSession() {
   sliceOpacity = SESSION.pool.map(() => 1);
   currentAngle = 0; // pointer at right = angle 0
 
-  // Init canvas
+  // Show screen first so the browser can compute layout before we measure
   canvas = document.getElementById('wheel-canvas');
-  const stageSize = document.getElementById('wheel-stage').offsetWidth;
-  canvas.width = stageSize * window.devicePixelRatio;
-  canvas.height = stageSize * window.devicePixelRatio;
-  canvas.style.width = stageSize + 'px';
-  canvas.style.height = stageSize + 'px';
-  ctx = canvas.getContext('2d');
-  ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
-
-  drawWheel();
   showScreen('screen-wheel');
+
+  requestAnimationFrame(function() {
+    const stageSize = document.getElementById('wheel-stage').offsetWidth ||
+      Math.min(window.innerWidth * 0.88, (window.innerHeight - 130) * 0.88, 500);
+    canvas.width  = stageSize * window.devicePixelRatio;
+    canvas.height = stageSize * window.devicePixelRatio;
+    canvas.style.width  = stageSize + 'px';
+    canvas.style.height = stageSize + 'px';
+    ctx = canvas.getContext('2d');
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    drawWheel();
+  });
+
   initEngine();
 }
 
