@@ -636,7 +636,7 @@ let sliceOpacity = []; // 1 = fully visible, 0 = removed
 
 function drawWheel() {
   if (!canvas) return;
-  const size = canvas.width;
+  const size = canvas.width / window.devicePixelRatio;  // logical size, not pixel buffer
   const cx = size / 2;
   const cy = size / 2;
   const R = size / 2 - 4;
