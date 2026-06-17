@@ -519,6 +519,7 @@ const FAMILIES = {
   disgust:      { label: 'Disgust',      color: '#A3A84B', symbol: '🌿', dark: '#4A4C10' },
   anger:        { label: 'Anger',        color: '#D95F6A', symbol: '🔥', dark: '#7A1520' },
   anticipation: { label: 'Anticipation', color: '#E8A030', symbol: '→', dark: '#7A4A00' },
+  body:         { label: 'Body & Behavior', color: '#8E9196', symbol: '🪽', dark: '#4A4D50' },
 };
 
 const WORD_LIBRARY = [
@@ -537,6 +538,8 @@ const WORD_LIBRARY = [
   { word: 'loved',     family: 'joy', intensity: 2 },
   { word: 'energized', family: 'joy', intensity: 2 },
   { word: 'free',      family: 'joy', intensity: 3 },
+  { word: 'hyper',     family: 'joy', intensity: 3 },
+  { word: 'confident',  family: 'joy', intensity: 2 },
   // TRUST
   { word: 'safe',        family: 'trust', intensity: 1 },
   { word: 'comfortable', family: 'trust', intensity: 1 },
@@ -550,6 +553,10 @@ const WORD_LIBRARY = [
   { word: 'seen',        family: 'trust', intensity: 3 },
   { word: 'respected',   family: 'trust', intensity: 3 },
   { word: 'belonging',   family: 'trust', intensity: 3 },
+  { word: 'calm',      family: 'trust', intensity: 1 },
+  { word: 'strong',    family: 'trust', intensity: 2 },
+  { word: 'friendly',  family: 'trust', intensity: 1 },
+  { word: 'resilient', family: 'trust', intensity: 3 },
   // FEAR
   { word: 'uneasy',   family: 'fear', intensity: 1 },
   { word: 'shy',      family: 'fear', intensity: 1 },
@@ -563,6 +570,7 @@ const WORD_LIBRARY = [
   { word: 'dread',    family: 'fear', intensity: 3 },
   { word: 'frozen',   family: 'fear', intensity: 3 },
   { word: 'panicked', family: 'fear', intensity: 3 },
+  { word: 'on edge',   family: 'fear', intensity: 2 },
   // SURPRISE
   { word: 'curious',      family: 'surprise', intensity: 1 },
   { word: 'unsure',       family: 'surprise', intensity: 1 },
@@ -572,6 +580,8 @@ const WORD_LIBRARY = [
   { word: 'disoriented',  family: 'surprise', intensity: 2 },
   { word: 'shocked',      family: 'surprise', intensity: 3 },
   { word: 'speechless',   family: 'surprise', intensity: 3 },
+  { word: 'surprised', family: 'surprise', intensity: 2 },
+  { word: 'awe',       family: 'surprise', intensity: 3 },
   // SADNESS
   { word: 'sad',          family: 'sadness', intensity: 1 },
   { word: 'disappointed', family: 'sadness', intensity: 1 },
@@ -584,7 +594,9 @@ const WORD_LIBRARY = [
   { word: 'unwanted',     family: 'sadness', intensity: 3 },
   { word: 'empty',        family: 'sadness', intensity: 3 },
   { word: 'heartbroken',  family: 'sadness', intensity: 3 },
-  { word: 'grieving',     family: 'sadness', intensity: 3 },
+  { word: 'grief',        family: 'sadness', intensity: 3 },
+  { word: 'invisible',    family: 'sadness', intensity: 2 },
+  { word: 'jealous',      family: 'sadness', intensity: 2 },
   // DISGUST
   { word: 'uncomfortable', family: 'disgust', intensity: 1 },
   { word: 'bothered',      family: 'disgust', intensity: 1 },
@@ -602,6 +614,7 @@ const WORD_LIBRARY = [
   { word: 'betrayed',     family: 'anger', intensity: 3 },
   { word: 'furious',      family: 'anger', intensity: 3 },
   { word: 'enraged',      family: 'anger', intensity: 3 },
+  { word: 'angry',        family: 'anger', intensity: 2 },
   // ANTICIPATION
   { word: 'ready',     family: 'anticipation', intensity: 1 },
   { word: 'waiting',   family: 'anticipation', intensity: 1 },
@@ -611,6 +624,21 @@ const WORD_LIBRARY = [
   { word: 'excited',   family: 'anticipation', intensity: 2 },
   { word: 'impatient', family: 'anticipation', intensity: 2 },
   { word: 'dreading',  family: 'anticipation', intensity: 3 },
+  // BODY & BEHAVIOR
+  { word: 'hungry',      family: 'body', intensity: 1 },
+  { word: 'sleepy',      family: 'body', intensity: 1 },
+  { word: 'distracted',  family: 'body', intensity: 1 },
+  { word: 'disobedient', family: 'body', intensity: 2 },
+  { word: 'secretive',   family: 'body', intensity: 2 },
+  { word: 'focused',     family: 'body', intensity: 1 },
+  { word: 'worn out',    family: 'body', intensity: 2 },
+  { word: 'bored',       family: 'body', intensity: 1 },
+  { word: 'embarrassed', family: 'body', intensity: 2 },
+  { word: 'ashamed',     family: 'body', intensity: 3 },
+  { word: 'guilt',       family: 'body', intensity: 2 },
+  { word: 'skeptical',   family: 'body', intensity: 1 },
+  { word: 'apathetic',   family: 'body', intensity: 2 },
+  { word: 'overwhelmed', family: 'body', intensity: 3 },
 ];
 
 /* ───────────────────────────────────────────────────────────────

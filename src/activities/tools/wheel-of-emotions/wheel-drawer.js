@@ -18,47 +18,551 @@
 (function (global) {
   'use strict';
 
-  /* ── DISCUSSION PROMPTS (family-keyed, 3 each) ── */
+  /* ── DISCUSSION PROMPTS (word-keyed, 3 each) ── */
   const PROMPTS = {
-    joy: [
-      'What does this feeling feel like in your body when it shows up?',
-      'Tell me about a recent moment that brought you this feeling.',
-      'What helps you hold onto it when you notice it?',
+    // JOY
+    happy: [
+      "What's making you feel happy right now?",
+      "Where do you feel happy in your body?",
+      "What do you want to do when you feel this happy?",
     ],
-    trust: [
-      'Who in your life do you feel safest with? What makes them feel safe?',
-      'Has this feeling ever been hard to give? What got in the way?',
-      'What does it feel like when someone breaks your trust?',
+    cheerful: [
+      "What's putting you in such a good mood?",
+      "Who do you want to share this cheerful feeling with?",
+      "Does this feeling come easily for you, or is it rare?",
     ],
-    fear: [
-      'What does this feeling feel like for you – is it loud or quiet?',
-      "What's something you're scared of that you haven't told many people?",
-      'When this feeling shows up, what do you usually do with it?',
+    content: [
+      "What does 'just right' feel like for you?",
+      "Is there anything you'd want to change about this moment, or is it good as is?",
+      "How long does this content feeling usually stick around for you?",
     ],
-    surprise: [
-      'Tell me about a surprise that felt good – and one that didn\'t.',
-      'How do you feel in your body right before something unexpected happens?',
-      "What's the biggest surprise you've had this year?",
+    warm: [
+      "Who or what gives you this warm feeling?",
+      "Can you remember the last time you felt this way?",
+      "What does this warmth remind you of?",
     ],
-    sadness: [
-      'Where do you feel this in your body?',
-      'What does this feeling need from you when it visits?',
-      "Is there something you're holding onto that we haven't talked about yet?",
+    peaceful: [
+      "What helped you get to this calm place?",
+      "What does peaceful feel like in your body right now?",
+      "Is this a feeling you get to have often?",
     ],
-    disgust: [
-      'What kinds of things bring up this feeling for you?',
-      'Does it ever show up toward yourself, not just things outside you?',
-      'What do you think this feeling is trying to protect you from?',
+    thankful: [
+      "What are you feeling thankful for today?",
+      "Have you told that person or shared that thanks with anyone?",
+      "What's something small you're grateful for that people might not expect?",
     ],
-    anger: [
-      'What does this feel like right before it arrives – any warning signs?',
-      'What usually sits underneath it when you look close?',
-      'When it shows up, what does it want you to do?',
+    relieved: [
+      "What were you worried about that's now lifted?",
+      "How does your body feel different now that the worry is gone?",
+      "Was there a moment you knew you didn't have to worry anymore?",
     ],
-    anticipation: [
-      'What are you looking forward to right now, even something small?',
-      'Does waiting for things feel exciting or anxious for you – or both?',
-      "What's something coming up that you have big feelings about?",
+    playful: [
+      "What's making you want to be silly or have fun right now?",
+      "What's your favorite way to be playful?",
+      "Who do you like being playful with the most?",
+    ],
+    silly: [
+      "What's the silliest thing that's happened to you lately?",
+      "Do you let yourself be silly often, or does it feel rare?",
+      "Who makes you feel safe enough to be silly?",
+    ],
+    proud: [
+      "What did you do that you're proud of?",
+      "Did anyone else notice, or is this just for you?",
+      "What does pride feel like in your body?",
+    ],
+    grateful: [
+      "What or who are you grateful for right now?",
+      "Is this a feeling that comes easily, or do you have to look for it?",
+      "How do you usually show someone you're grateful?",
+    ],
+    loved: [
+      "Who makes you feel this way?",
+      "How do you know when someone loves you?",
+      "What does being loved feel like in your body?",
+    ],
+    energized: [
+      "What's giving you all this energy?",
+      "What do you want to do with it?",
+      "Does this feeling come often, or is today different?",
+    ],
+    free: [
+      "What does being free feel like for you right now?",
+      "Was there something holding you back before this?",
+      "What would you want to do with this free feeling?",
+    ],
+    hyper: [
+      "What's got you feeling so wound up?",
+      "What does your body want to do with all this energy?",
+      "Does this feeling come on suddenly, or build up over time?",
+    ],
+    confident: [
+      "What's making you feel so sure of yourself right now?",
+      "Has this confidence always been there, or did you build it?",
+      "What helps you feel this way when it's hard to find?",
+    ],
+    // TRUST
+    safe: [
+      "What makes this place or person feel safe to you?",
+      "Has there been a time when you didn't feel safe? What was different?",
+      "What helps you feel safe when things feel uncertain?",
+    ],
+    comfortable: [
+      "What's making you feel at ease right now?",
+      "Is this a new feeling here, or has it built up over time?",
+      "What helps you relax when you're somewhere new?",
+    ],
+    open: [
+      "What's making it feel okay to share right now?",
+      "Is there something you've been wanting to talk about?",
+      "Who else do you feel this open with?",
+    ],
+    accepted: [
+      "Who or what makes you feel accepted just as you are?",
+      "Has there been a time you didn't feel accepted? What was that like?",
+      "What does it feel like in your body when you feel accepted?",
+    ],
+    included: [
+      "What's happening that makes you feel part of things?",
+      "Has there been a time you felt left out instead? What was different then?",
+      "Who helps you feel included the most?",
+    ],
+    supported: [
+      "Who's been there for you lately?",
+      "What does support look like for you when you need it?",
+      "Is it easy for you to ask for support, or does it feel hard?",
+    ],
+    understood: [
+      "Who gets it when you try to explain how you feel?",
+      "What does it feel like when someone really understands you?",
+      "Has there been a time you felt misunderstood instead?",
+    ],
+    valued: [
+      "What's making you feel like you matter right now?",
+      "Who shows you that you're valued?",
+      "What would it feel like if that went away?",
+    ],
+    close: [
+      "Who do you feel this close to?",
+      "What makes that connection feel real to you?",
+      "How long did it take to feel this close with them?",
+    ],
+    seen: [
+      "Who really sees you — not just what you do, but who you are?",
+      "What does it feel like when someone notices the real you?",
+      "Has there been a time you felt invisible instead?",
+    ],
+    respected: [
+      "Who treats your thoughts and feelings like they matter?",
+      "What does respect look like to you?",
+      "Has there been a time you didn't feel respected?",
+    ],
+    belonging: [
+      "Where do you feel like you truly belong?",
+      "What made that place or group feel like yours?",
+      "Has there been somewhere you wished you belonged but didn't?",
+    ],
+    calm: [
+      "What helped you get to this settled place?",
+      "What does calm feel like in your body?",
+      "What usually pulls you out of feeling calm?",
+    ],
+    strong: [
+      "What are you facing that's calling for this strength?",
+      "Where does this strength come from for you?",
+      "Has there been a time you didn't feel this strong? What changed?",
+    ],
+    friendly: [
+      "Who are you feeling this warmth toward?",
+      "What makes it easy to be open with them?",
+      "Is this how you usually feel around new people, or does it take time?",
+    ],
+    resilient: [
+      "What have you been through that you're still standing after?",
+      "What's helped you keep going?",
+      "What do you want people to know about how hard that was?",
+    ],
+    // FEAR
+    uneasy: [
+      "What's making things feel not quite right?",
+      "Can you point to what's causing this, or is it hard to name?",
+      "What helps when something feels off like this?",
+    ],
+    shy: [
+      "What's making you want to hold back right now?",
+      "Is this feeling familiar in certain situations?",
+      "What helps you feel braver when shyness shows up?",
+    ],
+    nervous: [
+      "What's coming up that's making you feel this way?",
+      "Where do you feel nervous in your body?",
+      "What usually helps settle your nerves?",
+    ],
+    worried: [
+      "What's the thing you keep thinking about?",
+      "What's the worst part you're imagining might happen?",
+      "What would help you worry a little less right now?",
+    ],
+    anxious: [
+      "What does this anxious feeling feel like in your body?",
+      "Is there one thing causing it, or does it feel like a lot at once?",
+      "What's helped you get through this feeling before?",
+    ],
+    tense: [
+      "Where do you feel this tightness in your body?",
+      "What's making you feel like you need to brace for something?",
+      "What helps your body relax when it feels this tense?",
+    ],
+    alone: [
+      "What's making you feel like no one's with you right now?",
+      "Is there someone you wish was here?",
+      "What would help you feel less alone in this?",
+    ],
+    unsafe: [
+      "What's happening that makes this feel unsafe?",
+      "What would need to change for this to feel safe again?",
+      "Is there someone you can tell about this feeling?",
+    ],
+    scared: [
+      "What's the thing that's scaring you?",
+      "What does your body do when you feel scared?",
+      "What helps you feel braver?",
+    ],
+    dread: [
+      "What's the thing you think is coming that you're not looking forward to?",
+      "How far away is it, and does that change how heavy this feels?",
+      "Is there anything that would make it feel less heavy?",
+    ],
+    frozen: [
+      "What's happening that's making it hard to move or think?",
+      "What does frozen feel like for you?",
+      "What's helped you get unstuck before?",
+    ],
+    panicked: [
+      "What set this off?",
+      "What does your body do when panic shows up?",
+      "What's one thing that's helped slow it down before?",
+    ],
+    'on edge': [
+      "What's making everything feel so alert right now?",
+      "What is your body bracing for?",
+      "What would help you feel like you could relax a little?",
+    ],
+    // SURPRISE
+    curious: [
+      "What's caught your attention?",
+      "What do you want to know more about?",
+      "Where do you think this curiosity might lead?",
+    ],
+    unsure: [
+      "What's making this hard to figure out?",
+      "What would help you feel more sure?",
+      "Is there a part of this you do feel certain about?",
+    ],
+    confused: [
+      "What's the part that's not making sense?",
+      "What would help clear things up?",
+      "Is this confusing feeling new, or has it been building?",
+    ],
+    startled: [
+      "What caught you off guard?",
+      "What did your body do in that moment?",
+      "Did it take you long to feel okay again afterward?",
+    ],
+    amazed: [
+      "What happened that's so hard to believe?",
+      "Did you expect this, or did it come out of nowhere?",
+      "Who do you want to tell about this?",
+    ],
+    disoriented: [
+      "What shifted that's making things feel unclear?",
+      "What would help you feel steady again?",
+      "Is this a new feeling, or has something like this happened before?",
+    ],
+    shocked: [
+      "What happened that hit you so hard?",
+      "How long did it take to sink in?",
+      "Who have you told about this, if anyone?",
+    ],
+    speechless: [
+      "What happened that left you without words?",
+      "If you could find the words, what would you want to say?",
+      "Was this a good kind of speechless, or a hard kind?",
+    ],
+    surprised: [
+      "What happened that you weren't expecting?",
+      "How did your body react in that moment?",
+      "Was it a good surprise or a hard one?",
+    ],
+    awe: [
+      "What's the thing that's left you in awe?",
+      "What does it feel like to witness something this big?",
+      "Has anything ever made you feel this way before?",
+    ],
+    // SADNESS
+    sad: [
+      "What's making you feel this way?",
+      "Where do you feel sadness in your body?",
+      "What do you need most when you feel sad?",
+    ],
+    disappointed: [
+      "What were you hoping would happen?",
+      "What's it like realizing it didn't turn out that way?",
+      "Has this happened before with this same thing?",
+    ],
+    lost: [
+      "What's making things feel unclear right now?",
+      "What would help you feel more grounded?",
+      "Is this about a decision, a relationship, or something else?",
+    ],
+    lonely: [
+      "What's making you feel disconnected from others right now?",
+      "Is there someone you wish was closer to you?",
+      "What helps when loneliness shows up?",
+    ],
+    hurt: [
+      "What happened that left this hurt?",
+      "Was it something someone said, or something they did?",
+      "Have you been able to tell them how it felt?",
+    ],
+    excluded: [
+      "What happened that made you feel left out?",
+      "Was this on purpose, or do you think they didn't realize?",
+      "What would have felt better in that moment?",
+    ],
+    homesick: [
+      "What are you missing most right now?",
+      "What does that place or person mean to you?",
+      "Is there a way to feel a little closer to it from here?",
+    ],
+    forgotten: [
+      "What happened that made you feel this way?",
+      "Is this about one moment, or a pattern you've noticed?",
+      "What would it look like for someone to remember you the way you want?",
+    ],
+    unwanted: [
+      "What's making you feel this way?",
+      "Has someone said or done something that brought this on?",
+      "Who in your life makes you feel the opposite of this?",
+    ],
+    empty: [
+      "What does this emptiness feel like for you?",
+      "Is there usually something there that feels missing right now?",
+      "What's one small thing that sometimes helps, even a little?",
+    ],
+    heartbroken: [
+      "What happened that broke your heart?",
+      "What's the hardest part to sit with right now?",
+      "Is there anyone helping you carry this?",
+    ],
+    grief: [
+      "What or who are you grieving?",
+      "What's been the hardest moment so far?",
+      "Is there a way you like to remember them?",
+    ],
+    invisible: [
+      "What's making you feel like no one notices you?",
+      "Has there been a time you felt the opposite — really seen?",
+      "What would it look like for someone to notice you right now?",
+    ],
+    jealous: [
+      "What does this other person have that you're wishing you had?",
+      "Is this about a thing, attention, or a relationship?",
+      "What would it feel like if you had that too?",
+    ],
+    // DISGUST
+    uncomfortable: [
+      "What's making this feel off to you?",
+      "What would make this feel better?",
+      "Is this a new feeling here, or has it built up?",
+    ],
+    bothered: [
+      "What keeps getting under your skin?",
+      "Have you said anything about it, or is it building up quietly?",
+      "What would help this stop bothering you?",
+    ],
+    offended: [
+      "What was said or done that didn't sit right?",
+      "Do you think they realized how it landed?",
+      "What would help you feel better about it?",
+    ],
+    repulsed: [
+      "What's causing this strong reaction?",
+      "Is this a new reaction, or does this always bother you?",
+      "What would help you feel okay again?",
+    ],
+    disgusted: [
+      "What happened that felt so wrong to you?",
+      "Is this about something you saw, heard, or experienced?",
+      "What do you wish was different about it?",
+    ],
+    // ANGER
+    annoyed: [
+      "What keeps bugging you?",
+      "Is this a small thing building up, or one big thing?",
+      "What would help take the edge off?",
+    ],
+    frustrated: [
+      "What are you trying to do that keeps getting blocked?",
+      "What's the hardest part about this for you?",
+      "What would help you get unstuck?",
+    ],
+    mad: [
+      "What happened that got you feeling this way?",
+      "Where do you feel mad in your body?",
+      "What do you wish was different right now?",
+    ],
+    ignored: [
+      "What happened that made you feel unheard?",
+      "Did you try to say something? What happened?",
+      "What would it look like to actually be heard here?",
+    ],
+    disrespected: [
+      "What happened that felt disrespectful?",
+      "Do you think they meant it that way, or not?",
+      "What would respect have looked like instead?",
+    ],
+    bitter: [
+      "What happened that's still sitting with you?",
+      "How long have you been carrying this?",
+      "What would it take to let some of it go?",
+    ],
+    resentful: [
+      "What's the unfair thing that never got fixed?",
+      "Have you been able to say anything about it?",
+      "What would feel like justice here?",
+    ],
+    betrayed: [
+      "Who let you down, and how?",
+      "What did you trust them with that got broken?",
+      "Have you talked to them about how it felt?",
+    ],
+    furious: [
+      "What happened that got you this angry?",
+      "What does your body feel like right now?",
+      "What usually helps you come down from this?",
+    ],
+    enraged: [
+      "What pushed you to this point?",
+      "What does it feel like trying to hold this in?",
+      "What would help you feel safe to let some of it out?",
+    ],
+    angry: [
+      "What happened that's making you feel this way?",
+      "Where do you feel this anger in your body?",
+      "What do you wish was different right now?",
+    ],
+    // ANTICIPATION
+    ready: [
+      "What are you getting ready for?",
+      "What helped you feel prepared?",
+      "What's left before you feel fully set?",
+    ],
+    waiting: [
+      "What are you waiting for?",
+      "How does the waiting feel — easy or hard?",
+      "What helps you get through the wait?",
+    ],
+    hopeful: [
+      "What's the good thing you're hoping might happen?",
+      "What's making you believe it's possible?",
+      "What would it mean to you if it actually happened?",
+    ],
+    eager: [
+      "What are you looking forward to?",
+      "What's making you so ready for it?",
+      "How will you feel when it finally happens?",
+    ],
+    restless: [
+      "What's making it hard to sit still?",
+      "What are you waiting on?",
+      "What would help you settle a little?",
+    ],
+    excited: [
+      "What's coming up that's got you feeling this way?",
+      "Who do you want to share this excitement with?",
+      "What part are you looking forward to most?",
+    ],
+    impatient: [
+      "What do you wish would just hurry up?",
+      "What makes the waiting feel so hard right now?",
+      "What would help make the wait easier?",
+    ],
+    dreading: [
+      "What's the thing you're not looking forward to?",
+      "What's the part that feels hardest about it?",
+      "Is there anything that would make it feel more manageable?",
+    ],
+    // BODY & BEHAVIOR
+    hungry: [
+      "When did you last eat?",
+      "Does it help to talk about this, or do you just need a snack first?",
+      "Have you noticed it's harder to focus or feel calm when you're hungry?",
+    ],
+    sleepy: [
+      "How did you sleep last night?",
+      "What does your body feel like right now?",
+      "Is there anything making it hard to get enough rest lately?",
+    ],
+    distracted: [
+      "What keeps pulling your attention away?",
+      "Is there something on your mind that's hard to put down right now?",
+      "What would help you feel more focused?",
+    ],
+    disobedient: [
+      "What rule or request are you pushing back on?",
+      "What's making it feel important to push back right now?",
+      "What would it look like to get your point across a different way?",
+    ],
+    secretive: [
+      "Is there something you're not ready to share yet?",
+      "What would help it feel safer to talk about, even a little?",
+      "Is there a reason you're keeping this close right now?",
+    ],
+    focused: [
+      "What are you locked in on right now?",
+      "What helps you get into this kind of focus?",
+      "What usually breaks your focus?",
+    ],
+    'worn out': [
+      "What's been taking up so much of your energy lately?",
+      "What would help you recharge?",
+      "When's the last time you felt fully rested?",
+    ],
+    bored: [
+      "What's making time feel like it's dragging?",
+      "What would you rather be doing right now?",
+      "Does this happen a lot, or is today different?",
+    ],
+    embarrassed: [
+      "What happened that made you feel this way?",
+      "Did anyone else notice, or does it feel bigger in your head?",
+      "What would help you feel less embarrassed about it?",
+    ],
+    ashamed: [
+      "What's making you feel bad about yourself right now?",
+      "Is this about something you did, or something about who you are?",
+      "What would it take to feel a little lighter about this?",
+    ],
+    guilt: [
+      "What do you think you did wrong?",
+      "Have you been able to talk to anyone about it?",
+      "What would help make this right?",
+    ],
+    skeptical: [
+      "What's making it hard to believe this?",
+      "What would help convince you?",
+      "Is this about trusting the situation, or trusting a person?",
+    ],
+    apathetic: [
+      "What's making it hard to care about this right now?",
+      "Has there been something that usually matters to you that doesn't right now?",
+      "Is this a new feeling, or has it been building for a while?",
+    ],
+    overwhelmed: [
+      "What's piling up right now?",
+      "If you could put one thing down, what would it be?",
+      "What would help even a little bit right now?",
     ],
   };
 
@@ -80,6 +584,8 @@
     loved:      'Feeling like someone really cares about you — you matter to them.',
     energized:  'Full of energy and ready to go — everything feels possible.',
     free:       'No pressure, no rules holding you back — you can just be yourself.',
+    hyper:      'So much energy it is hard to slow down or sit still.',
+    confident:  'Trusting yourself to handle what is ahead.',
     // TRUST
     safe:        'You know you will not get hurt here — physically or emotionally.',
     comfortable: 'Relaxed and at ease — no need to be on guard.',
@@ -93,6 +599,10 @@
     seen:        'Someone actually noticed you — not just what you do, but who you are.',
     respected:   'People treat your thoughts and feelings like they matter.',
     belonging:   'You feel like you are part of something and you fit there.',
+    calm:        'Settled and steady — nothing feels like it is pulling at you.',
+    strong:      'Capable of handling what is in front of you, inside and out.',
+    friendly:    'Warm and open toward the people around you.',
+    resilient:   'Able to bend without breaking — you keep going even when things are hard.',
     // FEAR
     uneasy:   'A mild, hard-to-name feeling that something is not quite right.',
     shy:      'Unsure around people — you want to pull back a little.',
@@ -106,6 +616,7 @@
     dread:    'A heavy feeling about something bad you think is coming.',
     frozen:   'So overwhelmed that you cannot move or think — stuck.',
     panicked: 'Fear that takes over fast — heart racing, hard to think straight.',
+    'on edge': 'Jumpy and alert — like something could happen any second.',
     // SURPRISE
     curious:     'Something caught your interest and you want to know more.',
     unsure:      'You are not certain what to think or do yet.',
@@ -115,6 +626,8 @@
     disoriented: 'Everything shifted and you are not sure where you stand.',
     shocked:     'Hit by something unexpected — takes a moment to absorb.',
     speechless:  'So surprised or moved that words will not come.',
+    surprised:   'Something happened that you did not expect at all.',
+    awe:         'A feeling so big it stops you in your tracks — wonder mixed with surprise.',
     // SADNESS
     sad:          'A heavy, down feeling — something hurts inside.',
     disappointed: 'You hoped for something, and it did not happen.',
@@ -127,7 +640,9 @@
     unwanted:     'Feeling like no one really wants you around.',
     empty:        'Hollow inside — like feelings have gone quiet but not in a good way.',
     heartbroken:  'A sharp, painful sadness — like something inside you broke.',
-    grieving:     'Deep sadness after losing something or someone that mattered.',
+    grief:        'Deep sadness after losing something or someone that mattered.',
+    invisible:    'Like no one notices you are even there.',
+    jealous:      'Wanting something someone else has — attention, a thing, or a relationship.',
     // DISGUST
     uncomfortable: 'Something feels off or wrong — you want to move away from it.',
     bothered:      'Something keeps getting on your nerves — it just does not sit right.',
@@ -145,6 +660,7 @@
     betrayed:     'Someone you trusted let you down in a way that really hurt.',
     furious:      'Very strong anger — hard to think straight through it.',
     enraged:      'Anger that has reached its peak — explosive and almost impossible to hold in.',
+    angry:        'A strong feeling that something is wrong or unfair.',
     // ANTICIPATION
     ready:     'Prepared and set — whatever comes, you can meet it.',
     waiting:   'In between — something is coming and you are holding on until it does.',
@@ -154,6 +670,21 @@
     excited:   'Energized and happy about something coming or happening.',
     impatient: 'The waiting feels too long — you want it to happen now.',
     dreading:  'A heavy feeling about something you really do not want to face.',
+    // BODY & BEHAVIOR
+    hungry:      'Your body is asking for food — it can be hard to focus or feel calm without it.',
+    sleepy:      'Your body needs rest — everything feels harder when you are tired.',
+    distracted:  'Your attention keeps pulling away from what you are trying to focus on.',
+    disobedient: 'Pushing back against rules or what someone asked you to do.',
+    secretive:   'Holding something back — not ready or willing to share it yet.',
+    focused:     'Locked in on one thing, with everything else fading into the background.',
+    'worn out':  'Used up — physically or emotionally, like you have nothing left to give right now.',
+    bored:       'Nothing feels interesting — like time is moving slowly and you want something to do.',
+    embarrassed: 'Feeling exposed or silly in front of others — wishing you could disappear for a second.',
+    ashamed:     'Feeling bad about who you are or something you did, deep down.',
+    guilt:       'Feeling bad because you think you did something wrong.',
+    skeptical:   'Not fully convinced — you want more proof before you believe it.',
+    apathetic:   'Not really caring either way — hard to feel motivated about anything right now.',
+    overwhelmed: 'Too much at once — feelings, tasks, or pressure beyond what you can hold.',
   };
 
   const FAMILY_COLORS = {
@@ -165,6 +696,7 @@
     disgust:      '#A3A84B',
     anger:        '#D95F6A',
     anticipation: '#E8A030',
+    body:         '#8E9196',
   };
 
   const FAMILY_DARK = {
@@ -176,6 +708,7 @@
     disgust:      '#4A4C10',
     anger:        '#7A1520',
     anticipation: '#7A4A00',
+    body:         '#4A4D50',
   };
 
   /* ── STATE ── */
@@ -826,7 +1359,7 @@
     currentLanded = data;
     var color  = FAMILY_COLORS[data.family] || '#999';
     var dark   = FAMILY_DARK[data.family]   || '#333';
-    var prompts = PROMPTS[data.family]       || [];
+    var prompts = PROMPTS[data.word]       || [];
 
     el.landedSwatch.style.background = color + '33';
     el.landedSwatch.style.border     = '2px solid ' + color;
@@ -1092,7 +1625,8 @@
   function getFamilySymbol(family) {
     var symbols = {
       joy: '☀', trust: '🤝', fear: '🌀', surprise: '…',
-      sadness: '🧊', disgust: '🌿', anger: '🔥', anticipation: '→'
+      sadness: '🧊', disgust: '🌿', anger: '🔥', anticipation: '→',
+      body: '🪽'
     };
     return symbols[family] || '●';
   }
