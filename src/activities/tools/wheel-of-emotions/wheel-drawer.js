@@ -1400,8 +1400,10 @@
     if (engine) {
       engine.sendControl('mark_discussed', { word: currentLanded.word, note: note });
     }
-    // Also call directly if same-tab demo
-    if (global.markDiscussed) global.markDiscussed(note);
+    // Also call directly if same-tab demo — but not when a shared in-page
+    // transport is in use: the control round-trip above already reaches
+    // this page, and calling twice would log the spin twice.
+    if (!opts.transport && global.markDiscussed) global.markDiscussed(note);
 
     // Log it
     var entry = {
@@ -1546,7 +1548,9 @@
 
     reset();
     el.clientName.textContent = opts.client || 'Client';
-    el.handle.classList.add('wd-avail');
+    // Single-device: the client holds the screen, so no visible "Session"
+    // handle — the long-press TherapistOverlay handle reopens the drawer.
+    if (!opts.singleDevice) el.handle.classList.add('wd-avail');
 
     // Capture Supabase client for DB save
     if (opts.supabase) sbClient = opts.supabase;
@@ -1557,6 +1561,7 @@
       if (engine) { try { engine.close(); } catch(err) {} engine = null; }
       var joinOpts = { role: 'therapist', code: opts.code || E.newCode() };
       if (opts.supabase) joinOpts.supabase = opts.supabase;
+      if (opts.transport) joinOpts.transport = opts.transport;  // single-device LocalTransport
       engine = E.join(joinOpts);
       engine.onEvent(onEngineEvent);
       engine.onPresence(function () { if (!connected) setConnected(); });
@@ -1565,18 +1570,26 @@
 
     // Create the DB row immediately so we have an ID to update
     if (sbClient && opts.code) {
+      var row = {
+        session_code: opts.code,
+        word_pool:    [],       // filled in once client starts
+        spins:        [],
+        started_at:   new Date().toISOString(),
+        session_mode: opts.singleDevice ? 'single' : 'dual',
+      };
       sbClient.from('wheel_sessions')
-        .insert({
-          session_code: opts.code,
-          word_pool:    [],       // filled in once client starts
-          spins:        [],
-          started_at:   new Date().toISOString(),
-        })
+        .insert(row)
         .select('id')
         .single()
         .then(function(res) {
-          if (res.data) dbRowId = res.data.id;
-          // Silently ignore RLS/table-missing errors — session data saves to session_responses instead
+          if (res.data) { dbRowId = res.data.id; return; }
+          // session_mode column may not be migrated yet (db/add-session-mode.sql) — retry without it
+          if (res.error && /session_mode/.test(res.error.message || '')) {
+            delete row.session_mode;
+            sbClient.from('wheel_sessions').insert(row).select('id').single()
+              .then(function(res2) { if (res2.data) dbRowId = res2.data.id; });
+          }
+          // Otherwise silently ignore RLS/table-missing errors — session data saves to session_responses instead
         });
     }
 

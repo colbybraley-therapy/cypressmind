@@ -340,6 +340,12 @@
     }
     .section-action:hover { background: #dceadc; }
     .section-action svg { flex-shrink: 0; }
+    .one-device-toggle {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 11px; font-weight: 500; color: var(--hunter-green);
+      cursor: pointer; user-select: none;
+    }
+    .one-device-toggle input { accent-color: var(--hunter-green); cursor: pointer; }
 
     /* ── Activity Cards ── */
     .activity-item {
@@ -972,6 +978,10 @@
         <div id="tab-activities" class="tab-panel">
           <div class="section-head">
             <span class="section-head-title">Assigned Activities</span>
+            <label class="one-device-toggle" title="Sharing this iPad with your client? Launches open on this device, with therapist controls behind a long-press in the corner.">
+              <input type="checkbox" id="single-device-toggle">
+              One device today
+            </label>
           </div>
 
           <!-- Progress Chart -->
@@ -2268,55 +2278,90 @@
     e.stopPropagation();
     const clientSnapshot = currentClient;
     const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+    if (document.getElementById('single-device-toggle')?.checked) {
+      launchWheelSingleDevice(clientSnapshot, code);
+      return;
+    }
+
     WheelDrawer.launch({
       client:   clientSnapshot ? clientSnapshot.name : 'Client',
       supabase: db,
       code,
     });
-    WheelDrawer.onSave(async function(summary) {
-      if (clientSnapshot && summary?.spins?.length) {
-        // session_responses RLS requires a valid session_id — create the record first
-        const { data: session, error: sessErr } = await db.from('sessions').insert({
-          client_id:    clientSnapshot.id,
-          therapist_id: currentUser?.id,
-          code,
-          status:       'completed',
-          activity_type: 'emotions',
-        }).select('id').single();
-        if (sessErr) {
-          console.error('[WheelOfEmotions] sessions insert failed:', sessErr);
-        } else {
-          // session_responses RLS blocks authenticated inserts; use anon bearer (same pattern as adventure/index.html)
-          const res = await fetch(`${SUPABASE_URL}/rest/v1/session_responses`, {
-            method: 'POST',
-            headers: {
-              'apikey':        SUPABASE_KEY,
-              'Authorization': `Bearer ${SUPABASE_KEY}`,
-              'Content-Type':  'application/json',
-              'Prefer':        'return=minimal',
-            },
-            body: JSON.stringify({
-              client_id:     clientSnapshot.id,
-              session_id:    session.id,
-              activity_type: 'emotions',
-              step_index:    0,
-              response_data: {
-                emotions_visited:         summary.emotions_visited,
-                spins:                    summary.spins,
-                session_duration_seconds: summary.session_duration_seconds,
-                closed_at:                summary.closed_at,
-              },
-            }),
-          });
-          if (!res.ok) console.error('[WheelOfEmotions] session_responses insert failed:', await res.text());
-        }
-      }
-      loadActivities();
-      loadClientStats();
-      if (document.getElementById('tab-responses')?.style.display !== 'none') loadResponses();
-    });
+    WheelDrawer.onSave(summary => saveWheelSummary(clientSnapshot, code, summary, 'dual'));
     if (WheelDrawer.onEnd) WheelDrawer.onEnd(() => broadcastSessionEnded());
     broadcastToClientPortal('emotions', code, null);
+  }
+
+  /* One shared device: the activity page hosts both roles over a LocalTransport
+     and exposes the therapist drawer via a long-press corner handle. This tab
+     stays open and does the client-record save when the summary comes back. */
+  function launchWheelSingleDevice(clientSnapshot, code) {
+    const url = 'src/activities/tools/wheel-of-emotions/index.html'
+      + '?session=' + encodeURIComponent(code)
+      + '&supabase=1&mode=single'
+      + '&client=' + encodeURIComponent(clientSnapshot ? clientSnapshot.name : 'Client');
+
+    // The activity tab relays the saved summary back over a same-browser
+    // channel so the save runs here with the therapist's authenticated session.
+    const relay = new BroadcastChannel('cypress-single-save:' + code);
+    relay.onmessage = function (msg) {
+      relay.close();
+      saveWheelSummary(clientSnapshot, code, msg.data, 'single');
+    };
+
+    window.open(url, '_blank');
+  }
+
+  async function saveWheelSummary(clientSnapshot, code, summary, mode) {
+    if (clientSnapshot && summary?.spins?.length) {
+      // session_responses RLS requires a valid session_id — create the record first
+      const sessionRow = {
+        client_id:    clientSnapshot.id,
+        therapist_id: currentUser?.id,
+        code,
+        status:       'completed',
+        activity_type: 'emotions',
+        session_mode: mode || 'dual',
+      };
+      let { data: session, error: sessErr } = await db.from('sessions').insert(sessionRow).select('id').single();
+      if (sessErr && /session_mode/.test(sessErr.message || '')) {
+        // Column not migrated yet (db/add-session-mode.sql) — save without it
+        delete sessionRow.session_mode;
+        ({ data: session, error: sessErr } = await db.from('sessions').insert(sessionRow).select('id').single());
+      }
+      if (sessErr) {
+        console.error('[WheelOfEmotions] sessions insert failed:', sessErr);
+      } else {
+        // session_responses RLS blocks authenticated inserts; use anon bearer (same pattern as adventure/index.html)
+        const res = await fetch(`${SUPABASE_URL}/rest/v1/session_responses`, {
+          method: 'POST',
+          headers: {
+            'apikey':        SUPABASE_KEY,
+            'Authorization': `Bearer ${SUPABASE_KEY}`,
+            'Content-Type':  'application/json',
+            'Prefer':        'return=minimal',
+          },
+          body: JSON.stringify({
+            client_id:     clientSnapshot.id,
+            session_id:    session.id,
+            activity_type: 'emotions',
+            step_index:    0,
+            response_data: {
+              emotions_visited:         summary.emotions_visited,
+              spins:                    summary.spins,
+              session_duration_seconds: summary.session_duration_seconds,
+              closed_at:                summary.closed_at,
+            },
+          }),
+        });
+        if (!res.ok) console.error('[WheelOfEmotions] session_responses insert failed:', await res.text());
+      }
+    }
+    loadActivities();
+    loadClientStats();
+    if (document.getElementById('tab-responses')?.style.display !== 'none') loadResponses();
   }
 
   async function launchWillowmere(actId, e) {

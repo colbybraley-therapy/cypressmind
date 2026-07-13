@@ -254,5 +254,13 @@
     summarize: summarize,
     ROOM_META: ROOM_META,
     FEELING_LABEL: FEELING_LABEL,
+    // Exposed for session-mode.js's getTransport() factory; join(opts) still
+    // picks one automatically when opts.transport isn't given.
+    transports: {
+      BroadcastChannel: BroadcastChannelTransport,
+      Supabase: SupabaseTransport,
+      Null: NullTransport,
+      pick: pickTransport,
+    },
   };
 })(typeof window !== 'undefined' ? window : this);

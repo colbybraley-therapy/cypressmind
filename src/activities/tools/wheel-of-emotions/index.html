@@ -504,6 +504,11 @@
 })();
 </script>
 <script src="../../_shared/cypress-session-engine.js"></script>
+<script src="../../_shared/local-transport.js"></script>
+<script src="../../_shared/session-mode.js"></script>
+<script src="../../_shared/therapist-overlay.js"></script>
+<!-- Therapist drawer, used in single-device mode (?mode=single) where both roles share this page -->
+<script src="wheel-drawer.js"></script>
 
 <script>
 /* ───────────────────────────────────────────────────────────────
@@ -1093,9 +1098,11 @@ window.addEventListener('resize', () => {
 
 /* ───────────────────────────────────────────────────────────────
    SUPABASE REALTIME WIRING
-   Reads ?session=CODE and ?supabase=1 from URL.
+   Reads ?session=CODE, ?supabase=1 and ?mode=single from URL.
    Without ?supabase=1, uses BroadcastChannel (same-browser tabs).
    With    ?supabase=1, uses SupabaseTransport (cross-device).
+   With    ?mode=single, both roles run on THIS page over a
+           LocalTransport; therapist drawer opens via long-press.
 ─────────────────────────────────────────────────────────────── */
 const SUPABASE_URL  = 'https://vfpxovpwwabisfjjqkpm.supabase.co';
 const SUPABASE_KEY  = 'sb_publishable_-cIPFr0xt1CfC8fwh0e_ew_Q6LIbcX5';
@@ -1103,6 +1110,9 @@ const SUPABASE_KEY  = 'sb_publishable_-cIPFr0xt1CfC8fwh0e_ew_Q6LIbcX5';
 const _params      = new URLSearchParams(window.location.search);
 const SESSION_CODE = _params.get('session');
 const USE_SUPABASE = _params.get('supabase') === '1';
+const SESSION_MODE = window.CypressSessionMode
+  ? CypressSessionMode.fromUrl()
+  : 'dual';
 
 let _engine = null;
 
@@ -1113,8 +1123,19 @@ function initEngine() {
   if (!E) { console.warn('[WheelClient] cypress-session-engine.js not loaded'); return; }
 
   function doInit() {
-    const joinOpts = { role: 'client', code: SESSION_CODE };
-    if (window.CYPRESS_SUPABASE) joinOpts.supabase = window.CYPRESS_SUPABASE;
+    const transport = CypressSessionMode.getTransport({
+      mode:     SESSION_MODE,
+      code:     SESSION_CODE,
+      supabase: window.CYPRESS_SUPABASE || null,
+    });
+
+    // Single device: the therapist drawer shares this page and this
+    // transport. Launch it before the client joins so it hears 'hello'.
+    if (SESSION_MODE === CypressSessionMode.MODES.SINGLE) {
+      initSingleDeviceTherapist(transport);
+    }
+
+    const joinOpts = { role: 'client', code: SESSION_CODE, transport };
 
     _engine = E.join(joinOpts);
     _engine.start(); // sends 'hello' → therapist onPresence fires → setConnected()
@@ -1149,6 +1170,39 @@ function initEngine() {
   } else {
     doInit();
   }
+}
+
+/* Single-device mode: run the therapist drawer on this page, hidden behind
+   a long-press corner handle so the client doesn't stumble into it. */
+function initSingleDeviceTherapist(transport) {
+  if (!window.WheelDrawer || !window.TherapistOverlay) {
+    console.warn('[WheelClient] single-device modules not loaded');
+    return;
+  }
+
+  WheelDrawer.launch({
+    client:       _params.get('client') || 'Client',
+    code:         SESSION_CODE,
+    transport:    transport,
+    singleDevice: true,
+    supabase:     window.CYPRESS_SUPABASE || null,
+  });
+  WheelDrawer.close();  // launch() opens the drawer — stay hidden until long-press
+
+  // Relay the saved summary to the therapist-dashboard tab (same browser),
+  // which runs the authenticated client-record save exactly as in dual mode.
+  WheelDrawer.onSave(function (summary) {
+    try {
+      const relay = new BroadcastChannel('cypress-single-save:' + SESSION_CODE);
+      relay.postMessage(summary);
+      relay.close();
+    } catch (e) { console.warn('[WheelClient] summary relay failed:', e); }
+  });
+
+  TherapistOverlay({
+    position: 'bottom-left',   // the dev badge owns bottom-right
+    onReveal: function () { WheelDrawer.open(); },
+  }).mount();
 }
 
 function broadcastLanded(word, family, intensity) {
