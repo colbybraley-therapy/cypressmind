@@ -1598,6 +1598,7 @@
     custom:                { icon:'✏️', label:'Custom Activity',         color:'slate'  },
     willowmere_boundaries: { icon:'🌲', label:'Willowmere · Boundaries',  color:'green'  },
     character_builder:     { icon:'⚔️', label:'Character Builder',        color:'purple' },
+    finn_spark_spotting:   { icon:'🔥', label:'Finn · Spark Spotting',    color:'amber'  },
   };
 
   async function openClient(id) {
@@ -1804,6 +1805,9 @@
           : !a.done ? (
             a.activity_type === 'willowmere_boundaries'
               ? `<button onclick="launchWillowmere('${a.id}', event)" style="margin-left:4px;background:var(--hunter-green);color:#fff;border:none;border-radius:4px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:var(--sans);">▶ Launch</button>`
+              : a.activity_type === 'finn_spark_spotting'
+              ? `<button onclick="launchFinnSparkSpotting('${a.id}', event)" style="margin-left:4px;background:var(--hunter-green);color:#fff;border:none;border-radius:4px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:var(--sans);">▶ Launch</button>
+                 <button onclick="toggleDone('${a.id}', event)" style="margin-left:4px;background:none;border:0.5px solid var(--border);border-radius:4px;padding:4px 8px;font-size:11px;cursor:pointer;color:var(--slate-light);">Mark done</button>`
               : a.activity_type === 'character_builder'
               ? `<button onclick="launchCharacterBuilder('${a.id}', event)" style="margin-left:4px;background:#7C6FE0;color:#fff;border:none;border-radius:4px;padding:4px 10px;font-size:11px;cursor:pointer;font-family:var(--sans);">▶ Launch</button>`
               : a.activity_type === 'journal'
@@ -1839,6 +1843,7 @@
     { type:'custom',                icon:'✏️', label:'Custom Activity',            sub:'Add your own activity' },
     { type:'willowmere_boundaries', icon:'🌲', label:'Willowmere · Boundaries',    sub:'Boundary-setting adventure in a story world' },
     { type:'character_builder',     icon:'⚔️', label:'Character Builder',           sub:'Build a hero identity in the adventure app' },
+    { type:'finn_spark_spotting',   icon:'🔥', label:'Finn · Spark Spotting',       sub:'Spot what lit the fuse — Finn anger story, Ch. 1' },
   ];
 
   /* ─────────────────────────────────────────
@@ -2362,6 +2367,30 @@
     loadActivities();
     loadClientStats();
     if (document.getElementById('tab-responses')?.style.display !== 'none') loadResponses();
+  }
+
+  /* Ch. 1 has no live therapist drawer yet (Phase 3/4). The session row must
+     exist before launch — the activity resolves the client through it for the
+     heat-carryover opener. Opens locally for hand-the-device-over sessions and
+     broadcasts to the client portal for two-device ones. */
+  async function launchFinnSparkSpotting(actId, e) {
+    e.stopPropagation();
+    if (!currentClient) return;
+    const code = Math.random().toString(36).substring(2, 8).toUpperCase();
+
+    const { data: session, error } = await db.from('sessions').insert({
+      client_id:     currentClient.id,
+      therapist_id:  currentUser?.id,
+      code,
+      status:        'active',
+      activity_type: 'finn_spark_spotting',
+    }).select('id').single();
+
+    if (error) { console.error('[SparkSpotting] session insert failed:', error); return; }
+
+    broadcastToClientPortal('finn_spark_spotting', code, session.id);
+    window.open('src/activities/adventures/finn-spark-spotting.html?session=' + encodeURIComponent(session.id), '_blank');
+    loadSessionHistory();
   }
 
   async function launchWillowmere(actId, e) {
