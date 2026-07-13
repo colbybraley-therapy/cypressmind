@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Spark Spotting — Cypress Mind</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&family=Crimson+Pro:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --paper:#F8FAF9;
+  --deep:#1d2a17;
+  --ink-green:#26331f;
+  --purple:#6B3FA0;
+  --blue:#4169E1;
+  --green:#355E3B;
+  --muted:#6f7a68;
+}
+html,body{height:100%}
+body{background:#1c130b;font-family:'DM Sans',system-ui,sans-serif;-webkit-font-smoothing:antialiased;color:var(--paper)}
+
+@keyframes cm-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes cm-rise{0%{transform:translateY(22px)}100%{transform:translateY(0)}}
+@keyframes cm-rise-bub{0%{transform:translateY(14px) scale(.97)}100%{transform:translateY(0) scale(1)}}
+@keyframes cm-pulse{0%,100%{box-shadow:0 0 0 0 rgba(255,255,255,0)}50%{box-shadow:0 0 0 7px rgba(255,255,255,.10)}}
+@keyframes cm-breathe{0%,100%{transform:scale(1)}50%{transform:scale(1.018)}}
+@keyframes cm-spark{0%,100%{opacity:.5;transform:scale(.9)}50%{opacity:1;transform:scale(1.15)}}
+
+#root{position:fixed;inset:0;overflow:hidden;background:#1c130b}
+
+/* ── PERSISTENT PAINTERLY SCENE ── */
+#bg{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:center}
+.wash{position:absolute;inset:0;pointer-events:none}
+#wash-gold{background:linear-gradient(180deg,rgba(255,212,140,.30) 0%,rgba(255,180,95,.08) 30%,rgba(60,38,20,.30) 72%,rgba(28,17,8,.72) 100%)}
+#wash-sun{background:radial-gradient(120% 80% at 82% 6%,rgba(255,226,160,.55) 0%,rgba(255,226,160,0) 46%)}
+#wash-vignette{background:radial-gradient(125% 100% at 50% 42%,rgba(0,0,0,0) 52%,rgba(20,12,6,.55) 100%)}
+#calm-wash{transition:opacity .7s ease;opacity:0;background:linear-gradient(180deg,rgba(53,94,59,.78) 0%,rgba(34,52,41,.92) 100%)}
+
+/* ── FINN ── */
+#finn{display:none;position:absolute;left:1.5%;bottom:0;height:80%;width:clamp(180px,26vw,330px);z-index:6;animation:cm-rise .6s ease forwards}
+#finn img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;object-position:bottom;filter:drop-shadow(0 18px 30px rgba(20,12,6,.5))}
+#finn-ground{position:absolute;left:50%;bottom:-2px;transform:translateX(-50%);width:78%;height:34px;background:radial-gradient(50% 100% at 50% 0,rgba(15,9,4,.55),transparent 70%)}
+
+/* ── TOP BAR ── */
+#top-bar{display:none;position:absolute;top:0;left:0;right:0;z-index:14;align-items:center;justify-content:space-between;padding:22px 30px;background:linear-gradient(180deg,rgba(20,12,6,.55),transparent)}
+#brand{font-family:'Playfair Display',serif;font-weight:600;letter-spacing:.32em;font-size:14px;text-transform:uppercase;color:var(--paper)}
+#brand-sub{font-size:11px;letter-spacing:.18em;text-transform:uppercase;color:rgba(248,250,249,.62);margin-top:3px}
+#progress-row{display:flex;align-items:center;gap:9px}
+.pbar{width:26px;height:4px;border-radius:3px;transition:all .4s ease;background:rgba(248,250,249,.28)}
+
+/* ── SPEECH BUBBLE ── */
+#bubble-wrap{display:none;position:absolute;left:clamp(220px,27vw,360px);top:15%;z-index:9;max-width:min(440px,52vw);animation:cm-rise-bub .55s ease forwards}
+#bubble{position:relative;background:var(--paper);color:var(--ink-green);border-radius:20px;padding:22px 26px 24px;box-shadow:0 20px 44px rgba(20,12,6,.42);animation:cm-float 5.5s ease-in-out infinite}
+#bubble-tag{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--purple);font-weight:700;margin-bottom:8px;display:flex;align-items:center;gap:7px}
+#bubble-tag::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--purple);display:inline-block}
+#bubble-text{font-family:'Crimson Pro',Georgia,serif;font-size:clamp(20px,2.5vw,27px);line-height:1.34;font-weight:500;color:var(--ink-green)}
+#bubble-text em{font-style:italic}
+#bubble-tail{position:absolute;left:-13px;top:46px;width:26px;height:26px;background:var(--paper);transform:rotate(45deg);border-radius:5px}
+
+/* ── BOTTOM PROMPT PANELS (heat + story) ── */
+/* centered via auto margins — the cm-rise transform would clobber a translateX(-50%) */
+.prompt-panel{display:none;position:absolute;left:0;right:0;bottom:30px;margin-inline:auto;z-index:16;width:min(560px,92%);text-align:center;animation:cm-rise .5s ease forwards}
+.prompt-panel p{font-size:14px;color:rgba(248,250,249,.78);margin-bottom:16px;line-height:1.5}
+.prompt-panel p em{color:var(--paper);font-style:normal;font-weight:600}
+.btn-blue{font-family:'DM Sans';font-weight:600;font-size:16px;letter-spacing:.01em;color:#fff;background:var(--blue);border:none;border-radius:999px;padding:15px 34px;cursor:pointer;box-shadow:0 12px 30px rgba(65,105,225,.42);display:inline-flex;align-items:center;gap:10px;transition:transform .15s ease,box-shadow .15s ease}
+.btn-blue:hover{transform:translateY(-2px);box-shadow:0 16px 36px rgba(65,105,225,.55)}
+.btn-blue .star{font-size:17px}
+
+/* ── SPARK PANEL ── */
+#spark-panel{display:none;position:absolute;left:0;right:0;bottom:26px;margin-inline:auto;z-index:16;width:min(640px,94%);background:rgba(248,250,249,.97);backdrop-filter:blur(6px);border-radius:24px;padding:24px 26px 26px;box-shadow:0 24px 60px rgba(20,12,6,.5);animation:cm-rise .45s ease forwards}
+#spark-panel h2{font-family:'Playfair Display',serif;font-weight:600;font-size:23px;color:var(--deep);margin-bottom:4px}
+#spark-panel .sub{font-size:13px;color:var(--muted);margin-bottom:18px}
+#spark-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.spark-opt{position:relative;text-align:left;font-family:'DM Sans';font-size:15px;font-weight:500;color:var(--ink-green);background:#fff;border:1.5px solid #e3e7df;border-radius:14px;padding:15px 16px 15px 17px;cursor:pointer;transition:border-color .16s ease,transform .12s ease,box-shadow .16s ease;overflow:hidden}
+.spark-opt:hover{border-color:var(--blue);transform:translateY(-2px);box-shadow:0 8px 20px rgba(65,105,225,.16)}
+.spark-bar{position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--blue);transform:scaleX(0);transform-origin:left;transition:transform .2s ease}
+.spark-opt.selected .spark-bar{transform:scaleX(1)}
+.spark-row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.spark-check{display:none;flex:none;width:20px;height:20px;border-radius:50%;background:var(--blue);color:#fff;align-items:center;justify-content:center;font-size:12px}
+.spark-opt.selected .spark-check{display:flex}
+#spark-next-row{display:none;justify-content:flex-end;margin-top:18px}
+.btn-green{font-family:'DM Sans';font-weight:600;font-size:15px;color:#fff;background:var(--green);border:none;border-radius:999px;padding:13px 28px;cursor:pointer;box-shadow:0 10px 26px rgba(53,94,59,.4);transition:transform .15s ease}
+.btn-green:hover{transform:translateY(-2px)}
+
+/* ── BODY MODAL ── */
+#body-modal{display:none;position:absolute;inset:0;z-index:20;background:rgba(18,11,5,.6);backdrop-filter:blur(3px);align-items:center;justify-content:center;padding:24px;animation:cm-rise .35s ease forwards}
+#body-card{width:min(440px,94%);background:rgba(248,250,249,.98);border-radius:26px;padding:26px 28px 28px;box-shadow:0 30px 70px rgba(20,12,6,.6);text-align:center}
+#body-card .eyebrow{font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--purple);font-weight:700;margin-bottom:6px}
+#body-card h2{font-family:'Playfair Display',serif;font-weight:600;font-size:24px;color:var(--deep);line-height:1.2}
+#body-card .sub{font-size:13px;color:var(--muted);margin:8px 0 18px}
+#body-figure{position:relative;width:204px;height:410px;margin:0 auto}
+#body-figure-ground{position:absolute;left:50%;bottom:14px;transform:translateX(-50%);width:74%;height:26px;border-radius:50%;background:radial-gradient(50% 100% at 50% 50%,rgba(53,94,59,.22),transparent 72%)}
+#body-figure img{position:relative;display:block;width:100%;height:100%;object-fit:contain;z-index:1}
+#body-confirm{display:none;margin-top:14px;animation:cm-rise-bub .4s ease forwards}
+#body-confirm-text{font-family:'Crimson Pro',serif;font-style:italic;font-size:18px;color:var(--green)}
+#body-continue{margin-top:14px;padding:13px 30px}
+
+/* ── BODY / REFLECTION DOTS ── */
+.dot-wrap{position:absolute;transform:translate(-50%,-50%);cursor:pointer;z-index:5}
+.dot{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;animation:cm-pulse 2.6s ease-in-out infinite;transition:background .18s ease,transform .15s ease}
+.dot-check{display:none;color:#fff;font-size:15px}
+.dot-wrap.selected .dot-check{display:block}
+.dot-label{position:absolute;top:50%;transform:translateY(-50%);white-space:nowrap;font-family:'DM Sans';font-size:13px;font-weight:600;letter-spacing:.04em;pointer-events:none}
+.dot-label.side-left{right:44px;text-align:right}
+.dot-label.side-right{left:44px;text-align:left}
+
+.finn-dots .dot{border:2.5px solid rgba(255,255,255,.92);background:rgba(255,255,255,.18)}
+.finn-dots .dot-wrap:hover .dot{transform:scale(1.16);background:rgba(255,255,255,.4)}
+.finn-dots .dot-wrap.selected .dot{background:var(--purple)}
+.finn-dots .dot-label{background:rgba(248,250,249,.92);padding:3px 9px;border-radius:7px;box-shadow:0 2px 8px rgba(20,12,6,.28);color:var(--green)}
+.finn-dots .dot-wrap.selected .dot-label{color:var(--purple)}
+
+.reflect-dots .dot{border:2.5px solid rgba(53,94,59,.95);background:rgba(248,250,249,.20)}
+.reflect-dots .dot-wrap:hover .dot{transform:scale(1.16);background:rgba(53,94,59,.45)}
+.reflect-dots .dot-wrap.selected .dot{background:var(--green)}
+.reflect-dots .dot-label{color:rgba(248,250,249,.78)}
+.reflect-dots .dot-wrap.selected .dot-label{color:var(--paper)}
+
+/* ── START SCREEN ── */
+#start-screen{display:none;position:absolute;inset:0;z-index:30;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px;background:radial-gradient(120% 90% at 50% 40%,rgba(20,12,6,.32),rgba(18,11,5,.7))}
+#start-screen .eyebrow{font-size:12px;letter-spacing:.42em;text-transform:uppercase;color:rgba(248,250,249,.7);margin-bottom:18px;animation:cm-rise .6s ease forwards}
+#start-screen h1{font-family:'Playfair Display',serif;font-weight:600;font-size:clamp(44px,8vw,84px);line-height:1;letter-spacing:-.01em;color:var(--paper);text-shadow:0 4px 30px rgba(20,12,6,.6);animation:cm-rise .7s ease forwards}
+#start-screen p{max-width:460px;margin:20px 0 32px;font-size:16px;line-height:1.6;color:rgba(248,250,249,.84);animation:cm-rise .8s ease forwards}
+#start-screen p em{font-family:'Crimson Pro',serif;font-style:italic;color:#fff}
+.btn-light{font-family:'DM Sans';font-weight:600;font-size:17px;color:var(--deep);background:var(--paper);border:none;border-radius:999px;padding:16px 40px;cursor:pointer;box-shadow:0 16px 40px rgba(0,0,0,.4);transition:transform .15s ease}
+.btn-light:hover{transform:translateY(-3px)}
+#begin-btn{animation:cm-rise .9s ease forwards}
+
+/* ── REFLECTION ── */
+#reflection{display:none;position:absolute;inset:0;z-index:30;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px;animation:cm-rise .5s ease forwards}
+#reflection .eyebrow{font-size:11px;letter-spacing:.32em;text-transform:uppercase;color:rgba(248,250,249,.66);margin-bottom:10px}
+#reflection h1{font-family:'Playfair Display',serif;font-weight:600;font-size:clamp(30px,5vw,46px);line-height:1.1;color:var(--paper);max-width:640px}
+#reflection h1 em{font-style:italic}
+#reflection .sub{font-size:14px;color:rgba(248,250,249,.78);margin:12px 0 6px}
+#reflect-figure{position:relative;width:210px;height:366px;margin:8px auto 0;animation:cm-breathe 6s ease-in-out infinite}
+#reflect-figure svg{display:block}
+#reflect-actions{display:flex;gap:14px;align-items:center;margin-top:22px}
+.btn-ghost{font-family:'DM Sans';font-weight:600;font-size:15px;color:var(--paper);background:transparent;border:1.5px solid rgba(248,250,249,.45);border-radius:999px;padding:13px 26px;cursor:pointer;transition:border-color .15s ease}
+.btn-ghost:hover{border-color:var(--paper)}
+#reflect-finish{display:none;font-size:15px;padding:13px 30px;box-shadow:0 10px 28px rgba(0,0,0,.3)}
+#reflect-finish:hover{transform:translateY(-2px)}
+
+/* ── DONE ── */
+#done-screen{display:none;position:absolute;inset:0;z-index:30;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px;animation:cm-rise .5s ease forwards}
+#done-screen .star{font-size:30px;color:var(--paper);margin-bottom:14px;animation:cm-spark 2.4s ease-in-out infinite}
+#done-screen h1{font-family:'Playfair Display',serif;font-weight:600;font-size:clamp(30px,5vw,46px);line-height:1.12;color:var(--paper);max-width:600px}
+#done-screen p{max-width:480px;margin:18px 0 30px;font-size:16px;line-height:1.6;color:rgba(248,250,249,.84)}
+#restart-btn{font-size:16px;padding:15px 36px;box-shadow:0 14px 36px rgba(0,0,0,.35)}
+</style>
+</head>
+<body>
+<div id="root">
+
+  <!-- PERSISTENT PAINTERLY SCENE -->
+  <img id="bg" src="../../assets/landscapes/Willowmere/The Back Alley.png" alt="">
+  <div class="wash" id="wash-gold"></div>
+  <div class="wash" id="wash-sun"></div>
+  <div class="wash" id="wash-vignette"></div>
+  <div class="wash" id="calm-wash"></div>
+
+  <!-- FINN -->
+  <div id="finn">
+    <img src="../../assets/portraits/Finn Alley.webp" alt="Finn">
+    <div id="finn-ground"></div>
+  </div>
+
+  <!-- TOP BAR -->
+  <div id="top-bar">
+    <div>
+      <div id="brand">Cypress&nbsp;Mind</div>
+      <div id="brand-sub">Willowmere · the back alley</div>
+    </div>
+    <div id="progress-row"></div>
+  </div>
+
+  <!-- SPEECH BUBBLE -->
+  <div id="bubble-wrap">
+    <div id="bubble">
+      <div id="bubble-tag"><span id="bubble-tag-text">Finn</span></div>
+      <p id="bubble-text"></p>
+      <div id="bubble-tail"></div>
+    </div>
+  </div>
+
+  <!-- HEAT PANEL — carryover opener, shows once before beat 1 -->
+  <div class="prompt-panel" id="heat-panel">
+    <p>Something's been building all day — you can see it on him.</p>
+    <button class="btn-blue" onclick="heatContinue()">So what happened? →</button>
+  </div>
+
+  <!-- STORY PANEL — prompt to tag -->
+  <div class="prompt-panel" id="story-panel">
+    <p>Finn just told you what happened. Somewhere in there, something <em>lit the fuse.</em></p>
+    <button class="btn-blue" onclick="tagSpark()"><span class="star">✦</span> Tag the spark</button>
+  </div>
+
+  <!-- SPARK PANEL — pick the trigger moment -->
+  <div id="spark-panel">
+    <h2>Which moment was the real spark?</h2>
+    <p class="sub">Tap the one that pulled the trigger for him. There's no wrong answer.</p>
+    <div id="spark-grid"></div>
+    <div id="spark-next-row">
+      <button class="btn-green" onclick="toBody()">Now — where did he feel it? →</button>
+    </div>
+  </div>
+
+  <!-- BODY MODAL — tap the silhouette -->
+  <div id="body-modal">
+    <div id="body-card">
+      <div class="eyebrow">The body keeps the score</div>
+      <h2>Where did Finn feel it first?</h2>
+      <p class="sub">Tap the spot it landed in his body.</p>
+      <div id="body-figure" class="finn-dots">
+        <div id="body-figure-ground"></div>
+        <img src="../../assets/portraits/Finn Alley.webp" alt="Finn">
+        <div id="body-dots"></div>
+      </div>
+      <div id="body-confirm">
+        <p id="body-confirm-text"></p>
+        <button class="btn-green" id="body-continue" onclick="goNext()">Next beat →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- START SCREEN -->
+  <div id="start-screen">
+    <div class="eyebrow">A therapeutic story · Willowmere</div>
+    <h1>Cypress&nbsp;Mind</h1>
+    <p>There's a kid named <em>Finn</em> in the alley behind the market. Something just set him off. Sit with him, and help him find where the spark really started.</p>
+    <button class="btn-light" id="begin-btn" onclick="begin()">Step into the alley →</button>
+  </div>
+
+  <!-- REFLECTION -->
+  <div id="reflection">
+    <div class="eyebrow">Finn's part is done · your turn</div>
+    <h1>Where do <em>you</em> feel your spark first?</h1>
+    <p class="sub">Tap if you'd like to. You can skip — this one's just for you.</p>
+    <div id="reflect-figure" class="reflect-dots">
+      <svg viewBox="0 0 200 360" width="100%" height="100%">
+        <circle cx="100" cy="46" r="33" fill="#F8FAF9" opacity="0.92"></circle>
+        <rect x="86" y="76" width="28" height="24" rx="11" fill="#F8FAF9" opacity="0.92"></rect>
+        <rect x="56" y="98" width="88" height="126" rx="36" fill="#F8FAF9" opacity="0.92"></rect>
+        <rect x="28" y="106" width="28" height="118" rx="14" fill="#F8FAF9" opacity="0.92"></rect>
+        <rect x="144" y="106" width="28" height="118" rx="14" fill="#F8FAF9" opacity="0.92"></rect>
+        <rect x="66" y="214" width="28" height="132" rx="14" fill="#F8FAF9" opacity="0.92"></rect>
+        <rect x="106" y="214" width="28" height="132" rx="14" fill="#F8FAF9" opacity="0.92"></rect>
+      </svg>
+      <div id="reflect-dots"></div>
+    </div>
+    <div id="reflect-actions">
+      <button class="btn-ghost" onclick="skipReflection()">Skip</button>
+      <button class="btn-light" id="reflect-finish" onclick="finishReflection()">That's the spot →</button>
+    </div>
+  </div>
+
+  <!-- DONE -->
+  <div id="done-screen">
+    <div class="star">✦</div>
+    <h1>You sat with the whole story.</h1>
+    <p>Noticing where a spark lands — in the jaw, the fists, the chest, the gut — is the first step to catching it before it runs the show. That goes for Finn. It goes for you too.</p>
+    <button class="btn-light" id="restart-btn" onclick="restart()">Replay the scene</button>
+  </div>
+
+</div>
+
+<script>
+// ── CONFIG ──
+const SUPABASE_URL = 'https://vfpxovpwwabisfjjqkpm.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_-cIPFr0xt1CfC8fwh0e_ew_Q6LIbcX5';
+const PARAMS       = new URLSearchParams(window.location.search);
+const SESSION_ID   = PARAMS.get('session');
+const HEAT_OVERRIDE = PARAMS.get('heat'); // manual override for testing/demo: ?heat=cool|warm|hot
+
+let db = null;
+try { db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY); } catch (e) { /* offline — heat falls back to warm */ }
+
+// ── STORY DATA — three distinct incidents from Finn's day ──
+const BEATS = [
+  { // the vendor — small spark
+    dialogue: "So this trader 'forgets' to count out my full share. Second time this week. I said something — he acted like I was the one causing trouble.",
+    sparks: ["Getting shorted again", "Him acting like I'm the problem", "That it's happened before", "Having to make a scene over pennies"],
+  },
+  { // the older kids — bigger spark, dignity hit
+    dialogue: "Couple older kids see me at the stall, start in loud enough for everyone — 'watch your pockets, here comes the thief.' Whole street heard it.",
+    sparks: ["Being called a thief", "That everyone heard it", "Them saying it like a joke", "Not being able to say anything back"],
+  },
+  { // the friend's laugh — the one designed to surprise
+    dialogue: "Later my friend laughs at something I said. Normal thing. Except I couldn't tell if it was <em>with</em> me or <em>at</em> me. And that one actually got me — worse than the other two.",
+    sparks: ["Not knowing which kind of laugh it was", "Thinking maybe she meant it mean", "Just... not being sure", "Being laughed at, period"],
+  },
+];
+
+// ── HEAT CARRYOVER — opening line branches on the Market Stall boundary choice ──
+const HEAT_LINES = {
+  cool: "Huh. Didn't expect you to actually mean it. Most people either fold or come in swinging. You didn't. Guess I owe you that much — c'mere a sec.",
+  warm: "It's fine. I'm fine. Don't need you tip-toeing 'round me like I'm gonna bite. ...I might bite. C'mon, what'd you want?",
+  hot:  "Yeah, yeah, heard you the first time. Don't need a lecture. ...Just — gimme a sec. I get like this. It's not always about you.",
+};
+// Market Stall opts: 'Speak up' / 'Set a rule' both set the boundary clearly → cool;
+// 'Let it go' is passive → warm. No current option maps to hot (reserved for harsh responses).
+const HEAT_FROM_LABEL = { 'Speak up': 'cool', 'Set a rule': 'cool', 'Let it go': 'warm' };
+const HEAT_FROM_INDEX = ['cool', 'cool', 'warm'];
+
+async function fetchHeat() {
+  if (!db || !SESSION_ID) return 'warm';
+  try {
+    const { data: sess } = await db.from('sessions').select('client_id').eq('id', SESSION_ID).single();
+    if (!sess?.client_id) return 'warm';
+
+    const { data: allSessions } = await db
+      .from('sessions')
+      .select('id')
+      .eq('client_id', sess.client_id)
+      .eq('activity_type', 'willowmere_boundaries');
+    if (!allSessions?.length) return 'warm';
+
+    let { data: enc } = await db
+      .from('quest_encounters')
+      .select('choice_index, choice_label')
+      .in('session_id', allSessions.map(s => s.id))
+      .eq('npc_id', 'finn')
+      .order('created_at', { ascending: false })
+      .limit(1);
+    if (!enc) {
+      // retry unordered in case created_at is unavailable; last row ≈ most recent insert
+      const res = await db
+        .from('quest_encounters')
+        .select('choice_index, choice_label')
+        .in('session_id', allSessions.map(s => s.id))
+        .eq('npc_id', 'finn');
+      enc = res.data ? res.data.slice(-1) : null;
+    }
+    const e = enc?.[0];
+    if (!e) return 'warm';
+    return HEAT_FROM_LABEL[e.choice_label] || HEAT_FROM_INDEX[e.choice_index] || 'warm';
+  } catch (err) {
+    return 'warm';
+  }
+}
+const heatPromise = fetchHeat();
+
+// ── BODY ZONES ──
+// tuned to Finn's illustration (Finn Alley.webp, front-view full body)
+const ZONES_FINN = [
+  { id:'jaw',     label:'Jaw',     left:'50%', top:'24%', showLabel:true,  lp:'left'  },
+  { id:'chest',   label:'Chest',   left:'46%', top:'36%', showLabel:true,  lp:'left'  },
+  { id:'stomach', label:'Stomach', left:'45%', top:'48%', showLabel:true,  lp:'left'  },
+  { id:'fists',   label:'',        left:'37%', top:'54%', showLabel:false, lp:'left'  },
+  { id:'fists',   label:'Fists',   left:'81%', top:'46%', showLabel:true,  lp:'right' },
+];
+// generic reflection silhouette
+const ZONES_REFLECT = [
+  { id:'jaw',     label:'Jaw',     left:'50%', top:'12%', showLabel:true,  lp:'right' },
+  { id:'chest',   label:'Chest',   left:'50%', top:'31%', showLabel:true,  lp:'right' },
+  { id:'stomach', label:'Stomach', left:'50%', top:'47%', showLabel:true,  lp:'right' },
+  { id:'fists',   label:'Fists',   left:'14%', top:'60%', showLabel:true,  lp:'left'  },
+  { id:'fists',   label:'',        left:'86%', top:'60%', showLabel:false, lp:'right' },
+];
+const CONFIRM_TEXT = {
+  jaw:     "His jaw locked up tight.",
+  chest:   "It slammed into his chest.",
+  stomach: "It dropped straight to his gut.",
+  fists:   "His fists curled before he knew it.",
+};
+
+// ── STATE ──
+const state = { started:false, phase:'heat', beat:0, heat:'warm', spark:null, zone:null, reflect:null };
+const sessionLog = []; // Supabase write-back is Phase 3/4 — kept in memory for now
+let sparksBuiltForBeat = -1;
+
+const $ = id => document.getElementById(id);
+
+// ── DOTS ──
+function buildDots(container, defs, onPick) {
+  defs.forEach(z => {
+    const wrap = document.createElement('div');
+    wrap.className = 'dot-wrap';
+    wrap.dataset.zone = z.id;
+    wrap.style.left = z.left;
+    wrap.style.top = z.top;
+    wrap.onclick = () => onPick(z.id);
+
+    const dot = document.createElement('div');
+    dot.className = 'dot';
+    dot.innerHTML = '<span class="dot-check">✓</span>';
+    wrap.appendChild(dot);
+
+    if (z.showLabel) {
+      const label = document.createElement('span');
+      label.className = 'dot-label ' + (z.lp === 'left' ? 'side-left' : 'side-right');
+      label.textContent = z.label;
+      wrap.appendChild(label);
+    }
+    container.appendChild(wrap);
+  });
+}
+function updateDots(container, selectedId) {
+  container.querySelectorAll('.dot-wrap').forEach(w =>
+    w.classList.toggle('selected', w.dataset.zone === selectedId));
+}
+
+// ── SPARK OPTIONS ──
+function buildSparks(beat) {
+  const grid = $('spark-grid');
+  grid.innerHTML = '';
+  BEATS[beat].sparks.forEach(label => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'spark-opt';
+    b.innerHTML = '<span class="spark-bar"></span><span class="spark-row"><span class="spark-label"></span><span class="spark-check">✓</span></span>';
+    b.querySelector('.spark-label').textContent = label;
+    b.onclick = () => { state.spark = label; render(); };
+    grid.appendChild(b);
+  });
+  sparksBuiltForBeat = beat;
+}
+
+// ── RENDER ──
+function show(el, on, disp) { el.style.display = on ? (disp || 'block') : 'none'; }
+
+function render() {
+  const s = state;
+  const inScene = s.started && ['heat','story','spark','body'].includes(s.phase);
+
+  show($('start-screen'), !s.started, 'flex');
+  show($('finn'), inScene);
+  show($('bubble-wrap'), inScene);
+  show($('top-bar'), s.started && !['reflection','done'].includes(s.phase), 'flex');
+  show($('heat-panel'), s.started && s.phase === 'heat');
+  show($('story-panel'), s.started && s.phase === 'story');
+  show($('spark-panel'), s.started && s.phase === 'spark');
+  show($('body-modal'), s.started && s.phase === 'body', 'flex');
+  show($('reflection'), s.phase === 'reflection', 'flex');
+  show($('done-screen'), s.phase === 'done', 'flex');
+  $('calm-wash').style.opacity = s.phase === 'reflection' ? 1 : 0;
+
+  if (inScene) {
+    if (s.phase === 'heat') {
+      $('bubble-tag-text').textContent = 'Finn';
+      $('bubble-text').innerHTML = '“' + HEAT_LINES[s.heat] + '”';
+    } else {
+      $('bubble-tag-text').textContent = 'Finn · beat ' + (s.beat + 1) + ' of 3';
+      $('bubble-text').innerHTML = '“' + BEATS[s.beat].dialogue + '”';
+    }
+  }
+
+  document.querySelectorAll('#progress-row .pbar').forEach((bar, i) => {
+    bar.style.background = i === s.beat ? '#F8FAF9' : (i < s.beat ? '#4169E1' : 'rgba(248,250,249,.28)');
+  });
+
+  if (s.phase === 'spark') {
+    if (sparksBuiltForBeat !== s.beat) buildSparks(s.beat);
+    document.querySelectorAll('.spark-opt').forEach(b =>
+      b.classList.toggle('selected', b.querySelector('.spark-label').textContent === s.spark));
+    show($('spark-next-row'), !!s.spark, 'flex');
+  }
+
+  updateDots($('body-dots'), s.zone);
+  show($('body-confirm'), !!s.zone);
+  $('body-confirm-text').textContent = CONFIRM_TEXT[s.zone] || '';
+  $('body-continue').textContent = s.beat < 2 ? 'Next beat →' : 'Close the scene →';
+
+  updateDots($('reflect-dots'), s.reflect);
+  show($('reflect-finish'), !!s.reflect, 'inline-block');
+}
+
+// ── ACTIONS ──
+async function begin() {
+  const heat = HEAT_OVERRIDE || await Promise.race([
+    heatPromise,
+    new Promise(r => setTimeout(() => r('warm'), 3000)),
+  ]);
+  state.heat = HEAT_LINES[heat] ? heat : 'warm';
+  Object.assign(state, { started:true, phase:'heat', beat:0, spark:null, zone:null });
+  render();
+}
+function heatContinue() { state.phase = 'story'; render(); }
+function tagSpark()     { state.phase = 'spark'; render(); }
+function toBody()       { state.phase = 'body';  render(); }
+function goNext() {
+  sessionLog.push({ beat: state.beat, spark: state.spark, zone: state.zone });
+  if (state.beat < 2) {
+    Object.assign(state, { beat: state.beat + 1, phase:'story', spark:null, zone:null });
+  } else {
+    state.phase = 'reflection';
+  }
+  render();
+}
+function finishReflection() {
+  sessionLog.push({ reflect: state.reflect });
+  state.phase = 'done';
+  render();
+}
+function skipReflection() { state.phase = 'done'; render(); }
+function restart() {
+  Object.assign(state, { started:false, phase:'heat', beat:0, spark:null, zone:null, reflect:null });
+  render();
+}
+
+// ── INIT ──
+window.addEventListener('DOMContentLoaded', () => {
+  const row = $('progress-row');
+  BEATS.forEach(() => {
+    const bar = document.createElement('div');
+    bar.className = 'pbar';
+    row.appendChild(bar);
+  });
+  buildDots($('body-dots'), ZONES_FINN, id => { state.zone = id; render(); });
+  buildDots($('reflect-dots'), ZONES_REFLECT, id => { state.reflect = id; render(); });
+  render();
+});
+</script>
+</body>
+</html>
