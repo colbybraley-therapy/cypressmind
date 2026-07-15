@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Therapist View · Cypress Mind</title>
+<!--
+  Standalone therapist companion for iPhone. Pairs to an in-progress iPad
+  session via the 6-digit code the iPad shows at setup (session-pairing.js),
+  then joins the SAME Realtime channel the activity uses —
+  cypress-session:{code} — as role 'therapist' and renders the shared
+  controls from therapist-overlay.js (renderTherapistControls).
+
+  Session state lives in memory only: if this page reloads, the therapist
+  re-enters the code. Only Supabase's own auth persistence is relied on.
+-->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="src/activities/_shared/cypress-session-engine.js"></script>
+<script src="src/activities/_shared/therapist-overlay.js"></script>
+<script src="src/activities/_shared/session-pairing.js"></script>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@500;600&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+  :root{
+    --hunter:#355E3B; --hunter-deep:#26432C; --ochre:#C99A3B; --ochre-soft:#E0BC72;
+    --off-white:#F8FAF9; --ink:#1F2A23; --on-dark:#EDEAE0;
+    --font-head:'Playfair Display',Georgia,serif; --font-body:'DM Sans',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--hunter-deep);color:var(--on-dark);font-family:var(--font-body);
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+  .screen{display:none;min-height:100vh;min-height:100dvh;flex-direction:column;padding:28px 22px}
+  .screen.show{display:flex}
+
+  .brand{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+  .brand-dot{width:10px;height:10px;border-radius:50%;background:var(--ochre)}
+  .brand h1{font-family:var(--font-head);font-size:20px;font-weight:600;color:#fff}
+  .tagline{font-size:13px;color:rgba(237,234,224,.62);margin-bottom:34px}
+
+  label{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;
+    color:rgba(237,234,224,.62);font-weight:700;margin:0 0 8px}
+  .field{width:100%;background:rgba(237,234,224,.07);border:1px solid rgba(237,234,224,.18);
+    border-radius:12px;color:#fff;font:400 16px var(--font-body);padding:15px 16px;margin-bottom:16px;
+    -webkit-appearance:none;appearance:none;outline:none}
+  .field:focus{border-color:var(--ochre-soft)}
+
+  .big-btn{width:100%;background:var(--ochre);color:#1a1209;border:none;border-radius:12px;
+    padding:17px;font:700 16px var(--font-body);cursor:pointer;min-height:56px;
+    -webkit-tap-highlight-color:transparent;transition:.15s}
+  .big-btn:active{transform:scale(.98)}
+  .big-btn:disabled{opacity:.5}
+  .ghost-btn{background:none;border:none;color:rgba(237,234,224,.62);font:500 13px var(--font-body);
+    padding:14px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+
+  .err{display:none;background:rgba(201,84,59,.16);border:1px solid rgba(201,84,59,.45);color:#F2C4B5;
+    border-radius:10px;padding:12px 14px;font-size:13.5px;line-height:1.45;margin-bottom:16px}
+  .err.show{display:block}
+
+  /* State A — code entry */
+  #code-input{width:100%;background:rgba(237,234,224,.07);border:1px solid rgba(237,234,224,.18);
+    border-radius:16px;color:#fff;font:700 44px var(--font-body);text-align:center;
+    letter-spacing:.35em;text-indent:.35em;padding:20px 8px;margin-bottom:18px;
+    font-variant-numeric:tabular-nums;-webkit-appearance:none;appearance:none;outline:none}
+  #code-input:focus{border-color:var(--ochre-soft)}
+  #code-input::placeholder{color:rgba(237,234,224,.25);letter-spacing:.35em}
+  .code-help{font-size:13.5px;color:rgba(237,234,224,.62);line-height:1.55;margin-bottom:26px}
+
+  .foot{margin-top:auto;padding-top:24px;display:flex;justify-content:center}
+
+  /* State B — paired */
+  #screen-live{padding:14px 12px}
+  #live-host{flex:1;min-height:0;display:flex;flex-direction:column}
+  #live-host .cm-tc{flex:1}
+  #leave-row{display:flex;justify-content:center;padding-top:10px}
+
+  .spin{display:inline-block;width:16px;height:16px;border:2px solid rgba(26,18,9,.3);
+    border-top-color:#1a1209;border-radius:50%;vertical-align:-3px;margin-right:8px;
+    animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+</style>
+</head>
+<body>
+
+<!-- SIGN IN — the pairing lookup is scoped to therapist_id = auth.uid() -->
+<div class="screen" id="screen-auth">
+  <div class="brand"><span class="brand-dot"></span><h1>Cypress Mind</h1></div>
+  <p class="tagline">Therapist companion — sign in to pair with a session.</p>
+  <div class="err" id="auth-err"></div>
+  <form id="auth-form">
+    <label for="auth-email">Email</label>
+    <input class="field" id="auth-email" type="email" autocomplete="email" required>
+    <label for="auth-pass">Password</label>
+    <input class="field" id="auth-pass" type="password" autocomplete="current-password" required>
+    <button class="big-btn" id="auth-btn" type="submit">Sign in</button>
+  </form>
+</div>
+
+<!-- STATE A — code entry -->
+<div class="screen" id="screen-code">
+  <div class="brand"><span class="brand-dot"></span><h1>Join a session</h1></div>
+  <p class="tagline">Enter the 6-digit code shown on the iPad.</p>
+  <div class="err" id="code-err"></div>
+  <form id="code-form">
+    <input id="code-input" inputmode="numeric" pattern="[0-9]*" autocomplete="one-time-code"
+           maxlength="6" placeholder="······" aria-label="6-digit session code">
+    <p class="code-help">The code appears on the session setup screen before the iPad is handed
+      to your client. Codes expire 30 minutes after they're generated — once you're connected,
+      you stay connected for the whole session.</p>
+    <button class="big-btn" id="code-btn" type="submit">Connect</button>
+  </form>
+  <div class="foot"><button class="ghost-btn" id="signout-btn" type="button">Sign out</button></div>
+</div>
+
+<!-- STATE B — paired / live view -->
+<div class="screen" id="screen-live">
+  <div id="live-host"></div>
+  <div id="leave-row"><button class="ghost-btn" id="leave-btn" type="button">Leave session view</button></div>
+</div>
+
+<script>
+'use strict';
+const SUPABASE_URL = 'https://vfpxovpwwabisfjjqkpm.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_-cIPFr0xt1CfC8fwh0e_ew_Q6LIbcX5';
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+const ACTIVITY_LABELS = {
+  'emotions':              'Wheel of Emotions',
+  'breathing-garden':      'Zen Breathing Garden',
+  'zen-breathing':         'Zen Breathing Garden',
+  'finn_spark_spotting':   'Finn · Spark Spotting',
+  'willowmere_boundaries': 'Willowmere · Boundaries',
+};
+
+// In-memory only — a reload sends the therapist back to code entry.
+let liveControls = null;
+
+function show(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('show', s.id === id));
+}
+function setErr(id, msg) {
+  const el = document.getElementById(id);
+  el.textContent = msg || '';
+  el.classList.toggle('show', !!msg);
+}
+
+/* ── boot: reuse a persisted Supabase auth session when there is one ── */
+(async function boot() {
+  const { data: { session } } = await db.auth.getSession();
+  show(session ? 'screen-code' : 'screen-auth');
+  if (session) focusCode();
+})();
+
+/* ── sign in ── */
+document.getElementById('auth-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  setErr('auth-err', '');
+  const btn = document.getElementById('auth-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span>Signing in…';
+  const { error } = await db.auth.signInWithPassword({
+    email: document.getElementById('auth-email').value.trim(),
+    password: document.getElementById('auth-pass').value,
+  });
+  btn.disabled = false;
+  btn.textContent = 'Sign in';
+  if (error) { setErr('auth-err', error.message || 'Sign-in failed. Check your email and password.'); return; }
+  show('screen-code');
+  focusCode();
+});
+
+document.getElementById('signout-btn').addEventListener('click', async () => {
+  await db.auth.signOut();
+  show('screen-auth');
+});
+
+/* ── State A: code entry ── */
+const codeInput = document.getElementById('code-input');
+function focusCode() { setTimeout(() => codeInput.focus(), 50); }
+
+codeInput.addEventListener('input', () => {
+  codeInput.value = codeInput.value.replace(/\D/g, '').slice(0, 6);
+  setErr('code-err', '');
+  if (codeInput.value.length === 6) submitCode();
+});
+document.getElementById('code-form').addEventListener('submit', (e) => { e.preventDefault(); submitCode(); });
+
+let looking = false;
+async function submitCode() {
+  if (looking) return;
+  const code = codeInput.value;
+  if (!/^\d{6}$/.test(code)) { setErr('code-err', 'Enter all 6 digits of the code on the iPad.'); return; }
+
+  looking = true;
+  const btn = document.getElementById('code-btn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spin"></span>Connecting…';
+  let row = null;
+  try {
+    row = await CypressSessionPairing.lookupSessionByCode(db, code);
+  } catch (err) {
+    console.warn('[TherapistView] lookup failed:', err);
+  }
+  looking = false;
+  btn.disabled = false;
+  btn.textContent = 'Connect';
+
+  if (!row) {
+    setErr('code-err', 'No active session matches that code. It may have expired — regenerate it on the iPad and try again.');
+    codeInput.select();
+    return;
+  }
+  enterLiveView(row);
+}
+
+/* ── State B: paired ── */
+async function enterLiveView(row) {
+  // Willowmere runs the older quest-channel contract and already has a full
+  // therapist page — hand off to it rather than duplicating anything here.
+  if (row.activity_type === 'willowmere_boundaries') {
+    window.location.href = 'src/activities/adventures/willowmere-boundaries-therapist.html?session='
+      + encodeURIComponent(row.session_id);
+    return;
+  }
+
+  let clientName = 'Client';
+  if (row.client_id) {
+    const { data } = await db.from('clients').select('name').eq('id', row.client_id).single();
+    if (data && data.name) clientName = data.name;
+  }
+
+  const transport = CypressSessionEngine.transports.Supabase(row.code, db);
+  const host = document.getElementById('live-host');
+  host.innerHTML = '';
+  liveControls = renderTherapistControls(host, {
+    code: row.code,
+    sessionId: row.session_id,
+    client: clientName,
+    activity: ACTIVITY_LABELS[row.activity_type] || row.activity_type || '',
+    announcePaired: true,   // lets the iPad setup screen show "Therapist connected"
+    onEnd: () => {          // close out the row the pairing launch created
+      db.from('sessions').update({ status: 'completed' }).eq('id', row.session_id)
+        .then(({ error }) => { if (error) console.warn('[TherapistView] status update failed:', error); });
+    },
+  }, transport);
+
+  show('screen-live');
+}
+
+document.getElementById('leave-btn').addEventListener('click', () => {
+  if (liveControls) { liveControls.destroy(); liveControls = null; }
+  codeInput.value = '';
+  show('screen-code');
+  focusCode();
+});
+</script>
+</body>
+</html>

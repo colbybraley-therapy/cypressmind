@@ -982,6 +982,10 @@
               <input type="checkbox" id="single-device-toggle">
               One device today
             </label>
+            <label class="one-device-toggle" title="Client uses this iPad; you watch and guide from your iPhone. The launch shows a 6-digit code to enter at therapist-view.html on your phone.">
+              <input type="checkbox" id="phone-companion-toggle">
+              Phone companion
+            </label>
           </div>
 
           <!-- Progress Chart -->
@@ -1201,6 +1205,7 @@
        JAVASCRIPT
   ══════════════════════════════════════════ -->
   <script src="src/activities/_shared/cypress-session-engine.js"></script>
+  <script src="src/activities/_shared/session-pairing.js"></script>
   <script src="src/activities/_shared/live-session-drawer.js"></script>
   <script src="src/activities/tools/wheel-of-emotions/wheel-drawer.js"></script>
   <script>
@@ -2284,6 +2289,11 @@
     const clientSnapshot = currentClient;
     const code = Math.random().toString(36).substring(2, 8).toUpperCase();
 
+    if (document.getElementById('phone-companion-toggle')?.checked) {
+      launchWheelWithPhonePairing(clientSnapshot, code);
+      return;
+    }
+
     if (document.getElementById('single-device-toggle')?.checked) {
       launchWheelSingleDevice(clientSnapshot, code);
       return;
@@ -2318,6 +2328,119 @@
 
     window.open(url, '_blank');
   }
+
+  /* Phone companion: client uses THIS iPad (dual transport, no drawer here);
+     the therapist watches from their iPhone via therapist-view.html. The
+     pairing code hangs on a sessions row, so create it up front — dual-mode
+     wheel normally only inserts one at save time. */
+  let _ppEngine = null, _ppTick = null, _ppSessionId = null;
+
+  async function launchWheelWithPhonePairing(clientSnapshot, code) {
+    const sessionRow = {
+      client_id:     clientSnapshot?.id,
+      therapist_id:  currentUser?.id,
+      code,
+      status:        'active',
+      activity_type: 'emotions',
+      session_mode:  'dual',
+    };
+    let { data: session, error } = await db.from('sessions').insert(sessionRow).select('id').single();
+    if (error && /session_mode/.test(error.message || '')) {
+      delete sessionRow.session_mode;
+      ({ data: session, error } = await db.from('sessions').insert(sessionRow).select('id').single());
+    }
+    if (error) { console.error('[PhonePairing] session insert failed:', error); return; }
+    _ppSessionId = session.id;
+
+    let pair = null;
+    try { pair = await CypressSessionPairing.generateSessionCode(db, session.id); }
+    catch (err) { console.error('[PhonePairing] code generation failed:', err); }
+
+    openPairingModal(pair, code, clientSnapshot);
+    loadSessionHistory?.();
+  }
+
+  function openPairingModal(pair, code, clientSnapshot) {
+    closePairingModal();
+    const clientName = clientSnapshot ? clientSnapshot.name : 'Client';
+
+    const wrap = document.createElement('div');
+    wrap.id = 'phone-pair-modal';
+    wrap.style.cssText = 'position:fixed;inset:0;z-index:9000;background:rgba(20,35,24,.45);display:flex;align-items:center;justify-content:center;padding:20px;';
+    wrap.innerHTML = `
+      <div style="background:#fff;border-radius:16px;max-width:420px;width:100%;padding:28px 26px;box-shadow:0 24px 60px rgba(20,35,24,.3);font-family:var(--sans,'DM Sans',system-ui,sans-serif);">
+        <div style="font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--slate-light,#7a8a7d);font-weight:700;">Phone companion · ${clientName}</div>
+        <h3 style="font-size:19px;color:var(--hunter-green,#355E3B);margin:6px 0 16px;">Pair your iPhone</h3>
+        <div id="pp-code-block" style="text-align:center;background:var(--green-light,#EAF3DE);border-radius:12px;padding:18px 12px;margin-bottom:10px;">
+          <div id="pp-code" style="font-family:var(--mono,monospace);font-size:40px;font-weight:700;letter-spacing:.3em;text-indent:.3em;color:var(--hunter-green,#355E3B);">${pair ? pair.code : '——————'}</div>
+          <div id="pp-expiry" style="font-size:12px;color:var(--slate-light,#7a8a7d);margin-top:4px;">${pair ? 'Code expires in 30:00' : ''}</div>
+        </div>
+        <p id="pp-status" style="font-size:13px;color:var(--slate-light,#7a8a7d);text-align:center;min-height:18px;margin-bottom:14px;">${pair ? 'On your iPhone, open therapist-view.html and enter this code.' : 'Pairing unavailable — run db/add-session-pairing.sql, then relaunch.'}</p>
+        <button id="pp-regen" style="display:none;width:100%;margin-bottom:8px;background:none;border:1px solid var(--border-strong,#cfe0d1);border-radius:10px;padding:11px;font:600 13px var(--sans,'DM Sans',sans-serif);color:var(--hunter-green,#355E3B);cursor:pointer;">Generate a new code</button>
+        <button id="pp-open" style="width:100%;background:var(--hunter-green,#355E3B);color:#fff;border:none;border-radius:10px;padding:13px;font:700 14px var(--sans,'DM Sans',sans-serif);cursor:pointer;">Open activity for client →</button>
+        <p style="font-size:11.5px;color:var(--slate-light,#7a8a7d);text-align:center;margin-top:8px;">You can pair before or after handing the iPad over — the code stays valid either way.</p>
+        <button id="pp-done" style="width:100%;margin-top:6px;background:none;border:none;padding:10px;font:500 13px var(--sans,'DM Sans',sans-serif);color:var(--slate-light,#7a8a7d);cursor:pointer;text-decoration:underline;">Done</button>
+      </div>`;
+    document.body.appendChild(wrap);
+
+    // Listen on the session's engine channel for the phone's 'paired' hello
+    _ppEngine = CypressSessionEngine.join({ role: 'therapist', code, supabase: db });
+    _ppEngine.onPresence(p => {
+      if (p.who !== 'paired') return;
+      const st = document.getElementById('pp-status');
+      if (st) { st.textContent = '✓ Therapist phone connected'; st.style.color = 'var(--hunter-green,#355E3B)'; st.style.fontWeight = '600'; }
+    });
+
+    // Expiry countdown → regenerate affordance
+    let expiresAt = pair ? new Date(pair.expiresAt).getTime() : 0;
+    function tick() {
+      if (!expiresAt) return;
+      const left = Math.round((expiresAt - Date.now()) / 1000);
+      const expEl = document.getElementById('pp-expiry');
+      const regen = document.getElementById('pp-regen');
+      if (!expEl) return;
+      if (left <= 0) {
+        expEl.textContent = 'Code expired — generate a new one to pair.';
+        if (regen) regen.style.display = 'block';
+      } else {
+        expEl.textContent = 'Code expires in ' + String(left / 60 | 0).padStart(2, '0') + ':' + String(left % 60).padStart(2, '0');
+      }
+    }
+    if (pair) { _ppTick = setInterval(tick, 1000); tick(); }
+
+    document.getElementById('pp-regen').onclick = async () => {
+      const fresh = await CypressSessionPairing.regenerateCodeIfExpired(db, _ppSessionId);
+      if (!fresh) return;
+      expiresAt = new Date(fresh.expiresAt).getTime();
+      document.getElementById('pp-code').textContent = fresh.code;
+      document.getElementById('pp-regen').style.display = 'none';
+      tick();
+    };
+    document.getElementById('pp-open').onclick = () => {
+      const url = 'src/activities/tools/wheel-of-emotions/index.html'
+        + '?session=' + encodeURIComponent(code)
+        + '&supabase=1&client=' + encodeURIComponent(clientName);
+      window.open(url, '_blank');
+      const st = document.getElementById('pp-status');
+      if (st && !st.textContent.startsWith('✓')) st.textContent = 'Activity open — hand the iPad to your client.';
+    };
+    document.getElementById('pp-done').onclick = closePairingModal;
+  }
+
+  function closePairingModal() {
+    document.getElementById('phone-pair-modal')?.remove();
+    if (_ppTick) { clearInterval(_ppTick); _ppTick = null; }
+    if (_ppEngine) { try { _ppEngine.close(); } catch (e) {} _ppEngine = null; }
+  }
+
+  // The two launch modes are mutually exclusive transports (LocalTransport vs
+  // Supabase) — checking one unchecks the other.
+  document.getElementById('single-device-toggle')?.addEventListener('change', function () {
+    if (this.checked) document.getElementById('phone-companion-toggle').checked = false;
+  });
+  document.getElementById('phone-companion-toggle')?.addEventListener('change', function () {
+    if (this.checked) document.getElementById('single-device-toggle').checked = false;
+  });
 
   async function saveWheelSummary(clientSnapshot, code, summary, mode) {
     if (clientSnapshot && summary?.spins?.length) {
